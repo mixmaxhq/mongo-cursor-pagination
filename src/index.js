@@ -67,12 +67,6 @@ function find(collection, params, done) {
       // If we sorted reverse to get the previous page, correct the sort order.
       if (params.previous) results = results.reverse();
 
-      // If the user didn't include the paginated field in their desired fields and we included
-      // it for them, remove it.
-      if (params.fields && !_.has(params.fields, params.paginatedField)) {
-        results = _.map(results, result => _.omit(result, params.paginatedField));
-      }
-
       // Return 'previous' and 'next' cursors, based on what we know about the results.
       // This logic is imperfect because it might return 'next' if there are no more results.
       // This is probably fine since it just means they'll get back an empty query.
@@ -125,6 +119,12 @@ function find(collection, params, done) {
 
       if (response.previous) response.previous = urlSafeEncode(response.previous);
       if (response.next) response.next = urlSafeEncode(response.next);
+
+      // If the user didn't include the paginated field in their desired fields and we included
+      // it for them, remove it.
+      if (params.fields && !_.has(params.fields, params.paginatedField)) {
+        response.results = _.map(response.results, result => _.omit(result, params.paginatedField));
+      }
 
       done(null, response);
     });
