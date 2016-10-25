@@ -1,0 +1,35 @@
+{
+  "name": "mongo-cursor-pagination",
+  "version": "1.0.0",
+  "description": "Make it easy to return cursor-paginated results from a Mongo collection",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mixmaxhq/mongo-cursor-pagination.git"
+  },
+  "keywords": [
+    "mongo",
+    "pagination",
+    "cursor",
+    "database"
+  ],
+  "author": "Brad Vogel <brad@mixmax.com> (https://mixmax.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mixmaxhq/mongo-cursor-pagination/issues"
+  },
+  "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
+  "dependencies": {
+    "base64-url": "^1.3.2",
+    "mongodb-extended-json": "^1.7.1",
+    "underscore": "^1.8.3"
+  },
+  "devDependencies": {
+    "jasmine": "^2.5.2",
+    "mongodb": "^2.2.11",
+    "mongojs": "^2.4.0"
+  }
+}

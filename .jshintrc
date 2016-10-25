@@ -1,0 +1,15 @@
+{
+  // If you are using SublimeLinter, after modifying this config file, be sure to close and reopen
+  // the file(s) you were editing to see the changes take effect.
+
+  // Prohibit the use of undeclared variables.
+  "undef": true,
+
+  // Make JSHint aware of Node globals.
+  "node": true,
+
+  // Warn for unused variables and function parameters.
+  "unused": true,
+
+  "esnext": true
+}

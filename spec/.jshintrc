@@ -1,0 +1,6 @@
+{
+  "extends": "../.jshintrc",
+
+  // Whitelist Jasmine's global variables so JSHint doesn't complain about them being undefined.
+  "jasmine": true
+}
