@@ -12,6 +12,12 @@ API Pagination is typically implemented one of two different ways:
 
 This module helps in implementing #2 - cursor based paging - by providing a method that make it easy to query within a Mongo collection. It also helps by returning a url-safe string that you can return with your HTTP response (see example below).
 
+Here are some examples of cursor-based APIs:
+
+* [Twitter](https://dev.twitter.com/overview/api/cursoring)
+* [Stripe](https://stripe.com/docs/api#pagination-starting_after)
+* [Facebook](https://developers.facebook.com/docs/graph-api/using-graph-api/#cursors)
+
 ## Install
 
 `npm install mongo-cursor-pagination --save`
@@ -90,11 +96,9 @@ page 2 { results:
   next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI4In0' }
 ```
 
-See source for documentation on parameters.
-
 ### Using with Express
 
-A popular use of this module is with Express. The module already returns url-safe strings for its `previous` and `next` cursors, so it's safe to return those cursors directly.
+A popular use of this module is with Express. As a convenience for this use-case, this module returns url-safe strings for `previous` and `next`, so it's safe to return those strings directly.
 
 ```js
 router.get('/myobjects', (req, res, next) => {
