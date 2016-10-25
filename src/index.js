@@ -8,17 +8,17 @@ var base64url = require('base64-url');
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
  *    `db.collection(<collectionName>)` method.
  * @param {Object} params
+ *    -query {Object} The mongo query to pass to Mongo.
  *    -limit {Number} The page size. Default: 100
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
  *      The default is to query all fields.
  *    -paginatedField {String} The field name to query the range for. The field must be:
  *        1. Orderable. We must sort by this value.
- *        2. Unique. Duplicates will result in pages getting skipped.
- *        3. Indexed. For large collections, this should be index for query performance.
- *        4. Immutable. If the value changes between paged queries, it could appear twice.
+ *        2. Indexed. For large collections, this should be indexed for query performance.
+ *        3. Immutable. If the value changes between paged queries, it could appear twice.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
- *    -next {String} The value to start querying the page. Default to start at the beginning of
+ *    -next {String} The value to start querying the page. Defaults to start at the beginning of
  *      the collection.
  *    -previous {String} The value to start querying previous page. Default is to not query backwards.
  * @param {Function} done Node errback style function.
@@ -33,9 +33,9 @@ function find(collection, params, done) {
   if (params.previous) params.previous = urlSafeDecode(params.previous);
   if (params.next) params.next = urlSafeDecode(params.next);
 
-  // The query must always include the paginatedField so know if to get the
   var fields;
 
+  // The query must always include the paginatedField so we can construct the cursor.
   if (params.fields) {
     fields = _.extend({}, params.fields, {
       [params.paginatedField]: 1
