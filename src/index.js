@@ -9,7 +9,8 @@ var base64url = require('base64-url');
  *    `db.collection(<collectionName>)` method.
  * @param {Object} params
  *    -query {Object} The mongo query to pass to Mongo.
- *    -limit {Number} The page size. Default: 100
+ *    -limit {Number} The page size. Must be between 1 and 100 (though can be overridden by
+ *      setting MAX_LIMIT).
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
  *      The default is to query all fields.
  *    -paginatedField {String} The field name to query the range for. The field must be:
@@ -24,15 +25,18 @@ var base64url = require('base64-url');
  * @param {Function} done Node errback style function.
  */
 function find(collection, params, done) {
-  params = _.defaults(params, {
-    query: {},
-    limit: 100,
-    paginatedField: '_id'
-  });
-
   if (_.isString(params.limit)) params.limit = parseInt(params.limit);
   if (params.previous) params.previous = urlSafeDecode(params.previous);
   if (params.next) params.next = urlSafeDecode(params.next);
+
+  params = _.defaults(params, {
+    query: {},
+    limit: module.exports.MAX_LIMIT,
+    paginatedField: '_id'
+  });
+
+  if (params.limit < 1) params.limit = 1;
+  if (params.limit > module.exports.MAX_LIMIT) params.limit = module.exports.MAX_LIMIT;
 
   var fields;
 
@@ -140,5 +144,6 @@ function urlSafeDecode(str) {
 }
 
 module.exports = {
-  find
+  find,
+  MAX_LIMIT: 100
 };
