@@ -368,4 +368,42 @@ describe('tests', () => {
       expect(res.next).toEqual(jasmine.any(String));
     });
   });
+
+  describe('limits', () => {
+    beforeEach(() => {
+      sync.await(db.collection('test_paging_limits').insertMany([{
+        counter: 6
+      }, {
+        counter: 5
+      }, {
+        counter: 4
+      }, {
+        counter: 3
+      }, {
+        counter: 2
+      }, {
+        counter: 1
+      }], sync.defer()));
+    });
+
+    it('should clamp lower limit', () => {
+      var res = sync.await(paging.find(db.collection('test_paging_limits'), {
+        limit: -1
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(1);
+    });
+
+    it('should clamp upper limit', () => {
+      var originalMaxLimit = paging.MAX_LIMIT;
+      paging.MAX_LIMIT = 2;
+      var res = sync.await(paging.find(db.collection('test_paging_limits'), {
+        limit: 999
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+
+      paging.MAX_LIMIT = originalMaxLimit;
+    });
+  });
 });

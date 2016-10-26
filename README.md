@@ -31,7 +31,8 @@ Call `find()` with the following parameters:
       `db.collection(<collectionName>)` method.
    @param {Object} params
       -query {Object} The mongo query to pass to Mongo.
-      -limit {Number} The page size. Default: 100
+      -limit {Number} The page size. Must be between 1 and 100 (though can be overridden by
+        setting MAX_LIMIT).
       -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
         The default is to query all fields.
       -paginatedField {String} The field name to query the range for. The field must be:
@@ -123,6 +124,8 @@ router.get('/myobjects', (req, res, next) => {
 });
 ```
 
+The prevent a user from querying too many documents at once, you can set property `MAX_LIMIT` on the library (e.g. `MongoPaging.MAX_LIMIT = 50;`).
+
 ## Limitiations
 
 The presence of the `previous` and `next` keys on the result doesn't necessarily mean there are results (respectively) before or after the current page. This packages attempts to guess if there might be more results based on if the page is full with results and if `previous` and `next` were passed previously.
@@ -132,6 +135,8 @@ The presence of the `previous` and `next` keys on the result doesn't necessarily
 To run tests, you first must [start a Mongo server on port 27017](https://mongodb.github.io/node-mongodb-native/2.2/quick-start/) and then run `npm test`.
 
 ## Changelog
+
+* 1.1.0 Add `lib.MAX_LIMIT` global setting to clamp
 
 * 1.0.0 Initial release
 
