@@ -30,6 +30,7 @@ function find(collection, params, done) {
     paginatedField: '_id'
   });
 
+  if (_.isString(params.limit)) params.limit = parseInt(params.limit);
   if (params.previous) params.previous = urlSafeDecode(params.previous);
   if (params.next) params.next = urlSafeDecode(params.next);
 

@@ -97,6 +97,19 @@ describe('tests', () => {
       expect(res.next).toEqual(jasmine.any(String));
     });
 
+    it('should accept limit as a string, as a convenience', () => {
+      // First page of 2
+      var res = sync.await(paging.find(db.collection('test_paging'), {
+        limit: '2'
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+      expect(res.results[0].counter).toBe(8);
+      expect(res.results[1].counter).toBe(7);
+      expect(res.previous).toBeFalsy();
+      expect(res.next).toEqual(jasmine.any(String));
+    });
+
     it('should handle hitting the end', () => {
       // First page of 2
       var res = sync.await(paging.find(db.collection('test_paging'), {
