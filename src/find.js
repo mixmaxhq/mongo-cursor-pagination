@@ -1,15 +1,16 @@
 var _ = require('underscore');
-var EJSON = require('mongodb-extended-json');
-var base64url = require('base64-url');
+var config = require('./config');
+var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
 
 /**
- * This method performs a range query on a passed-in Mongo collection, using criteria you specify.
+ * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
+ * are ordered by the paginatedField.
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
  *    `db.collection(<collectionName>)` method.
  * @param {Object} params
- *    -query {Object} The mongo query to pass to Mongo.
- *    -limit {Number} The page size. Must be between 1 and 100 (though can be overridden by
+ *    -query {Object} The find query.
+ *    -limit {Number} The page size. Must be between 1 and 25 (though can be overridden by
  *      setting MAX_LIMIT).
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
  *      The default is to query all fields.
@@ -24,19 +25,24 @@ var base64url = require('base64-url');
  *    -previous {String} The value to start querying previous page. Default is to not query backwards.
  * @param {Function} done Node errback style function.
  */
-function find(collection, params, done) {
+module.exports = function(collection, params, done) {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit);
-  if (params.previous) params.previous = urlSafeDecode(params.previous);
-  if (params.next) params.next = urlSafeDecode(params.next);
+  if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
+  if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 
   params = _.defaults(params, {
     query: {},
-    limit: module.exports.MAX_LIMIT,
+    limit: config.MAX_LIMIT,
     paginatedField: '_id'
   });
 
   if (params.limit < 1) params.limit = 1;
-  if (params.limit > module.exports.MAX_LIMIT) params.limit = module.exports.MAX_LIMIT;
+  if (params.limit > config.MAX_LIMIT) params.limit = config.MAX_LIMIT;
+
+  // If the paginated field is not _id, then it might have duplicate values in it. This is bad
+  // because then we can't exclusively use it for our range queries (that use $lt and $gt). So
+  // to fix this, we secondarily sort on _id, which is always unique.
+  var shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   var fields;
 
@@ -48,20 +54,60 @@ function find(collection, params, done) {
   }
 
   if (params.next) {
-    params.query[params.paginatedField] = {
-      $lt: params.next
-    };
+    if (shouldSecondarySortOnId) {
+      params.query.$or = [{
+        [params.paginatedField]: {
+          $lt: params.next[0]
+        }
+      }, {
+        [params.paginatedField]: {
+          $eq: params.next[0]
+        },
+        _id: {
+          $lt: params.next[1]
+        }
+      }];
+    } else {
+      params.query[params.paginatedField] = {
+        $lt: params.next
+      };
+    }
   } else if (params.previous) {
-    params.query[params.paginatedField] = {
-      $gt: params.previous
+    if (shouldSecondarySortOnId) {
+      params.query.$or = [{
+        [params.paginatedField]: {
+          $gt: params.previous[0]
+        }
+      }, {
+        [params.paginatedField]: {
+          $eq: params.previous[0]
+        },
+        _id: {
+          $gt: params.previous[1]
+        }
+      }];
+    } else {
+      params.query[params.paginatedField] = {
+        $gt: params.previous
+      };
+    }
+  }
+
+  var sort;
+  if (shouldSecondarySortOnId) {
+    sort = {
+      [params.paginatedField]: params.previous ? 1 : -1,
+      _id: params.previous ? 1 : -1
+    };
+  } else {
+    sort = {
+      [params.paginatedField]: params.previous ? 1 : -1
     };
   }
 
   collection
     .find(params.query, fields)
-    .sort({
-      [params.paginatedField]: params.previous ? 1 : -1
-    })
+    .sort(sort)
     .limit(params.limit)
     .toArray((err, results) => {
       if (err) {
@@ -80,41 +126,29 @@ function find(collection, params, done) {
 
       var response;
       if (results.length === 0) {
-        if (params.next) {
-          response = {
-            results: [],
-            previous: params.next
-          };
-        } else if (params.previous) {
-          response = {
-            results: [],
-            next: params.previous
-          };
-        } else {
-          response = {
-            results: []
-          };
-        }
+        response = {
+          results: []
+        };
       } else if (fullPageOfResults && !params.next && !params.previous) {
         response = {
           results,
-          next: results[results.length - 1][params.paginatedField]
+          next: results[results.length - 1]
         };
       } else if (fullPageOfResults) {
         response = {
           results,
-          previous: results[0][params.paginatedField],
-          next: results[results.length - 1][params.paginatedField]
+          previous: results[0],
+          next: results[results.length - 1]
         };
       } else if (params.next) {
         response = {
           results,
-          previous: results[results.length - 1][params.paginatedField]
+          previous: results[results.length - 1]
         };
       } else if (params.previous) {
         response = {
           results,
-          next: results[0][params.paginatedField]
+          next: results[0]
         };
       } else {
         response = {
@@ -122,8 +156,20 @@ function find(collection, params, done) {
         };
       }
 
-      if (response.previous) response.previous = urlSafeEncode(response.previous);
-      if (response.next) response.next = urlSafeEncode(response.next);
+      if (response.previous) {
+        if (shouldSecondarySortOnId) {
+          response.previous = bsonUrlEncoding.encode([response.previous[params.paginatedField], response.previous._id]);
+        } else {
+          response.previous = bsonUrlEncoding.encode(response.previous[params.paginatedField]);
+        }
+      }
+      if (response.next) {
+        if (shouldSecondarySortOnId) {
+          response.next = bsonUrlEncoding.encode([response.next[params.paginatedField], response.next._id]);
+        } else {
+          response.next = bsonUrlEncoding.encode(response.next[params.paginatedField]);
+        }
+      }
 
       // If the user didn't include the paginated field in their desired fields and we included
       // it for them, remove it.
@@ -133,17 +179,4 @@ function find(collection, params, done) {
 
       done(null, response);
     });
-}
-
-function urlSafeEncode(obj) {
-  return base64url.encode(EJSON.stringify(obj));
-}
-
-function urlSafeDecode(str) {
-  return EJSON.parse(base64url.decode(str));
-}
-
-module.exports = {
-  find,
-  MAX_LIMIT: 100
 };
