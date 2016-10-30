@@ -1,6 +1,6 @@
 # mongo-cursor-pagination
 
-This module aids in implementing "cursor-based" pagination using Mongo range queries.
+This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results.
 
 ## Background
 
@@ -95,6 +95,83 @@ page 2 { results:
      { _id: 580fd16aca2a6b271562d8b8, counter: 1 } ],
   previous: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI5In0',
   next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI4In0' }
+```
+
+### search()
+
+Search uses Mongo's [text search](https://docs.mongodb.com/v3.2/text-search/) feature and will return paged results ordered by search relevancy. As such, and unlike `find()`, it does not take a `paginatedField` parameter.
+
+```
+   Performs a search query on a Mongo collection and pages the results. This is different from
+   find() in that the results are ordered by their relevancy, and as such, it does not take
+   a paginatedField parameter. Note that this is less performant than find() because it must
+   perform the full search on each call to this function. Also note that results might change
+
+   @param {MongoCollection} collection A collection object returned from the MongoDB library's
+      `db.collection(<collectionName>)` method. This MUST have a Mongo $text index on it.
+      See https://docs.mongodb.com/manual/core/index-text/.
+   @param {String} searchString String to search on.
+   @param {Object} params
+      -query {Object} The find query.
+      -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
+      -fields {Object} Fields to query in the Mongo object format, e.g. {title :1}.
+        The default is to query ONLY _id (note this is a difference from `find()`).
+      -next {String} The value to start querying the page. Defaults to start at the beginning of
+        the results.
+   @param {Function} done Node errback style function.
+```
+
+Example:
+
+```js
+var MongoClient = require('mongodb').MongoClient;
+var MongoPaging = require('mongo-cursor-pagination');
+
+MongoClient.connect('mongodb://localhost:27017/mydb', (err, db) => {
+  db.collection('myobjects').ensureIndex({
+    mytext: 'text'
+  }, (err) => {
+
+    db.collection('myobjects').insertMany([{
+      mytext: 'dogs'
+    }, {
+      mytext: 'dogs cats'
+    }, {
+      mytext: 'dogs cats pigs'
+    }], (err) => {
+
+      // Query the first page.
+      MongoPaging.search(db.collection('myobjects'), 'dogs', {
+        fields: {
+          mytext: 1
+        },
+        limit: 2
+      }, (err, result) => {
+        console.log(result);
+
+        // Query next page.
+        MongoPaging.search(db.collection('myobjects'), 'dogs', {
+          limit: 2,
+          next: result.next // This queries the next page
+        }, (err, result) => {
+          console.log(result);
+        });
+
+      });
+    });
+  });
+});
+```
+
+Output:
+
+```sh
+page 1  { results:
+   [ { _id: 581668318c11596af22a62de, mytext: 'dogs', score: 1 },
+     { _id: 581668318c11596af22a62df, mytext: 'dogs cats', score: 0.75 } ],
+  next: 'WzAuNzUseyIkb2lkIjoiNTgxNjY4MzE4YzExNTk2YWYyMmE2MmRmIn1d' }
+page 2 { results: 
+   [ { _id: 581668318c11596af22a62e0, score: 0.6666666666666666 } ] }
 ```
 
 ### Using with Express
