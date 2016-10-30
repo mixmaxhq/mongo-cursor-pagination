@@ -10,19 +10,18 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    `db.collection(<collectionName>)` method.
  * @param {Object} params
  *    -query {Object} The find query.
- *    -limit {Number} The page size. Must be between 1 and 25 (though can be overridden by
- *      setting MAX_LIMIT).
+ *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
  *      The default is to query all fields.
  *    -paginatedField {String} The field name to query the range for. The field must be:
- *        1. Orderable. We must sort by this value.
+ *        1. Orderable. We must sort by this value. If duplicate values for paginatedField field
+ *          exist, the results will be secondarily ordered by the _id.
  *        2. Indexed. For large collections, this should be indexed for query performance.
  *        3. Immutable. If the value changes between paged queries, it could appear twice.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
- *    -next {String} The value to start querying the page. Defaults to start at the beginning of
- *      the collection.
- *    -previous {String} The value to start querying previous page. Default is to not query backwards.
+ *    -next {String} The value to start querying the page.
+ *    -previous {String} The value to start querying previous page.
  * @param {Function} done Node errback style function.
  */
 module.exports = function(collection, params, done) {

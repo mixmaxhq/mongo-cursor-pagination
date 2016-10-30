@@ -24,30 +24,36 @@ Here are some examples of cursor-based APIs:
 
 ## Usage
 
+### find()
+
+Find will return ordered and paged results based on a field (`paginatedField`) that you pass in.
+
 Call `find()` with the following parameters:
 
 ```
+   Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
+   are ordered by the paginatedField.
+
    @param {MongoCollection} collection A collection object returned from the MongoDB library's
       `db.collection(<collectionName>)` method.
    @param {Object} params
-      -query {Object} The mongo query to pass to Mongo.
-      -limit {Number} The page size. Must be between 1 and 100 (though can be overridden by
-        setting MAX_LIMIT).
+      -query {Object} The find query.
+      -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
       -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
         The default is to query all fields.
       -paginatedField {String} The field name to query the range for. The field must be:
-          1. Orderable. We must sort by this value.
+          1. Orderable. We must sort by this value. If duplicate values for paginatedField field
+            exist, the results will be secondarily ordered by the _id.
           2. Indexed. For large collections, this should be indexed for query performance.
           3. Immutable. If the value changes between paged queries, it could appear twice.
         The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
         The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
-      -next {String} The value to start querying the page. Default to start at the beginning of
-        the collection.
-      -previous {String} The value to start querying previous page. Default is to not query backwards.
+      -next {String} The value to start querying the page.
+      -previous {String} The value to start querying previous page.
    @param {Function} done Node errback style function.
 ```
 
-## Example
+Example:
 
 ```js
 var MongoClient = require('mongodb').MongoClient;
@@ -180,7 +186,7 @@ A popular use of this module is with Express. As a convenience for this use-case
 
 ```js
 router.get('/myobjects', (req, res, next) => {
-  mongoPaging.find(db.collection('myobjects'), {
+  MongoPaging.find(db.collection('myobjects'), {
     query: {
       userId: req.user._id
     },
@@ -201,11 +207,13 @@ router.get('/myobjects', (req, res, next) => {
 });
 ```
 
-The prevent a user from querying too many documents at once, you can set property `MAX_LIMIT` on the library (e.g. `MongoPaging.MAX_LIMIT = 50;`).
+### Capping the number of results
+
+The prevent a user from querying too many documents at once, you can set property `MAX_LIMIT` on the library (e.g. `mongoPaging.config.MAX_LIMIT = 50;`).
 
 ## Limitiations
 
-The presence of the `previous` and `next` keys on the result doesn't necessarily mean there are results (respectively) before or after the current page. This packages attempts to guess if there might be more results based on if the page is full with results and if `previous` and `next` were passed previously.
+The presence of the `previous` and `next` keys on the result doesn't necessarily mean there are results before or after the current page. This packages attempts to guess if there might be more results based on if the page is full with results and if `previous` and `next` were passed previously.
 
 ## Running tests
 
@@ -213,10 +221,12 @@ To run tests, you first must [start a Mongo server on port 27017](https://mongod
 
 ## Changelog
 
-* 1.1.0 Add `lib.MAX_LIMIT` global setting to clamp
+* 2.0.0 Changed API to so you now set global config on the config object instead of the root export itself (e.g. `require('mongo-cursor-pagination').config.MAX_LIMIT = 100`). The default `MAX_LIMIT` is now a more reasonable 25 instead of 100. Added `search()`. Fixed edge case where pages will be incorrect if paginatedField has duplicate values.
+
+* 1.1.0 Add `MAX_LIMIT` global setting to clamp
 
 * 1.0.0 Initial release
 
-## Future enhancements
+## Future ideas
 
-* Have the `paginatedField` take an array of fields, so if the first field has duplicate values for some documents (e.g. multiple docs having the same `timestamp`), then it can use the second field as a secondary sort. Or perhaps it could just always secondarily sort on the _id, since in Mongo it must always be unique.
+* Add support to `search()` to query previous pages.
