@@ -25,7 +25,6 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  * @param {Function} done Node errback style function.
  */
 module.exports = function(collection, params, done) {
-  if (_.isString(params.limit)) params.limit = parseInt(params.limit);
   if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 

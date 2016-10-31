@@ -176,13 +176,15 @@ page 1  { results:
    [ { _id: 581668318c11596af22a62de, mytext: 'dogs', score: 1 },
      { _id: 581668318c11596af22a62df, mytext: 'dogs cats', score: 0.75 } ],
   next: 'WzAuNzUseyIkb2lkIjoiNTgxNjY4MzE4YzExNTk2YWYyMmE2MmRmIn1d' }
-page 2 { results: 
+page 2 { results:
    [ { _id: 581668318c11596af22a62e0, score: 0.6666666666666666 } ] }
 ```
 
-### Using with Express
+### Use with ExpressJS
 
-A popular use of this module is with Express. As a convenience for this use-case, this module returns url-safe strings for `previous` and `next`, so it's safe to return those strings directly.
+A popular use of this module is with Express to implement a basic API. As a convenience for this use-case, this library exposes a `findWithReq` function that takes the request object from your Express middleware and returns results:
+
+So this code using `find()`:
 
 ```js
 router.get('/myobjects', (req, res, next) => {
@@ -191,10 +193,11 @@ router.get('/myobjects', (req, res, next) => {
       userId: req.user._id
     },
     paginatedField: 'created',
-    fields: {
+    fields: { // Also need to read req.query.fields to use to filter these fields
+      _id: 1,
       created: 1
     },
-    limit: req.query.limit,
+    limit: req.query.limit, // Also need to cap this to 25
     next: req.query.next,
     previous: req.query.previous,
   }, function(err, result) {
@@ -206,6 +209,32 @@ router.get('/myobjects', (req, res, next) => {
   });
 });
 ```
+
+Is more elegant with `findWithReq()`:
+
+```js
+router.get('/myobjects', (req, res, next) => {
+  MongoPaging.findWithReq(req, db.collection('myobjects'), {
+    query: {
+      userId: req.user._id
+    },
+    paginatedField: 'created',
+    fields: {
+      _id: 1,
+      created: 1
+    },
+    limit: 25 // Upper limit
+  }, function(err, result) {
+    if (err) {
+      next(err);
+    } else {
+      res.json(result);
+    }
+  });
+});
+```
+
+`findWithReq()` also handles basic security such as making sure the `limit` and `fields` requested on the URL are within the allowed values you specify in `params`.
 
 ### Capping the number of results
 
@@ -220,6 +249,8 @@ The presence of the `previous` and `next` keys on the result doesn't necessarily
 To run tests, you first must [start a Mongo server on port 27017](https://mongodb.github.io/node-mongodb-native/2.2/quick-start/) and then run `npm test`.
 
 ## Changelog
+
+* 3.0.0 Breaking API change: `find()` no longer accepts a string for `limit`. Added `findWithReq`.
 
 * 2.0.0 Changed API to so you now set global config on the config object instead of the root export itself (e.g. `require('mongo-cursor-pagination').config.MAX_LIMIT = 100`). The default `MAX_LIMIT` is now a more reasonable 25 instead of 100. Added `search()`. Fixed edge case where pages will be incorrect if paginatedField has duplicate values.
 
