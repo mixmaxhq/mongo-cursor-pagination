@@ -6,7 +6,7 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  * Performs a search query on a Mongo collection and pages the results. This is different from
  * find() in that the results are ordered by their relevancy, and as such, it does not take
  * a paginatedField parameter. Note that this is less performant than find() because it must
- * perform the full search on each call to this function. Also note that results might change
+ * perform the full search on each call to this function.
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
  *    `db.collection(<collectionName>)` method. This MUST have a Mongo $text index on it.
