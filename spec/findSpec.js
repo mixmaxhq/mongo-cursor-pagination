@@ -388,7 +388,7 @@ describe('find', () => {
       expect(res.next).toEqual(jasmine.any(String));
     });
 
-    it('should not include the paginatedField in the results if not desired', () => {
+    it('should not include fields not desired', () => {
       var res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
         limit: 1,
         fields: {
@@ -396,7 +396,9 @@ describe('find', () => {
         },
         paginatedField: 'timestamp'
       }, sync.defer()));
-      expect(res.results[0].timestamp).toBeUndefined();
+      expect(res.results[0]).toEqual({
+        counter: 6
+      });
       expect(res.next).toEqual(jasmine.any(String));
     });
   });

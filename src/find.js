@@ -169,10 +169,11 @@ module.exports = function(collection, params, done) {
         }
       }
 
-      // If the user didn't include the paginated field in their desired fields and we included
-      // it for them, remove it.
-      if (params.fields && !_.has(params.fields, params.paginatedField)) {
-        response.results = _.map(response.results, result => _.omit(result, params.paginatedField));
+      // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
+      if (params.fields && (!_.has(params.fields, params.paginatedField) || !_.has(params.fields, params.paginatedField))) {
+        response.results = _.map(response.results, result => {
+          return _.pick(result, _.keys(params.fields));
+        });
       }
 
       done(null, response);

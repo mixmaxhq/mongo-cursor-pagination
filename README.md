@@ -250,6 +250,8 @@ To run tests, you first must [start a Mongo server on port 27017](https://mongod
 
 ## Changelog
 
+* 3.0.1 Fixed bug where the _id field was always returned when a paginatedField was used.
+
 * 3.0.0 Breaking API change: `find()` no longer accepts a string for `limit`. Added `findWithReq`.
 
 * 2.0.0 Changed API to so you now set global config on the config object instead of the root export itself (e.g. `require('mongo-cursor-pagination').config.MAX_LIMIT = 100`). The default `MAX_LIMIT` is now a more reasonable 25 instead of 100. Added `search()`. Fixed edge case where pages will be incorrect if paginatedField has duplicate values.
