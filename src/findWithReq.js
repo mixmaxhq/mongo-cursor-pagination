@@ -1,4 +1,5 @@
 var find = require('./find');
+var dotFieldIntersect = require('./utils/dotFieldIntersect');
 var _ = require('underscore');
 
 /**
@@ -38,14 +39,16 @@ module.exports = function(req, collection, params, done) {
   }
 
   if (!_.isEmpty(req.query.fields)) {
+    var fields = req.query.fields.split(',');
     if (params.fields) {
-      params.fields = _.pick(params.fields, req.query.fields.split(','));
-    } else {
-      params.fields = req.query.fields.split(',').reduce((accum, field) => {
-        accum[field] = 1;
-        return accum;
-      }, {});
+      // Don't trust fields passed in the querystring, so whitelist them against the
+      // fields defined in parameters.
+      fields = dotFieldIntersect(Object.keys(params.fields), fields);
     }
+    params.fields = fields.reduce((accum, field) => {
+      accum[field] = 1;
+      return accum;
+    }, {});
   }
 
   find(collection, params, done);
