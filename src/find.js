@@ -43,12 +43,18 @@ module.exports = function(collection, params, done) {
   var shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   var fields;
+  var removePaginatedFieldInResponse = false;
 
   // The query must always include the paginatedField so we can construct the cursor.
   if (params.fields) {
-    fields = _.extend({}, params.fields, {
-      [params.paginatedField]: 1
-    });
+    fields = _.extend({
+      _id: 0 // Mongo includes this field by default, so don't request it unless the user wants it.
+    }, params.fields);
+
+    if (!fields[params.paginatedField]) {
+      fields[params.paginatedField] = 1;
+      removePaginatedFieldInResponse = true;
+    }
   }
 
   if (params.next) {
@@ -170,10 +176,8 @@ module.exports = function(collection, params, done) {
       }
 
       // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
-      if (params.fields && (!_.has(params.fields, params.paginatedField) || !_.has(params.fields, params.paginatedField))) {
-        response.results = _.map(response.results, result => {
-          return _.pick(result, _.keys(params.fields));
-        });
+      if (removePaginatedFieldInResponse) {
+        response.results = _.map(response.results, result => _.omit(result, params.paginatedField));
       }
 
       done(null, response);

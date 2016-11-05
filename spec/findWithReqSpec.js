@@ -184,4 +184,233 @@ describe('findWithReq', () => {
       });
     });
   });
+
+  describe('fields', () => {
+    beforeEach(() => {
+      sync.await(db.collection('test_paging_fields').insert({
+        obj: {
+          one: 1,
+          two: {
+            three: 3
+          },
+          four: {
+            five: {
+              six: 6
+            },
+            seven: 7
+          }
+        },
+        obj2: 1
+      }, sync.defer()));
+    });
+
+    afterEach(() => {
+      sync.await(db.collection('test_paging_fields').remove({}, sync.defer()));
+    });
+
+    it('should pick fields', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj.one,obj.four.five'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          obj: 1,
+          obj2: 1
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          one: 1,
+          four: {
+            five: {
+              six: 6
+            }
+          }
+        }
+      });
+    });
+
+    it('should work without fields', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj.one,obj.four.five'
+        }
+      }, db.collection('test_paging_fields'), {}, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          one: 1,
+          four: {
+            five: {
+              six: 6
+            }
+          }
+        }
+      });
+    });
+
+    it('should pick fields when nested', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj.four.five'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          'obj.four': 1,
+          obj2: 1
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          four: {
+            five: {
+              six: 6
+            }
+          }
+        }
+      });
+    });
+
+    it('should disallow properties that are not defined', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: '_id,obj.four.five,obj2'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          _id: 1,
+          'obj': 1,
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        _id: jasmine.anything(),
+        obj: {
+          four: {
+            five: {
+              six: 6
+            }
+          }
+        }
+      });
+    });
+
+    it('should pick exact field', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          obj: 1
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          one: 1,
+          two: {
+            three: 3
+          },
+          four: {
+            five: {
+              six: 6
+            },
+            seven: 7
+          }
+        },
+      });
+    });
+
+    it('should pick exact subfields', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj.one,obj.four.five'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          'obj.one': 1,
+          'obj.four.five': 1
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          one: 1,
+          four: {
+            five: {
+              six: 6
+            }
+          }
+        }
+      });
+    });
+
+    it('should not allow a broader scoping of fields', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          'obj.one': 1
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          one: 1,
+        }
+      });
+    });
+
+    it('should not allow a broader scoping of subfields', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj.two,obj.four,obj2'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          'obj.two.three': 1,
+          'obj.four.five': 1,
+          'obj2': 1
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          two: {
+            three: 3
+          },
+          four: {
+            five: {
+              six: 6
+            }
+          }
+        },
+        obj2: 1
+      });
+    });
+
+    it('should pick exact subfields', function() {
+      var res = sync.await(paging.findWithReq({
+        query: {
+          fields: 'obj.one'
+        }
+      }, db.collection('test_paging_fields'), {
+        fields: {
+          'obj.one': 1
+        }
+      }, sync.defer()));
+
+      expect(res.results[0]).toEqual({
+        obj: {
+          one: 1
+        }
+      });
+    });
+  });
 });
