@@ -37,7 +37,7 @@ function sameOrBroader(dotField1, dotField2) {
   var dotField1Parts = dotField1.split('.');
   var dotField2Parts = dotField2.split('.');
   if (dotField1Parts.length < dotField2Parts.length) return false;
-  for (let i = 0; i < dotField2Parts.length; i++) {
+  for (var i = 0; i < dotField2Parts.length; i++) {
     if (dotField1Parts[i] !== dotField2Parts[i]) return false;
   }
   return true;
