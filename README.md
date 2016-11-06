@@ -250,6 +250,8 @@ To run tests, you first must [start a Mongo server on port 27017](https://mongod
 
 ## Changelog
 
+* 3.1.1 Don't use `let` for backwards compatibility.
+
 * 3.1.0 `findInReq()` now accepts dot notation for fields. So you can pass `?fields=users.userId` to only turn the `userId` property for `users` in the response.
 
 * 3.0.1 Fixed bug where the _id field was always returned when a paginatedField was used.
