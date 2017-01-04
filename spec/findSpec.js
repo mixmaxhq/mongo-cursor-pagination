@@ -42,53 +42,68 @@ describe('find', () => {
       });
 
       it('should query first few pages', () => {
-        // First page of 2
+        // First page of 3
         var res = sync.await(paging.find(db.collection('test_paging'), {
-          limit: 2
+          limit: 3
         }, sync.defer()));
 
-        expect(res.results.length).toBe(2);
+        expect(res.results.length).toBe(3);
         expect(res.results[0].counter).toBe(8);
         expect(res.results[1].counter).toBe(7);
-        expect(res.previous).toBeFalsy();
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.results[2].counter).toBe(6);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
 
-        // Go forward 2
+        // Go forward 3
         res = sync.await(paging.find(db.collection('test_paging'), {
           limit: 3,
           next: res.next
         }, sync.defer()));
 
         expect(res.results.length).toBe(3);
-        expect(res.results[0].counter).toBe(6);
-        expect(res.results[1].counter).toBe(5);
-        expect(res.results[2].counter).toBe(4);
-        expect(res.previous).toEqual(jasmine.any(String));
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.results[0].counter).toBe(5);
+        expect(res.results[1].counter).toBe(4);
+        expect(res.results[2].counter).toBe(3);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
 
-        // Go forward another 2
+        // Go forward another 3
         res = sync.await(paging.find(db.collection('test_paging'), {
-          limit: 2,
+          limit: 3,
           next: res.next
         }, sync.defer()));
 
         expect(res.results.length).toBe(2);
-        expect(res.results[0].counter).toBe(3);
-        expect(res.results[1].counter).toBe(2);
-        expect(res.previous).toEqual(jasmine.any(String));
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.results[0].counter).toBe(2);
+        expect(res.results[1].counter).toBe(1);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
 
-        // Now back up 2
+        // Now back up 3
         res = sync.await(paging.find(db.collection('test_paging'), {
-          limit: 2,
+          limit: 3,
           previous: res.previous
         }, sync.defer()));
 
-        expect(res.results.length).toBe(2);
+        expect(res.results.length).toBe(3);
         expect(res.results[0].counter).toBe(5);
         expect(res.results[1].counter).toBe(4);
-        expect(res.previous).toEqual(jasmine.any(String));
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.results[2].counter).toBe(3);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Now back up 3 more
+        res = sync.await(paging.find(db.collection('test_paging'), {
+          limit: 3,
+          previous: res.previous
+        }, sync.defer()));
+
+        expect(res.results.length).toBe(3);
+        expect(res.results[0].counter).toBe(8);
+        expect(res.results[1].counter).toBe(7);
+        expect(res.results[2].counter).toBe(6);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
       });
 
       it('should handle hitting the end', () => {
@@ -102,8 +117,8 @@ describe('find', () => {
         expect(res.results[1].counter).toBe(7);
         expect(res.results[2].counter).toBe(6);
         expect(res.results[3].counter).toBe(5);
-        expect(res.previous).toBeFalsy();
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
 
         // Go forward 2
         res = sync.await(paging.find(db.collection('test_paging'), {
@@ -115,8 +130,8 @@ describe('find', () => {
         expect(res.results[0].counter).toBe(4);
         expect(res.results[1].counter).toBe(3);
         expect(res.results[2].counter).toBe(2);
-        expect(res.previous).toEqual(jasmine.any(String));
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
 
         // Go forward another 1, results should be empty.
         res = sync.await(paging.find(db.collection('test_paging'), {
@@ -126,8 +141,8 @@ describe('find', () => {
 
         expect(res.results.length).toBe(1);
         expect(res.results[0].counter).toBe(1);
-        expect(res.previous).toEqual(jasmine.any(String));
-        expect(res.next).toBeFalsy();
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
       });
 
       it('should handle hitting the beginning', () => {
@@ -141,8 +156,8 @@ describe('find', () => {
         expect(res.results[1].counter).toBe(7);
         expect(res.results[2].counter).toBe(6);
         expect(res.results[3].counter).toBe(5);
-        expect(res.previous).toBeFalsy();
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
 
         // Go forward 2
         res = sync.await(paging.find(db.collection('test_paging'), {
@@ -154,8 +169,8 @@ describe('find', () => {
         expect(res.results[0].counter).toBe(4);
         expect(res.results[1].counter).toBe(3);
         expect(res.results[2].counter).toBe(2);
-        expect(res.previous).toEqual(jasmine.any(String));
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
 
         // Go back to beginning.
         res = sync.await(paging.find(db.collection('test_paging'), {
@@ -168,8 +183,8 @@ describe('find', () => {
         expect(res.results[1].counter).toBe(7);
         expect(res.results[2].counter).toBe(6);
         expect(res.results[3].counter).toBe(5);
-        expect(res.previous).toBeFalsy();
-        expect(res.next).toEqual(jasmine.any(String));
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
       });
 
       it('should use passed-in criteria', () => {
@@ -182,8 +197,8 @@ describe('find', () => {
 
         expect(res.results.length).toBe(5);
         expect(res.results[0].color).toBe('blue');
-        expect(res.next).toBeFalsy();
-        expect(res.previous).toBeFalsy();
+        expect(res.hasNext).toBe(false);
+        expect(res.hasPrevious).toBe(false);
       });
 
       it('should use the "fields" parameter', () => {
@@ -211,8 +226,8 @@ describe('find', () => {
         }, sync.defer()));
 
         expect(res.results.length).toBe(0);
-        expect(res.next).toBeFalsy();
-        expect(res.previous).toBeFalsy();
+        expect(res.hasNext).toBe(false);
+        expect(res.hasPrevious).toBe(false);
       });
     });
   });
@@ -250,8 +265,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(6);
       expect(res.results[1].counter).toBe(5);
-      expect(res.previous).toBeFalsy();
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 2
       res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
@@ -263,8 +278,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(4);
       expect(res.results[1].counter).toBe(3);
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go forward another 2
       res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
@@ -276,8 +291,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(2);
       expect(res.results[1].counter).toBe(1);
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
 
       // Now back up 2
       res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
@@ -289,8 +304,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(4);
       expect(res.results[1].counter).toBe(3);
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
     });
 
     it('should not include the paginatedField in the results if not desired', () => {
@@ -302,7 +317,7 @@ describe('find', () => {
         paginatedField: 'timestamp'
       }, sync.defer()));
       expect(res.results[0].timestamp).toBeUndefined();
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasNext).toBe(true);
     });
   });
 
@@ -345,8 +360,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(6);
       expect(res.results[1].counter).toBe(5);
-      expect(res.previous).toBeFalsy();
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 2
       res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
@@ -358,8 +373,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(4);
       expect(res.results[1].counter).toBe(3);
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go forward another 2
       res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
@@ -371,8 +386,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(2);
       expect(res.results[1].counter).toBe(1);
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
 
       // Now back up 2
       res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
@@ -384,8 +399,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(4);
       expect(res.results[1].counter).toBe(3);
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
     });
 
     it('should not include fields not desired', () => {
@@ -399,7 +414,7 @@ describe('find', () => {
       expect(res.results[0]).toEqual({
         counter: 6
       });
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasNext).toBe(true);
     });
   });
 
@@ -430,8 +445,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(4);
       expect(res.results[1].counter).toBe(3);
-      expect(res.previous).toBeFalsy();
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 2
       res = sync.await(paging.find(db.collection('test_paging_date'), {
@@ -443,8 +458,8 @@ describe('find', () => {
       expect(res.results.length).toBe(2);
       expect(res.results[0].counter).toBe(2);
       expect(res.results[1].counter).toBe(1);
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
     });
   });
 

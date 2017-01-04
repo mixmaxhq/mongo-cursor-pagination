@@ -61,8 +61,8 @@ describe('findWithReq', () => {
         counter: 3,
         myfield1: 'a'
       });
-      expect(res.previous).toBeFalsy();
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 1
       res = sync.await(paging.findWithReq({
@@ -79,8 +79,8 @@ describe('findWithReq', () => {
         counter: 2,
         myfield1: 'a'
       });
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Now back up 1
       res = sync.await(paging.findWithReq({
@@ -98,8 +98,8 @@ describe('findWithReq', () => {
         counter: 3,
         myfield1: 'a'
       });
-      expect(res.previous).toEqual(jasmine.any(String));
-      expect(res.next).toEqual(jasmine.any(String));
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
     });
 
     it('should not query more fields than allowed', () => {

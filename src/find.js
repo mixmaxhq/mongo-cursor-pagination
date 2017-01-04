@@ -112,53 +112,30 @@ module.exports = function(collection, params, done) {
   collection
     .find(params.query, fields)
     .sort(sort)
-    .limit(params.limit)
+    .limit(params.limit + 1) // Query one more element to see if there's another page.
     .toArray((err, results) => {
       if (err) {
         done(err);
         return;
       }
 
+      var hasMore = results.length > params.limit;
+      // Remove the extra element that we added to 'peek' to see if there were more entries.
+      if (hasMore) results.pop();
+
+      var hasPrevious = !!params.next || !!(params.previous && hasMore);
+      var hasNext = !!params.previous || hasMore;
+
       // If we sorted reverse to get the previous page, correct the sort order.
       if (params.previous) results = results.reverse();
 
-      // Return 'previous' and 'next' cursors, based on what we know about the results.
-      // This logic is imperfect because it might return 'next' if there are no more results.
-      // This is probably fine since it just means they'll get back an empty query.
-
-      var fullPageOfResults = (results.length === params.limit);
-
-      var response;
-      if (results.length === 0) {
-        response = {
-          results: []
-        };
-      } else if (fullPageOfResults && !params.next && !params.previous) {
-        response = {
-          results,
-          next: results[results.length - 1]
-        };
-      } else if (fullPageOfResults) {
-        response = {
-          results,
-          previous: results[0],
-          next: results[results.length - 1]
-        };
-      } else if (params.next) {
-        response = {
-          results,
-          previous: results[results.length - 1]
-        };
-      } else if (params.previous) {
-        response = {
-          results,
-          next: results[0]
-        };
-      } else {
-        response = {
-          results
-        };
-      }
+      var response = {
+        results,
+        previous: results[0],
+        hasPrevious,
+        next: results[results.length - 1],
+        hasNext
+      };
 
       if (response.previous) {
         if (shouldSecondarySortOnId) {

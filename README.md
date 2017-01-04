@@ -8,7 +8,7 @@ API Pagination is typically implemented one of two different ways:
 
 1. Offset-based paging. This is traditional paging where `skip` and `limit` parameters are passed on the url (or some variation such as `page_num` and `count`). The API would return the results and some indication of whether there is a next page, such as `has_more` on the response. An issue with this approach is that it assumes a static data set; if collection changes while querying, then results in pages will shift and the response will be wrong.
 
-2. Cursor-based paging. An improved way of paging where an API passes back a "cursor" (an opaque string) to tell the call where to query the next or previous pages. The cursor is usually passed using query parameters `next` and `previous`. It's implementation is typically more performant that skip/limit because it can jump to any page without traversing all the records. It also handles records being added or removed because it doesn't use fixed offsets.
+2. Cursor-based paging. An improved way of paging where an API passes back a "cursor" (an opaque string) to tell the caller where to query the next or previous pages. The cursor is usually passed using query parameters `next` and `previous`. It's implementation is typically more performant that skip/limit because it can jump to any page without traversing all the records. It also handles records being added or removed because it doesn't use fixed offsets.
 
 This module helps in implementing #2 - cursor based paging - by providing a method that make it easy to query within a Mongo collection. It also helps by returning a url-safe string that you can return with your HTTP response (see example below).
 
@@ -95,12 +95,14 @@ Output:
 page 1 { results:
    [ { _id: 580fd16aca2a6b271562d8bb, counter: 4 },
      { _id: 580fd16aca2a6b271562d8ba, counter: 3 } ],
-  next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGJhIn0' }
+  next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGJhIn0',
+  hasMore: true }
 page 2 { results:
    [ { _id: 580fd16aca2a6b271562d8b9, counter: 2 },
      { _id: 580fd16aca2a6b271562d8b8, counter: 1 } ],
   previous: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI5In0',
-  next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI4In0' }
+  next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI4In0',
+  hasMore: false }
 ```
 
 ### search()
@@ -240,15 +242,13 @@ router.get('/myobjects', (req, res, next) => {
 
 The prevent a user from querying too many documents at once, you can set property `MAX_LIMIT` on the library (e.g. `mongoPaging.config.MAX_LIMIT = 50;`).
 
-## Limitiations
-
-The presence of the `previous` and `next` keys on the result doesn't necessarily mean there are results before or after the current page. This packages attempts to guess if there might be more results based on if the page is full with results and if `previous` and `next` were passed previously.
-
 ## Running tests
 
 To run tests, you first must [start a Mongo server on port 27017](https://mongodb.github.io/node-mongodb-native/2.2/quick-start/) and then run `npm test`.
 
 ## Changelog
+
+* 4.0.0 Breaking API change: `next` and `previous` attributes are now always returned with every response (in case the client wants to poll for new changes). New attributes `hasPrevious` and `hasNext` should now be used know if there are more results in the previous or next page. Before the change, `next` and `previously` could not be replied upon to know if there were more pages.
 
 * 3.1.1 Don't use `let` for backwards compatibility.
 
