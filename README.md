@@ -46,6 +46,7 @@ Call `find()` with the following parameters:
             exist, the results will be secondarily ordered by the _id.
           2. Indexed. For large collections, this should be indexed for query performance.
           3. Immutable. If the value changes between paged queries, it could appear twice.
+          4. Complete. A value must exist for all documents.
         The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
         The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
       -sortAscending {Boolean} True to sort using paginatedField ascending (default is false - descending).
