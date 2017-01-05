@@ -36,6 +36,6 @@
     "mongodb": "^2.2.11",
     "mongojs": "^2.4.0",
     "synchronize": "^2.0.0",
-    "synchronize-bdd": "^0.1.0"
+    "synchronize-bdd": "^0.2.0"
   }
 }
