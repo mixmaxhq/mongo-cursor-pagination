@@ -249,6 +249,8 @@ To run tests, you first must [start a Mongo server on port 27017](https://mongod
 
 ## Changelog
 
+* 4.1.0 Adds `sortAscending` option to sort by the `paginatedField` ascending. Defaults to false (existing behavior).
+
 * 4.0.0 Breaking API change: `next` and `previous` attributes are now always returned with every response (in case the client wants to poll for new changes). New attributes `hasPrevious` and `hasNext` should now be used know if there are more results in the previous or next page. Before the change, `next` and `previously` could not be replied upon to know if there were more pages.
 
 * 3.1.1 Don't use `let` for backwards compatibility.
