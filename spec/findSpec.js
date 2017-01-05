@@ -229,6 +229,77 @@ describe('find', () => {
         expect(res.hasNext).toBe(false);
         expect(res.hasPrevious).toBe(false);
       });
+
+      it('should respect sortAscending option', () => {
+        // First page of 3
+        var res = sync.await(paging.find(db.collection('test_paging'), {
+          limit: 3,
+          sortAscending: true
+        }, sync.defer()));
+
+        expect(res.results.length).toBe(3);
+        expect(res.results[0].counter).toBe(1);
+        expect(res.results[1].counter).toBe(2);
+        expect(res.results[2].counter).toBe(3);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 3
+        res = sync.await(paging.find(db.collection('test_paging'), {
+          limit: 3,
+          next: res.next,
+          sortAscending: true
+        }, sync.defer()));
+
+        expect(res.results.length).toBe(3);
+        expect(res.results[0].counter).toBe(4);
+        expect(res.results[1].counter).toBe(5);
+        expect(res.results[2].counter).toBe(6);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward another 3
+        res = sync.await(paging.find(db.collection('test_paging'), {
+          limit: 3,
+          next: res.next,
+          sortAscending: true
+        }, sync.defer()));
+
+        expect(res.results.length).toBe(2);
+        expect(res.results[0].counter).toBe(7);
+        expect(res.results[1].counter).toBe(8);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
+
+        // // Now back up 3
+        res = sync.await(paging.find(db.collection('test_paging'), {
+          limit: 3,
+          previous: res.previous,
+          sortAscending: true
+        }, sync.defer()));
+
+        expect(res.results.length).toBe(3);
+        expect(res.results[0].counter).toBe(4);
+        expect(res.results[1].counter).toBe(5);
+        expect(res.results[2].counter).toBe(6);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Now back up 3 more
+        res = sync.await(paging.find(db.collection('test_paging'), {
+          limit: 3,
+          previous: res.previous,
+          sortAscending: true
+        }, sync.defer()));
+
+        expect(res.results.length).toBe(3);
+        expect(res.results[0].counter).toBe(1);
+        expect(res.results[1].counter).toBe(2);
+        expect(res.results[2].counter).toBe(3);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+      });
+
     });
   });
 
@@ -414,6 +485,63 @@ describe('find', () => {
       expect(res.results[0]).toEqual({
         counter: 6
       });
+      expect(res.hasNext).toBe(true);
+    });
+
+    it('should respect sortAscending', () => {
+      // First page of 2
+      var res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
+        limit: 2,
+        paginatedField: 'timestamp',
+        sortAscending: true
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+      expect(res.results[0].counter).toBe(1);
+      expect(res.results[1].counter).toBe(2);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
+
+      // Go forward 2
+      res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
+        limit: 2,
+        paginatedField: 'timestamp',
+        next: res.next,
+        sortAscending: true
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+      expect(res.results[0].counter).toBe(3);
+      expect(res.results[1].counter).toBe(4);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
+
+      // Go forward another 2
+      res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
+        limit: 2,
+        paginatedField: 'timestamp',
+        next: res.next,
+        sortAscending: true
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+      expect(res.results[0].counter).toBe(5);
+      expect(res.results[1].counter).toBe(6);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
+
+      // Now back up 2
+      res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
+        limit: 2,
+        paginatedField: 'timestamp',
+        previous: res.previous,
+        sortAscending: true
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+      expect(res.results[0].counter).toBe(3);
+      expect(res.results[1].counter).toBe(4);
+      expect(res.hasPrevious).toBe(true);
       expect(res.hasNext).toBe(true);
     });
   });

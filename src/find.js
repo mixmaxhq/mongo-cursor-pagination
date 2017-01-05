@@ -57,55 +57,59 @@ module.exports = function(collection, params, done) {
     }
   }
 
+  var sortAsc = (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
+  var comparisonOp = sortAsc ? '$gt' : '$lt';
+
   if (params.next) {
     if (shouldSecondarySortOnId) {
       params.query.$or = [{
         [params.paginatedField]: {
-          $lt: params.next[0]
+          [comparisonOp]: params.next[0]
         }
       }, {
         [params.paginatedField]: {
           $eq: params.next[0]
         },
         _id: {
-          $lt: params.next[1]
+          [comparisonOp]: params.next[1]
         }
       }];
     } else {
       params.query[params.paginatedField] = {
-        $lt: params.next
+        [comparisonOp]: params.next
       };
     }
   } else if (params.previous) {
     if (shouldSecondarySortOnId) {
       params.query.$or = [{
         [params.paginatedField]: {
-          $gt: params.previous[0]
+          [comparisonOp]: params.previous[0]
         }
       }, {
         [params.paginatedField]: {
           $eq: params.previous[0]
         },
         _id: {
-          $gt: params.previous[1]
+          [comparisonOp]: params.previous[1]
         }
       }];
     } else {
       params.query[params.paginatedField] = {
-        $gt: params.previous
+        [comparisonOp]: params.previous
       };
     }
   }
 
+  var sortDir = sortAsc ? 1 : -1;
   var sort;
   if (shouldSecondarySortOnId) {
     sort = {
-      [params.paginatedField]: params.previous ? 1 : -1,
-      _id: params.previous ? 1 : -1
+      [params.paginatedField]: sortDir,
+      _id: sortDir
     };
   } else {
     sort = {
-      [params.paginatedField]: params.previous ? 1 : -1
+      [params.paginatedField]: sortDir
     };
   }
 
