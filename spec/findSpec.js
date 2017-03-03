@@ -390,6 +390,34 @@ describe('find', () => {
       expect(res.results[0].timestamp).toBeUndefined();
       expect(res.hasNext).toBe(true);
     });
+
+    it('should not overwrite $or used in a query', () => {
+      // First page of 2
+      var res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
+        query: { $or: [{ counter: { $gt: 3 } }] },
+        limit: 2,
+        paginatedField: 'timestamp'
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+      expect(res.results[0].counter).toBe(6);
+      expect(res.results[1].counter).toBe(5);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
+
+      // Go forward 2
+      res = sync.await(paging.find(db.collection('test_paging_custom_fields'), {
+        query: { $or: [{ counter: { $gt: 3 } }] },
+        limit: 2,
+        paginatedField: 'timestamp',
+        next: res.next
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(1);
+      expect(res.results[0].counter).toBe(4);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
+    });
   });
 
   describe('test with duplicate values for paginated field', () => {
