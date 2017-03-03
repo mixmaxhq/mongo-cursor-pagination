@@ -34,6 +34,8 @@ module.exports = function(collection, params, done) {
     paginatedField: '_id'
   });
 
+  var queries = [params.query];
+
   if (params.limit < 1) params.limit = 1;
   if (params.limit > config.MAX_LIMIT) params.limit = config.MAX_LIMIT;
 
@@ -62,41 +64,49 @@ module.exports = function(collection, params, done) {
 
   if (params.next) {
     if (shouldSecondarySortOnId) {
-      params.query.$or = [{
-        [params.paginatedField]: {
-          [comparisonOp]: params.next[0]
-        }
-      }, {
-        [params.paginatedField]: {
-          $eq: params.next[0]
-        },
-        _id: {
-          [comparisonOp]: params.next[1]
-        }
-      }];
+      queries.push({
+        $or: [{
+          [params.paginatedField]: {
+            [comparisonOp]: params.next[0]
+          }
+        }, {
+          [params.paginatedField]: {
+            $eq: params.next[0]
+          },
+          _id: {
+            [comparisonOp]: params.next[1]
+          }
+        }]
+      });
     } else {
-      params.query[params.paginatedField] = {
-        [comparisonOp]: params.next
-      };
+      queries.push({
+        [params.paginatedField]: {
+          [comparisonOp]: params.next
+        }
+      });
     }
   } else if (params.previous) {
     if (shouldSecondarySortOnId) {
-      params.query.$or = [{
-        [params.paginatedField]: {
-          [comparisonOp]: params.previous[0]
-        }
-      }, {
-        [params.paginatedField]: {
-          $eq: params.previous[0]
-        },
-        _id: {
-          [comparisonOp]: params.previous[1]
-        }
-      }];
+      queries.push({
+        $or: [{
+          [params.paginatedField]: {
+            [comparisonOp]: params.previous[0]
+          }
+        }, {
+          [params.paginatedField]: {
+            $eq: params.previous[0]
+          },
+          _id: {
+            [comparisonOp]: params.previous[1]
+          }
+        }]
+      });
     } else {
-      params.query[params.paginatedField] = {
-        [comparisonOp]: params.previous
-      };
+      queries.push({
+        [params.paginatedField]: {
+          [comparisonOp]: params.previous
+        }
+      });
     }
   }
 
@@ -114,7 +124,7 @@ module.exports = function(collection, params, done) {
   }
 
   collection
-    .find(params.query, fields)
+    .find({ $and: queries }, fields)
     .sort(sort)
     .limit(params.limit + 1) // Query one more element to see if there's another page.
     .toArray((err, results) => {
