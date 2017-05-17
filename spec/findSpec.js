@@ -644,7 +644,29 @@ describe('find', () => {
       expect(res.results.length).toBe(1);
     });
 
-    it('should clamp upper limit', () => {
+    it('should set a default limit', () => {
+      var originalDefaultLimit = paging.config.DEFAULT_LIMIT;
+      paging.config.DEFAULT_LIMIT = 2;
+      var res = sync.await(paging.find(db.collection('test_paging_limits'), {}, sync.defer()));
+
+      expect(res.results.length).toBe(2);
+
+      paging.config.DEFAULT_LIMIT = originalDefaultLimit;
+    });
+
+    it('should allow overriding the limit', () => {
+      var originalDefaultLimit = paging.config.DEFAULT_LIMIT;
+      paging.config.DEFAULT_LIMIT = 2;
+      var res = sync.await(paging.find(db.collection('test_paging_limits'), {
+        limit: 4
+      }, sync.defer()));
+
+      expect(res.results.length).toBe(4);
+
+      paging.config.DEFAULT_LIMIT = originalDefaultLimit;
+    });
+
+    it('should clamp to max limit', () => {
       var originalMaxLimit = paging.config.MAX_LIMIT;
       paging.config.MAX_LIMIT = 2;
       var res = sync.await(paging.find(db.collection('test_paging_limits'), {

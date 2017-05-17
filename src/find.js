@@ -30,7 +30,7 @@ module.exports = function(collection, params, done) {
 
   params = _.defaults(params, {
     query: {},
-    limit: config.MAX_LIMIT,
+    limit: config.DEFAULT_LIMIT,
     paginatedField: '_id'
   });
 

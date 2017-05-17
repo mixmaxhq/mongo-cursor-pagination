@@ -25,6 +25,7 @@ module.exports = function(req, collection, params, done) {
 
   if (!_.isEmpty(req.query.limit)) {
     var limit = parseInt(req.query.limit);
+    // Don't let the user specify a higher limit than params.limit, if defined.
     if (!isNaN(limit) && (!params.limit || params.limit > limit)) {
       params.limit = limit;
     }

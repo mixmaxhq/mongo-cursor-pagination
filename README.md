@@ -240,15 +240,17 @@ router.get('/myobjects', (req, res, next) => {
 
 `findWithReq()` also handles basic security such as making sure the `limit` and `fields` requested on the URL are within the allowed values you specify in `params`.
 
-### Capping the number of results
+### Number of results
 
-The prevent a user from querying too many documents at once, you can set property `MAX_LIMIT` on the library (e.g. `mongoPaging.config.MAX_LIMIT = 50;`).
+If the `limit` parameter isn't passed, then this library will default to returning 50 results. This can be overridden by setting `mongoPaging.config.DEFAULT_LIMIT = <new default limit>;`. Regardless of the `limit` passed in, a maximum of 300 documents will be returned. This can be overridden by setting `mongoPaging.config.MAX_LIMIT = <new max limit>;`.
 
 ## Running tests
 
 To run tests, you first must [start a Mongo server on port 27017](https://mongodb.github.io/node-mongodb-native/2.2/quick-start/) and then run `npm test`.
 
 ## Changelog
+
+* 5.0.0 Now `50` results are returned by default, and up to `300` results can be returned if the `limit` parameter is used. These can be overridden by setting `mongoPaging.config.DEFAULT_LIMIT` and `mongoPaging.config.MAX_LIMIT` respectively.
 
 * 4.1.1 Fixed bug that would overwrite `$or` in queries passed in.
 
