@@ -244,6 +244,30 @@ router.get('/myobjects', (req, res, next) => {
 
 If the `limit` parameter isn't passed, then this library will default to returning 50 results. This can be overridden by setting `mongoPaging.config.DEFAULT_LIMIT = <new default limit>;`. Regardless of the `limit` passed in, a maximum of 300 documents will be returned. This can be overridden by setting `mongoPaging.config.MAX_LIMIT = <new max limit>;`.
 
+### Indexes for sorting
+
+`mongo-cursor-pagination` uses `_id` as a secondary sorting field when providing a `paginatedField` property. It is recommended that you have an index for optimal performace. Example:
+
+```
+MongoPaging.find(db.people, {
+  query: {
+    name: 'John'
+  },
+  paginatedField: 'city'
+  limit: 25,
+});
+```
+
+For the above query to be optimal, you should have an index like:
+
+```
+db.people.ensureIndex({
+  name: 1,
+  city: 1,
+  _id: 1
+});
+```
+
 ## Running tests
 
 To run tests, you first must [start a Mongo server on port 27017](https://mongodb.github.io/node-mongodb-native/2.2/quick-start/) and then run `npm test`.
