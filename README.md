@@ -246,7 +246,7 @@ If the `limit` parameter isn't passed, then this library will default to returni
 
 ### Indexes for sorting
 
-`mongo-cursor-pagination` uses `_id` as a secondary sorting field when providing a `paginatedField` property. It is recommended that you have an index for optimal performace. Example:
+`mongo-cursor-pagination` uses `_id` as a secondary sorting field when providing a `paginatedField` property. It is recommended that you have an index for optimal performance. Example:
 
 ```
 MongoPaging.find(db.people, {
