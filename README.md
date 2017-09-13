@@ -4,6 +4,8 @@ This module aids in implementing "cursor-based" pagination using Mongo range que
 
 ## Background
 
+See this [blog post](https://mixmax.com/blog/api-paging-built-the-right-way) for background on why this library was built.
+
 API Pagination is typically implemented one of two different ways:
 
 1. Offset-based paging. This is traditional paging where `skip` and `limit` parameters are passed on the url (or some variation such as `page_num` and `count`). The API would return the results and some indication of whether there is a next page, such as `has_more` on the response. An issue with this approach is that it assumes a static data set; if collection changes while querying, then results in pages will shift and the response will be wrong.
