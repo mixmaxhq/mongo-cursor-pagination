@@ -12,8 +12,8 @@ module.exports = function(dotFields1, dotFields2) {
 
   // TODO: I'm sure this can be made more efficient.
 
-  dotFields1.forEach(dotField1 => {
-    dotFields2.forEach(dotField2 => {
+  dotFields1.forEach((dotField1) => {
+    dotFields2.forEach((dotField2) => {
       if (sameOrBroader(dotField1, dotField2)) {
         intersection.push(dotField1);
       }
@@ -21,8 +21,8 @@ module.exports = function(dotFields1, dotFields2) {
   });
 
   // Check the reverse.
-  dotFields2.forEach(dotField2 => {
-    dotFields1.forEach(dotField1 => {
+  dotFields2.forEach((dotField2) => {
+    dotFields1.forEach((dotField1) => {
       if (sameOrBroader(dotField2, dotField1)) {
         intersection.push(dotField2);
       }
@@ -32,7 +32,7 @@ module.exports = function(dotFields1, dotFields2) {
   return _.uniq(intersection);
 };
 
-// Helper returns true if the 
+// Helper returns true if the
 function sameOrBroader(dotField1, dotField2) {
   var dotField1Parts = dotField1.split('.');
   var dotField2Parts = dotField2.split('.');

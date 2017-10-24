@@ -24,7 +24,7 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    -previous {String} The value to start querying previous page.
  * @param {Function} done Node errback style function.
  */
-module.exports = function(collection, params, done) {
+module.exports = async function(collection, params) {
   if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 
@@ -123,54 +123,48 @@ module.exports = function(collection, params, done) {
     };
   }
 
-  collection
-    .find({ $and: queries }, fields)
+  var results = await collection.findAsCursor({ $and: queries }, fields)
     .sort(sort)
     .limit(params.limit + 1) // Query one more element to see if there's another page.
-    .toArray((err, results) => {
-      if (err) {
-        done(err);
-        return;
-      }
+    .toArray();
 
-      var hasMore = results.length > params.limit;
-      // Remove the extra element that we added to 'peek' to see if there were more entries.
-      if (hasMore) results.pop();
+  var hasMore = results.length > params.limit;
+  // Remove the extra element that we added to 'peek' to see if there were more entries.
+  if (hasMore) results.pop();
 
-      var hasPrevious = !!params.next || !!(params.previous && hasMore);
-      var hasNext = !!params.previous || hasMore;
+  var hasPrevious = !!params.next || !!(params.previous && hasMore);
+  var hasNext = !!params.previous || hasMore;
 
-      // If we sorted reverse to get the previous page, correct the sort order.
-      if (params.previous) results = results.reverse();
+  // If we sorted reverse to get the previous page, correct the sort order.
+  if (params.previous) results = results.reverse();
 
-      var response = {
-        results,
-        previous: results[0],
-        hasPrevious,
-        next: results[results.length - 1],
-        hasNext
-      };
+  var response = {
+    results,
+    previous: results[0],
+    hasPrevious,
+    next: results[results.length - 1],
+    hasNext
+  };
 
-      if (response.previous) {
-        if (shouldSecondarySortOnId) {
-          response.previous = bsonUrlEncoding.encode([response.previous[params.paginatedField], response.previous._id]);
-        } else {
-          response.previous = bsonUrlEncoding.encode(response.previous[params.paginatedField]);
-        }
-      }
-      if (response.next) {
-        if (shouldSecondarySortOnId) {
-          response.next = bsonUrlEncoding.encode([response.next[params.paginatedField], response.next._id]);
-        } else {
-          response.next = bsonUrlEncoding.encode(response.next[params.paginatedField]);
-        }
-      }
+  if (response.previous) {
+    if (shouldSecondarySortOnId) {
+      response.previous = bsonUrlEncoding.encode([response.previous[params.paginatedField], response.previous._id]);
+    } else {
+      response.previous = bsonUrlEncoding.encode(response.previous[params.paginatedField]);
+    }
+  }
+  if (response.next) {
+    if (shouldSecondarySortOnId) {
+      response.next = bsonUrlEncoding.encode([response.next[params.paginatedField], response.next._id]);
+    } else {
+      response.next = bsonUrlEncoding.encode(response.next[params.paginatedField]);
+    }
+  }
 
-      // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
-      if (removePaginatedFieldInResponse) {
-        response.results = _.map(response.results, result => _.omit(result, params.paginatedField));
-      }
+  // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
+  if (removePaginatedFieldInResponse) {
+    response.results = _.map(response.results, (result) => _.omit(result, params.paginatedField));
+  }
 
-      done(null, response);
-    });
+  return response;
 };

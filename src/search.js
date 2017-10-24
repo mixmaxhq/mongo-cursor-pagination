@@ -21,7 +21,7 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *      the results.
  * @param {Function} done Node errback style function.
  */
-module.exports = function(collection, searchString, params, done) {
+module.exports = async function(collection, searchString, params) {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 
@@ -35,7 +35,7 @@ module.exports = function(collection, searchString, params, done) {
 
   // We must perform an aggregate query since Mongo can't query a range when using $text search.
 
-  var aggregate = [{
+  const aggregate = [{
     $match: _.extend({}, params.query, {
       $text: {
         $search: searchString
@@ -80,25 +80,18 @@ module.exports = function(collection, searchString, params, done) {
     $limit: params.limit
   });
 
-  collection.aggregate(aggregate, (err, results) => {
-    if (err) {
-      done(err);
-      return;
-    }
-
-    var response;
-    var fullPageOfResults = (results.length === params.limit);
-    if (fullPageOfResults) {
-      response = {
-        results,
-        next: bsonUrlEncoding.encode([_.last(results).score, _.last(results)._id])
-      };
-    } else {
-      response = {
-        results
-      };
-    }
-
-    done(null, response);
-  });
+  let response;
+  const results = await collection.aggregate(aggregate);
+  const fullPageOfResults = results.length === params.limit;
+  if (fullPageOfResults) {
+    response = {
+      results,
+      next: bsonUrlEncoding.encode([_.last(results).score, _.last(results)._id])
+    };
+  } else {
+    response = {
+      results
+    };
+  }
+  return response;
 };

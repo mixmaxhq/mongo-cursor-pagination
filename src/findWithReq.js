@@ -20,7 +20,7 @@ var _ = require('underscore');
  * @param {Object} params See documentation for `find()`.
  * @param {Function} done Node errback style function.
  */
-module.exports = function(req, collection, params, done) {
+module.exports = async function(req, collection, params) {
   params = params || {};
 
   if (!_.isEmpty(req.query.limit)) {
@@ -52,5 +52,5 @@ module.exports = function(req, collection, params, done) {
     }, {});
   }
 
-  find(collection, params, done);
+  return find(collection, params);
 };
