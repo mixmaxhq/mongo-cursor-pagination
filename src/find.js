@@ -151,20 +151,33 @@ module.exports = function(collection, params, done) {
         hasNext
       };
 
+
       if (response.previous) {
+        var _key = params.paginatedField.split('.');
+        var  value =  response.previous[_key[0]];
+        for(var i = 1; i < _key.length; i++){
+          value = value[_key[i]];
+        }
         if (shouldSecondarySortOnId) {
-          response.previous = bsonUrlEncoding.encode([response.previous[params.paginatedField], response.previous._id]);
+          response.previous = bsonUrlEncoding.encode([value, response.previous._id]);
         } else {
-          response.previous = bsonUrlEncoding.encode(response.previous[params.paginatedField]);
+          response.previous = bsonUrlEncoding.encode(value);
         }
       }
+
       if (response.next) {
+        var _key = params.paginatedField.split('.');
+        var  value =  response.next[_key[0]];
+        for(var i = 1; i < _key.length; i++){
+          value = value[_key[i]];
+        }
         if (shouldSecondarySortOnId) {
-          response.next = bsonUrlEncoding.encode([response.next[params.paginatedField], response.next._id]);
+          response.next = bsonUrlEncoding.encode([value, response.next._id]);
         } else {
-          response.next = bsonUrlEncoding.encode(response.next[params.paginatedField]);
+          response.next = bsonUrlEncoding.encode(value);
         }
       }
+      
 
       // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
       if (removePaginatedFieldInResponse) {
@@ -174,3 +187,4 @@ module.exports = function(collection, params, done) {
       done(null, response);
     });
 };
+
