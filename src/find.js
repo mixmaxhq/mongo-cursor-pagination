@@ -22,7 +22,6 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
  *    -next {String} The value to start querying the page.
  *    -previous {String} The value to start querying previous page.
- * @param {Function} done Node errback style function.
  */
 module.exports = async function(collection, params) {
   if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);

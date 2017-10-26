@@ -19,7 +19,6 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *      The default is to query ONLY _id (note this is a difference from `find()`).
  *    -next {String} The value to start querying the page. Defaults to start at the beginning of
  *      the results.
- * @param {Function} done Node errback style function.
  */
 module.exports = async function(collection, searchString, params) {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit);
