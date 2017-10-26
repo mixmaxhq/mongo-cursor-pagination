@@ -64,28 +64,33 @@ var mongoist = require('mongoist');
 var MongoPaging = require('mongo-cursor-pagination');
 
 var db = mongoist('mongodb://localhost:27017/mydb');
-await db.collection('myobjects').insertMany([{
-  counter: 1
-}, {
-  counter: 2
-}, {
-  counter: 3
-}, {
-  counter: 4
-}]);
 
-    // Query the first page.
-var result = await MongoPaging.find(db.collection('myobjects'), {
-  limit: 2
-});
-cnosole.log(result);
+async function findExample() {
+  await db.collection('myobjects').insertMany([{
+    counter: 1
+  }, {
+    counter: 2
+  }, {
+    counter: 3
+  }, {
+    counter: 4
+  }]);
 
-// Query next page.
-result = MongoPaging.find(db.collection('myobjects'), {
-  limit: 2,
-  next: result.next // This queries the next page
-});
-console.log(result);
+      // Query the first page.
+  var result = await MongoPaging.find(db.collection('myobjects'), {
+    limit: 2
+  });
+  console.log(result);
+
+  // Query next page.
+  result = MongoPaging.find(db.collection('myobjects'), {
+    limit: 2,
+    next: result.next // This queries the next page
+  });
+  console.log(result);
+}
+
+findExample().catch(console.log);
 ```
 
 Output:
@@ -135,33 +140,37 @@ var MongoPaging = require('mongo-cursor-pagination');
 
 var db = mongoist('mongodb://localhost:27017/mydb');
 
-await db.collection('myobjects').ensureIndex({
-  mytext: 'text'
-});
+async function searchExample() {
+  await db.collection('myobjects').ensureIndex({
+    mytext: 'text'
+  });
 
-db.collection('myobjects').insertMany([{
-  mytext: 'dogs'
-}, {
-  mytext: 'dogs cats'
-}, {
-  mytext: 'dogs cats pigs'
-}]);
+  db.collection('myobjects').insertMany([{
+    mytext: 'dogs'
+  }, {
+    mytext: 'dogs cats'
+  }, {
+    mytext: 'dogs cats pigs'
+  }]);
 
-// Query the first page.
-var result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
-  fields: {
-    mytext: 1
-  },
-  limit: 2
-});
-console.log(result);
+  // Query the first page.
+  var result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
+    fields: {
+      mytext: 1
+    },
+    limit: 2
+  });
+  console.log(result);
 
-// Query next page.
-result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
-  limit: 2,
-  next: result.next // This queries the next page
-});
-console.log(result);
+  // Query next page.
+  result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
+    limit: 2,
+    next: result.next // This queries the next page
+  });
+  console.log(result);
+}
+
+searchExample().catch(console.log);
 ```
 
 Output:
@@ -238,19 +247,21 @@ If the `limit` parameter isn't passed, then this library will default to returni
 `mongo-cursor-pagination` uses `_id` as a secondary sorting field when providing a `paginatedField` property. It is recommended that you have an index for optimal performance. Example:
 
 ```
-await MongoPaging.find(db.people, {
+MongoPaging.find(db.people, {
   query: {
     name: 'John'
   },
   paginatedField: 'city'
   limit: 25,
+}).then((results) => {
+  // handle results.
 });
 ```
 
 For the above query to be optimal, you should have an index like:
 
 ```
-await db.people.ensureIndex({
+db.people.ensureIndex({
   name: 1,
   city: 1,
   _id: 1
