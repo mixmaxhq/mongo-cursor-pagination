@@ -36,7 +36,7 @@ Call `find()` with the following parameters:
    Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
    are ordered by the paginatedField.
 
-   @param {MongoCollection} collection A collection object returned from the MongoDB library's
+   @param {MongoCollection} collection A collection object returned from the mongoist package's
       `db.collection(<collectionName>)` method.
    @param {Object} params
       -query {Object} The find query.
@@ -60,11 +60,13 @@ Call `find()` with the following parameters:
 Example:
 
 ```js
-var MongoClient = require('mongodb').MongoClient;
+var mongoist = require('mongoist');
 var MongoPaging = require('mongo-cursor-pagination');
 
-MongoClient.connect('mongodb://localhost:27017/mydb', (err, db) => {
-  db.collection('myobjects').insertMany([{
+var db = mongoist('mongodb://localhost:27017/mydb');
+
+async function findExample() {
+  await db.collection('myobjects').insertMany([{
     counter: 1
   }, {
     counter: 2
@@ -72,25 +74,23 @@ MongoClient.connect('mongodb://localhost:27017/mydb', (err, db) => {
     counter: 3
   }, {
     counter: 4
-  }], (err) => {
+  }]);
 
-    // Query the first page.
-    MongoPaging.find(db.collection('myobjects'), {
-      limit: 2
-    }, (err, result) => {
-      console.log(result);
-
-      // Query next page.
-      MongoPaging.find(db.collection('myobjects'), {
-        limit: 2,
-        next: result.next // This queries the next page
-      }, (err, result) => {
-        console.log(result);
-      });
-
-    });
+      // Query the first page.
+  var result = await MongoPaging.find(db.collection('myobjects'), {
+    limit: 2
   });
-});
+  console.log(result);
+
+  // Query next page.
+  result = MongoPaging.find(db.collection('myobjects'), {
+    limit: 2,
+    next: result.next // This queries the next page
+  });
+  console.log(result);
+}
+
+findExample().catch(console.log);
 ```
 
 Output:
@@ -119,7 +119,7 @@ Search uses Mongo's [text search](https://docs.mongodb.com/v3.2/text-search/) fe
    a paginatedField parameter. Note that this is less performant than find() because it must
    perform the full search on each call to this function. Also note that results might change
 
-   @param {MongoCollection} collection A collection object returned from the MongoDB library's
+   @param {MongoCollection} collection A collection object returned from the mongoist package's
       `db.collection(<collectionName>)` method. This MUST have a Mongo $text index on it.
       See https://docs.mongodb.com/manual/core/index-text/.
    @param {String} searchString String to search on.
@@ -130,49 +130,47 @@ Search uses Mongo's [text search](https://docs.mongodb.com/v3.2/text-search/) fe
         The default is to query ONLY _id (note this is a difference from `find()`).
       -next {String} The value to start querying the page. Defaults to start at the beginning of
         the results.
-   @param {Function} done Node errback style function.
 ```
 
 Example:
 
 ```js
-var MongoClient = require('mongodb').MongoClient;
+var mongoist = require('mongoist');
 var MongoPaging = require('mongo-cursor-pagination');
 
-MongoClient.connect('mongodb://localhost:27017/mydb', (err, db) => {
-  db.collection('myobjects').ensureIndex({
+var db = mongoist('mongodb://localhost:27017/mydb');
+
+async function searchExample() {
+  await db.collection('myobjects').ensureIndex({
     mytext: 'text'
-  }, (err) => {
-
-    db.collection('myobjects').insertMany([{
-      mytext: 'dogs'
-    }, {
-      mytext: 'dogs cats'
-    }, {
-      mytext: 'dogs cats pigs'
-    }], (err) => {
-
-      // Query the first page.
-      MongoPaging.search(db.collection('myobjects'), 'dogs', {
-        fields: {
-          mytext: 1
-        },
-        limit: 2
-      }, (err, result) => {
-        console.log(result);
-
-        // Query next page.
-        MongoPaging.search(db.collection('myobjects'), 'dogs', {
-          limit: 2,
-          next: result.next // This queries the next page
-        }, (err, result) => {
-          console.log(result);
-        });
-
-      });
-    });
   });
-});
+
+  db.collection('myobjects').insertMany([{
+    mytext: 'dogs'
+  }, {
+    mytext: 'dogs cats'
+  }, {
+    mytext: 'dogs cats pigs'
+  }]);
+
+  // Query the first page.
+  var result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
+    fields: {
+      mytext: 1
+    },
+    limit: 2
+  });
+  console.log(result);
+
+  // Query next page.
+  result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
+    limit: 2,
+    next: result.next // This queries the next page
+  });
+  console.log(result);
+}
+
+searchExample().catch(console.log);
 ```
 
 Output:
@@ -193,50 +191,48 @@ A popular use of this module is with Express to implement a basic API. As a conv
 So this code using `find()`:
 
 ```js
-router.get('/myobjects', (req, res, next) => {
-  MongoPaging.find(db.collection('myobjects'), {
-    query: {
-      userId: req.user._id
-    },
-    paginatedField: 'created',
-    fields: { // Also need to read req.query.fields to use to filter these fields
-      _id: 1,
-      created: 1
-    },
-    limit: req.query.limit, // Also need to cap this to 25
-    next: req.query.next,
-    previous: req.query.previous,
-  }, function(err, result) {
-    if (err) {
-      next(err);
-    } else {
-      res.json(result);
+router.get('/myobjects', async (req, res, next) => {
+  try {
+    var result = await MongoPaging.find(db.collection('myobjects'), {
+      query: {
+        userId: req.user._id
+      },
+      paginatedField: 'created',
+      fields: { // Also need to read req.query.fields to use to filter these fields
+        _id: 1,
+        created: 1
+      },
+      limit: req.query.limit, // Also need to cap this to 25
+      next: req.query.next,
+      previous: req.query.previous,
     }
-  });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
 });
 ```
 
 Is more elegant with `findWithReq()`:
 
 ```js
-router.get('/myobjects', (req, res, next) => {
-  MongoPaging.findWithReq(req, db.collection('myobjects'), {
-    query: {
-      userId: req.user._id
-    },
-    paginatedField: 'created',
-    fields: {
-      _id: 1,
-      created: 1
-    },
-    limit: 25 // Upper limit
-  }, function(err, result) {
-    if (err) {
-      next(err);
-    } else {
-      res.json(result);
+router.get('/myobjects', async (req, res, next) => {
+  try {
+    var result = await MongoPaging.findWithReq(req, db.collection('myobjects'), {
+      query: {
+        userId: req.user._id
+      },
+      paginatedField: 'created',
+      fields: {
+        _id: 1,
+        created: 1
+      },
+      limit: 25 // Upper limit
     }
-  });
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
 });
 ```
 
@@ -257,6 +253,8 @@ MongoPaging.find(db.people, {
   },
   paginatedField: 'city'
   limit: 25,
+}).then((results) => {
+  // handle results.
 });
 ```
 
@@ -275,6 +273,8 @@ db.people.ensureIndex({
 To run tests, you first must [start a Mongo server on port 27017](https://mongodb.github.io/node-mongodb-native/2.2/quick-start/) and then run `npm test`.
 
 ## Changelog
+
+* 6.0.0 Breaking API change: `mongo-cursor-pagination` requires a Promise enabled mongodb instance from `mongoist` and returns Promises from `find`, `findWithReq`, and `search` rather than handling callbacks. *Note: Although the library now uses `async/await`, it is still useable in node >= 6.9.0.*
 
 * 5.0.0 Now `50` results are returned by default, and up to `300` results can be returned if the `limit` parameter is used. These can be overridden by setting `mongoPaging.config.DEFAULT_LIMIT` and `mongoPaging.config.MAX_LIMIT` respectively.
 

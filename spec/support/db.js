@@ -1,17 +1,18 @@
-var sync = require('synchronize');
-var MongoClient = require('mongodb').MongoClient;
-var db;
-require('synchronize-bdd').replace();
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const mongoist = require('mongoist');
 
-const DB_NAME = '__mongo-cursor-pagination-tests__';
+function start() {
+  return new MongoMemoryServer({
+    binary: { version: '3.4.6' }
+  });
+}
 
-beforeEach(() => {
-  db = sync.await(MongoClient.connect(`mongodb://localhost:27017/${DB_NAME}`, sync.defer()));
-});
+async function db(mongod) {
+  const uri = await mongod.getConnectionString();
+  return mongoist(uri);
+}
 
-afterEach(() => {
-  sync.await(db.dropDatabase(sync.defer()));
-  db.close();
-});
-
-module.exports = () => db;
+module.exports = {
+  db,
+  start
+};

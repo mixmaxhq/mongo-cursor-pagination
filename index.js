@@ -1,11 +1,11 @@
-var config = require('./src/config');
-var find = require('./src/find');
-var findWithReq = require('./src/findWithReq');
-var search = require('./src/search');
+// This file was created by running mixmax-runner/scripts/migrate-module.sh
+// See mixmax-runner/scripts/unmigrate-module.sh for resetting this project
+const semver = require('semver');
 
-module.exports = {
-  config,
-  find,
-  findWithReq,
-  search
-};
+let main;
+if (semver.lt(process.version, '7.6.0')) {
+  main = require('./dist/node/index.js');
+} else {
+  main = require('./src/index.js');
+}
+module.exports = main;

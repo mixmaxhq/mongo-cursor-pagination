@@ -15,12 +15,11 @@ var _ = require('underscore');
  *    -fields: If a non-empty string, used to limit fields that are returned. Multiple fields
  *      can be specified as a comma-delimited list. If field name used is not in params.fields,
  *      it will be ignored.
- * @params {MongoCollection} collection A collection object returned from the MongoDB library's
+ * @params {MongoCollection} collection A collection object returned from the mongoist package's
  *    `db.collection(<collectionName>)` method.
  * @param {Object} params See documentation for `find()`.
- * @param {Function} done Node errback style function.
  */
-module.exports = function(req, collection, params, done) {
+module.exports = async function(req, collection, params) {
   params = params || {};
 
   if (!_.isEmpty(req.query.limit)) {
@@ -52,5 +51,5 @@ module.exports = function(req, collection, params, done) {
     }, {});
   }
 
-  find(collection, params, done);
+  return find(collection, params);
 };
