@@ -60,10 +60,10 @@ Call `find()` with the following parameters:
 Example:
 
 ```js
-var mongoist = require('mongoist');
-var MongoPaging = require('mongo-cursor-pagination');
+const mongoist = require('mongoist');
+const MongoPaging = require('mongo-cursor-pagination');
 
-var db = mongoist('mongodb://localhost:27017/mydb');
+const db = mongoist('mongodb://localhost:27017/mydb');
 
 async function findExample() {
   await db.collection('myobjects').insertMany([{
@@ -76,8 +76,8 @@ async function findExample() {
     counter: 4
   }]);
 
-      // Query the first page.
-  var result = await MongoPaging.find(db.collection('myobjects'), {
+  // Query the first page.
+  let result = await MongoPaging.find(db.collection('myobjects'), {
     limit: 2
   });
   console.log(result);
@@ -135,10 +135,10 @@ Search uses Mongo's [text search](https://docs.mongodb.com/v3.2/text-search/) fe
 Example:
 
 ```js
-var mongoist = require('mongoist');
-var MongoPaging = require('mongo-cursor-pagination');
+const mongoist = require('mongoist');
+const MongoPaging = require('mongo-cursor-pagination');
 
-var db = mongoist('mongodb://localhost:27017/mydb');
+const db = mongoist('mongodb://localhost:27017/mydb');
 
 async function searchExample() {
   await db.collection('myobjects').ensureIndex({
@@ -154,7 +154,7 @@ async function searchExample() {
   }]);
 
   // Query the first page.
-  var result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
+  let result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
     fields: {
       mytext: 1
     },
@@ -193,7 +193,7 @@ So this code using `find()`:
 ```js
 router.get('/myobjects', async (req, res, next) => {
   try {
-    var result = await MongoPaging.find(db.collection('myobjects'), {
+    const result = await MongoPaging.find(db.collection('myobjects'), {
       query: {
         userId: req.user._id
       },
@@ -218,7 +218,7 @@ Is more elegant with `findWithReq()`:
 ```js
 router.get('/myobjects', async (req, res, next) => {
   try {
-    var result = await MongoPaging.findWithReq(req, db.collection('myobjects'), {
+    const result = await MongoPaging.findWithReq(req, db.collection('myobjects'), {
       query: {
         userId: req.user._id
       },
@@ -246,7 +246,7 @@ If the `limit` parameter isn't passed, then this library will default to returni
 
 `mongo-cursor-pagination` uses `_id` as a secondary sorting field when providing a `paginatedField` property. It is recommended that you have an index for optimal performance. Example:
 
-```
+```js
 MongoPaging.find(db.people, {
   query: {
     name: 'John'
@@ -260,7 +260,7 @@ MongoPaging.find(db.people, {
 
 For the above query to be optimal, you should have an index like:
 
-```
+```js
 db.people.ensureIndex({
   name: 1,
   city: 1,
