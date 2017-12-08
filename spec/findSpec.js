@@ -89,6 +89,19 @@ test.before('start mongo server', async () => {
       counter: 1,
       date: new Date(1477347755654)
     }]),
+    db.collection('test_paging_date_in_object').insert([{
+      counter: 2,
+      start: { date: new Date(1477347763813) },
+    }, {
+      counter: 3,
+      start: { date: new Date(1477347772077) },
+    }, {
+      counter: 4,
+      start: { date: new Date(1477347784766) },
+    }, {
+      counter: 1,
+      start: { date: new Date(1477347755654) },
+    }]),
     db.collection('test_paging_limits').insert([{
       counter: 6
     }, {
@@ -637,6 +650,55 @@ describe('find', (it) => {
       t.is(res.results[1].counter, 1);
       t.true(res.hasPrevious);
       t.false(res.hasNext);
+    });
+  });
+
+  it.describe('test with date as paginated field using dot notation', (it) => {
+    it('should query first few pages', async (t) => {
+      const collection = t.context.db.test_paging_date_in_object;
+      const paginatedField = 'start.date'; // Use dot notation in paginated field.
+      const limit = 2;
+
+      // First page.
+      var res = await paging.find(collection, {
+        limit,
+        paginatedField,
+      });
+
+      t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.
+      t.is(res.results.length, 2);
+      t.is(res.results[0].counter, 4);
+      t.is(res.results[1].counter, 3);
+      t.false(res.hasPrevious);
+      t.true(res.hasNext);
+
+      // Go forward.
+      res = await paging.find(collection, {
+        limit,
+        paginatedField,
+        next: res.next
+      });
+
+      t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.
+      t.is(res.results.length, 2);
+      t.is(res.results[0].counter, 2);
+      t.is(res.results[1].counter, 1);
+      t.true(res.hasPrevious);
+      t.false(res.hasNext);
+
+      // Go backward
+      res = await paging.find(collection, {
+        limit,
+        paginatedField,
+        previous: res.previous
+      });
+
+      t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.
+      t.is(res.results.length, 2);
+      t.is(res.results[0].counter, 4);
+      t.is(res.results[1].counter, 3);
+      t.false(res.hasPrevious);
+      t.true(res.hasNext);
     });
   });
 });
