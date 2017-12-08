@@ -12,6 +12,7 @@
     "test": "ava",
     "lint": "eslint .",
     "babelBuild": "babel src -d dist/node",
+    "babelWatch": "babel --watch src -d dist/node",
     "prepublish": "yarn run babelBuild"
   },
   "repository": {
@@ -36,6 +37,7 @@
   "dependencies": {
     "base64-url": "^1.3.2",
     "mongodb-extended-json": "^1.7.1",
+    "object-path": "^0.11.4",
     "semver": "^5.4.1",
     "underscore": "^1.8.3"
   },

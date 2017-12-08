@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var objectPath = require('object-path');
 var config = require('./config');
 var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
 
@@ -146,17 +147,19 @@ module.exports = async function(collection, params) {
   };
 
   if (response.previous) {
+    var previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
     if (shouldSecondarySortOnId) {
-      response.previous = bsonUrlEncoding.encode([response.previous[params.paginatedField], response.previous._id]);
+      response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
     } else {
-      response.previous = bsonUrlEncoding.encode(response.previous[params.paginatedField]);
+      response.previous = bsonUrlEncoding.encode(previousPaginatedField);
     }
   }
   if (response.next) {
+    var nextPaginatedField = objectPath.get(response.next, params.paginatedField);
     if (shouldSecondarySortOnId) {
-      response.next = bsonUrlEncoding.encode([response.next[params.paginatedField], response.next._id]);
+      response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
     } else {
-      response.next = bsonUrlEncoding.encode(response.next[params.paginatedField]);
+      response.next = bsonUrlEncoding.encode(nextPaginatedField);
     }
   }
 
