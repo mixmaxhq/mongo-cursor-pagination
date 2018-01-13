@@ -23,6 +23,8 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
  *    -next {String} The value to start querying the page.
  *    -previous {String} The value to start querying previous page.
+ *    -after {String} The _id to start querying the page.
+ *    -before {String} The _id to start querying previous page.
  */
 module.exports = async function(collection, params) {
   if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
@@ -43,6 +45,40 @@ module.exports = async function(collection, params) {
   // because then we can't exclusively use it for our range queries (that use $lt and $gt). So
   // to fix this, we secondarily sort on _id, which is always unique.
   var shouldSecondarySortOnId = params.paginatedField !== '_id';
+
+  // The 'after' param sets the start position for the next page. This is similar to the
+  // 'next' param, with the difference that 'after' takes a plain _id instead of an encoded
+  // string of both _id and paginatedField values.
+  if (params.after) {
+    if (shouldSecondarySortOnId) {
+      // Since the primary sort field is not provided by the 'after' pagination cursor we
+      // have to look it up when the paginated field is not _id.
+      const doc = await collection.findOne(
+        { _id: params.after },
+        { [params.paginatedField]: true, _id: false },
+      );
+      params.next = [doc[params.paginatedField], params.after];
+    } else {
+      params.next = params.after;
+    }
+  }
+
+  // The 'before' param sets the start position for the previous page. This is similar to the
+  // 'previous' param, with the difference that 'before' takes a plain _id instead of an encoded
+  // string of both _id and paginatedField values.
+  if (params.before) {
+    if (shouldSecondarySortOnId) {
+      // Since the primary sort field is not provided by the 'before' pagination cursor we
+      // have to look it up when the paginated field is not _id.
+      const doc = await collection.findOne(
+        { _id: params.before },
+        { [params.paginatedField]: true, _id: false },
+      );
+      params.previous = [doc[params.paginatedField], params.before];
+    } else {
+      params.previous = params.before;
+    }
+  }
 
   var fields;
   var removePaginatedFieldInResponse = false;
