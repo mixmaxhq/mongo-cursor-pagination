@@ -59,8 +59,6 @@ module.exports = async function(collection, params) {
       );
       if (doc) {
         params.next = [doc[params.paginatedField], params.after];
-      } else {
-        params.next = null;
       }
     } else {
       params.next = params.after;
@@ -80,8 +78,6 @@ module.exports = async function(collection, params) {
       );
       if (doc) {
         params.previous = [doc[params.paginatedField], params.before];
-      } else {
-        params.previous = null;
       }
     } else {
       params.previous = params.before;
