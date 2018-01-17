@@ -57,10 +57,11 @@ module.exports = async function(collection, params) {
         { _id: params.after },
         { [params.paginatedField]: true, _id: false },
       );
-      if (! doc) {
-        throw new Error('pagination-cursor-does-not-exist');
+      if (doc) {
+        params.next = [doc[params.paginatedField], params.after];
+      } else {
+        params.next = null;
       }
-      params.next = [doc[params.paginatedField], params.after];
     } else {
       params.next = params.after;
     }
@@ -77,10 +78,11 @@ module.exports = async function(collection, params) {
         { _id: params.before },
         { [params.paginatedField]: true, _id: false },
       );
-      if (! doc) {
-        throw new Error('pagination-cursor-does-not-exist');
+      if (doc) {
+        params.previous = [doc[params.paginatedField], params.before];
+      } else {
+        params.previous = null;
       }
-      params.previous = [doc[params.paginatedField], params.before];
     } else {
       params.previous = params.before;
     }
