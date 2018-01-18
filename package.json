@@ -9,7 +9,7 @@
     "src"
   ],
   "scripts": {
-    "test": "ava",
+    "test": "DRIVER=mongoist ava && DRIVER=native ava",
     "lint": "eslint .",
     "babelBuild": "babel src -d dist/node",
     "babelWatch": "babel --watch src -d dist/node",

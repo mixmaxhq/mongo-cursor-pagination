@@ -1,5 +1,6 @@
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoist = require('mongoist');
+const MongoClient = require('mongodb');
 
 function start() {
   return new MongoMemoryServer({
@@ -7,9 +8,12 @@ function start() {
   });
 }
 
-async function db(mongod) {
+async function db(mongod, driver = null) {
   const uri = await mongod.getConnectionString();
-  return mongoist(uri);
+  if (driver === 'mongoist') {
+    return mongoist(uri);
+  }
+  return MongoClient.connect(uri);
 }
 
 module.exports = {

@@ -4,10 +4,12 @@ const test = require('ava');
 var paging = require('../');
 var dbUtils = require('./support/db');
 
+const driver = process.env.DRIVER;
+
 let mongod;
 test.before('start mongo server', async () => {
   mongod = dbUtils.start();
-  const db = await dbUtils.db(mongod);
+  const db = await dbUtils.db(mongod, driver);
 
   await Promise.all([
     db.collection('test_paging').insert([{
@@ -47,7 +49,7 @@ test.before('start mongo server', async () => {
 
 describe('findWithReq', (it) => {
   it.beforeEach(async (t) => {
-    t.context.db = await dbUtils.db(mongod);
+    t.context.db = await dbUtils.db(mongod, driver);
   });
 
   it.describe('basic usage', (it) => {
