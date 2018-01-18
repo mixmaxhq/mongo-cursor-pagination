@@ -80,7 +80,13 @@ module.exports = async function(collection, searchString, params) {
   });
 
   let response;
-  const results = await collection.aggregate(aggregate);
+
+  // Support both the native 'mongodb' driver and 'mongoist'. See:
+  // https://www.npmjs.com/package/mongoist#cursor-operations
+  var aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor': 'aggregate';
+
+  const results = await collection[aggregateMethod](aggregate).toArray();
+
   const fullPageOfResults = results.length === params.limit;
   if (fullPageOfResults) {
     response = {

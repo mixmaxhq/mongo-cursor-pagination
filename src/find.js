@@ -124,7 +124,7 @@ module.exports = async function(collection, params) {
   }
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
-  // https://www.npmjs.com/package/mongoist#dbcollectionfindascursorquery-projection
+  // https://www.npmjs.com/package/mongoist#cursor-operations
   var findMethod = collection.findAsCursor ? 'findAsCursor': 'find';
 
   var results = await collection[findMethod]({ $and: queries }, fields)
