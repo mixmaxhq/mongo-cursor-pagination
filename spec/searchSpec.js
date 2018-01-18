@@ -78,7 +78,7 @@ describe('search', (it) => {
 
   it.describe('basic usage', (it) => {
     it('should query first few pages', async (t) => {
-      const collection = t.context.db.test_paging_search;
+      const collection = t.context.db.collection('test_paging_search');
       // First page of 2
       var res = await paging.search(collection, 'one', {
         fields: {
@@ -135,7 +135,7 @@ describe('search', (it) => {
 
   it.describe('duplicate scores', (it) => {
     it('should query first few pages', async (t) => {
-      const collection = t.context.db.test_duplicate_search;
+      const collection = t.context.db.collection('test_duplicate_search');
       // First page of 2.
       var res = await paging.search(collection, 'one', {
         fields: {
