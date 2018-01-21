@@ -1,5 +1,7 @@
 ## Changelog
 
+* 6.1.0 Added support for native mongodb driver (https://github.com/mixmaxhq/mongo-cursor-pagination/pull/24 - thanks @lirbank)
+
 * 6.0.1 Fix issue where calling `find` with a paginated field that has dot notation e.g. `start.dateTime` produces an invalid `next` token.
 
 * 6.0.0 Breaking API change: `mongo-cursor-pagination` requires a Promise enabled mongodb instance from `mongoist` and returns Promises from `find`, `findWithReq`, and `search` rather than handling callbacks. *Note: Although the library now uses `async/await`, it is still useable in node >= 6.9.0.*
