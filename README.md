@@ -36,8 +36,8 @@ Call `find()` with the following parameters:
    Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
    are ordered by the paginatedField.
 
-   @param {MongoCollection} collection A collection object returned from the mongoist package's
-      `db.collection(<collectionName>)` method.
+   @param {MongoCollection} collection A collection object returned from the MongoDB library's
+      or the mongoist package's `db.collection(<collectionName>)` method.
    @param {Object} params
       -query {Object} The find query.
       -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
@@ -119,8 +119,9 @@ Search uses Mongo's [text search](https://docs.mongodb.com/v3.2/text-search/) fe
    a paginatedField parameter. Note that this is less performant than find() because it must
    perform the full search on each call to this function. Also note that results might change
 
-   @param {MongoCollection} collection A collection object returned from the mongoist package's
-      `db.collection(<collectionName>)` method. This MUST have a Mongo $text index on it.
+    @param {MongoCollection} collection A collection object returned from the MongoDB library's
+       or the mongoist package's `db.collection(<collectionName>)` method. This MUST have a Mongo
+       $text index on it.
       See https://docs.mongodb.com/manual/core/index-text/.
    @param {String} searchString String to search on.
    @param {Object} params

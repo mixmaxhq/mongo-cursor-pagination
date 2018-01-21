@@ -3,10 +3,12 @@ const test = require('ava');
 const paging = require('../');
 const dbUtils = require('./support/db');
 
+const driver = process.env.DRIVER;
+
 let mongod;
 test.before('start mongo server', async () => {
   mongod = dbUtils.start();
-  const db = await dbUtils.db(mongod);
+  const db = await dbUtils.db(mongod, driver);
 
   // Set up collections once for testing later.
   await Promise.all([
@@ -120,13 +122,13 @@ test.before('start mongo server', async () => {
 
 describe('find', (it) => {
   it.beforeEach(async (t) => {
-    t.context.db = await dbUtils.db(mongod);
+    t.context.db = await dbUtils.db(mongod, driver);
   });
 
   it.describe('basic usage', (it) => {
     it.describe('test with Mongo object ids', (it) => {
       it('should query first few pages', async (t) => {
-        const collection = t.context.db.test_paging;
+        const collection = t.context.db.collection('test_paging');
         // First page of 3
         let res = await paging.find(collection, {
           limit: 3
@@ -192,7 +194,7 @@ describe('find', (it) => {
       });
 
       it('should handle hitting the end', async (t) => {
-        const collection = t.context.db.test_paging;
+        const collection = t.context.db.collection('test_paging');
         // First page of 2
         var res = await paging.find(collection, {
           limit: 4
@@ -232,7 +234,7 @@ describe('find', (it) => {
       });
 
       it('should handle hitting the beginning', async (t) => {
-        const collection = t.context.db.test_paging;
+        const collection = t.context.db.collection('test_paging');
         // First page of 2
         var res = await paging.find(collection, {
           limit: 4
@@ -275,7 +277,7 @@ describe('find', (it) => {
       });
 
       it('should use passed-in criteria', async (t) => {
-        const collection = t.context.db.test_paging;
+        const collection = t.context.db.collection('test_paging');
         // First page.
         var res = await paging.find(collection, {
           query: {
@@ -290,7 +292,7 @@ describe('find', (it) => {
       });
 
       it('should use the "fields" parameter', async (t) => {
-        const collection = t.context.db.test_paging;
+        const collection = t.context.db.collection('test_paging');
         // First page.
         var res = await paging.find(collection, {
           query: {
@@ -306,7 +308,7 @@ describe('find', (it) => {
       });
 
       it('should not return "next" or "previous" if there are no results', async (t) => {
-        const collection = t.context.db.test_paging;
+        const collection = t.context.db.collection('test_paging');
         // First page.
         var res = await paging.find(collection, {
           limit: 3,
@@ -321,7 +323,7 @@ describe('find', (it) => {
       });
 
       it('should respect sortAscending option', async (t) => {
-        const collection = t.context.db.test_paging;
+        const collection = t.context.db.collection('test_paging');
         // First page of 3
         var res = await paging.find(collection, {
           limit: 3,
@@ -396,7 +398,7 @@ describe('find', (it) => {
 
   it.describe('test with custom fields', (it) => {
     it('should query first few pages', async (t) => {
-      const collection = t.context.db.test_paging_custom_fields;
+      const collection = t.context.db.collection('test_paging_custom_fields');
       // First page of 2
       var res = await paging.find(collection, {
         limit: 2,
@@ -450,7 +452,7 @@ describe('find', (it) => {
     });
 
     it('should not include the paginatedField in the results if not desired', async (t) => {
-      const collection = t.context.db.test_paging_custom_fields;
+      const collection = t.context.db.collection('test_paging_custom_fields');
       var res = await paging.find(collection, {
         limit: 1,
         fields: {
@@ -463,7 +465,7 @@ describe('find', (it) => {
     });
 
     it('should not overwrite $or used in a query', async (t) => {
-      const collection = t.context.db.test_paging_custom_fields;
+      const collection = t.context.db.collection('test_paging_custom_fields');
       // First page of 2
       var res = await paging.find(collection, {
         query: { $or: [{ counter: { $gt: 3 } }] },
@@ -494,7 +496,7 @@ describe('find', (it) => {
 
   it.describe('test with duplicate values for paginated field', (it) => {
     it('should query first few pages', async (t) => {
-      const collection = t.context.db.test_duplicate_custom_fields;
+      const collection = t.context.db.collection('test_duplicate_custom_fields');
       // First page of 2
       var res = await paging.find(collection, {
         limit: 2,
@@ -548,7 +550,7 @@ describe('find', (it) => {
     });
 
     it('should not include fields not desired', async (t) => {
-      const collection = t.context.db.test_duplicate_custom_fields;
+      const collection = t.context.db.collection('test_duplicate_custom_fields');
       var res = await paging.find(collection, {
         limit: 1,
         fields: {
@@ -565,7 +567,7 @@ describe('find', (it) => {
     });
 
     it('should respect sortAscending', async (t) => {
-      const collection = t.context.db.test_duplicate_custom_fields;
+      const collection = t.context.db.collection('test_duplicate_custom_fields');
       // First page of 2
       var res = await paging.find(collection, {
         limit: 2,
@@ -625,7 +627,7 @@ describe('find', (it) => {
 
   it.describe('test with dates', (it) => {
     it('should query first few pages', async (t) => {
-      const collection = t.context.db.test_paging_date;
+      const collection = t.context.db.collection('test_paging_date');
       // First page of 2
       var res = await paging.find(collection, {
         limit: 2,
@@ -655,7 +657,7 @@ describe('find', (it) => {
 
   it.describe('test with date as paginated field using dot notation', (it) => {
     it('should query first few pages', async (t) => {
-      const collection = t.context.db.test_paging_date_in_object;
+      const collection = t.context.db.collection('test_paging_date_in_object');
       const paginatedField = 'start.date'; // Use dot notation in paginated field.
       const limit = 2;
 
@@ -708,7 +710,7 @@ describe('find', (it) => {
  * affect the results of other tests when run concurrently.
  */
 test.serial('find limits should clamp lower limit', async (t) => {
-  const collection = t.context.db.test_paging_limits;
+  const collection = t.context.db.collection('test_paging_limits');
   var res = await paging.find(collection, {
     limit: -1
   });
@@ -717,7 +719,7 @@ test.serial('find limits should clamp lower limit', async (t) => {
 });
 
 test.serial('find limits should set a default limit', async (t) => {
-  const collection = t.context.db.test_paging_limits;
+  const collection = t.context.db.collection('test_paging_limits');
   var originalDefaultLimit = paging.config.DEFAULT_LIMIT;
   paging.config.DEFAULT_LIMIT = 2;
   var res = await paging.find(collection, {});
@@ -728,7 +730,7 @@ test.serial('find limits should set a default limit', async (t) => {
 });
 
 test.serial('find limits should allow overriding the limit', async (t) => {
-  const collection = t.context.db.test_paging_limits;
+  const collection = t.context.db.collection('test_paging_limits');
   var originalDefaultLimit = paging.config.DEFAULT_LIMIT;
   paging.config.DEFAULT_LIMIT = 2;
   var res = await paging.find(collection, {
@@ -741,7 +743,7 @@ test.serial('find limits should allow overriding the limit', async (t) => {
 });
 
 test.serial('find limits should clamp to max limit', async (t) => {
-  const collection = t.context.db.test_paging_limits;
+  const collection = t.context.db.collection('test_paging_limits');
   var originalMaxLimit = paging.config.MAX_LIMIT;
   paging.config.MAX_LIMIT = 2;
   var res = await paging.find(collection, {

@@ -8,7 +8,7 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  * are ordered by the paginatedField.
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
- *    `db.collection(<collectionName>)` method.
+ *    or the mongoist package's `db.collection(<collectionName>)` method.
  * @param {Object} params
  *    -query {Object} The find query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
@@ -123,7 +123,11 @@ module.exports = async function(collection, params) {
     };
   }
 
-  var results = await collection.findAsCursor({ $and: queries }, fields)
+  // Support both the native 'mongodb' driver and 'mongoist'. See:
+  // https://www.npmjs.com/package/mongoist#cursor-operations
+  var findMethod = collection.findAsCursor ? 'findAsCursor': 'find';
+
+  var results = await collection[findMethod]({ $and: queries }, fields)
     .sort(sort)
     .limit(params.limit + 1) // Query one more element to see if there's another page.
     .toArray();
