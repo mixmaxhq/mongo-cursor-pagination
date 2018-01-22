@@ -1,6 +1,6 @@
 {
   "name": "mongo-cursor-pagination",
-  "version": "6.0.1",
+  "version": "6.1.0",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "index.js",
   "files": [
@@ -9,7 +9,7 @@
     "src"
   ],
   "scripts": {
-    "test": "ava",
+    "test": "DRIVER=mongoist ava && DRIVER=native ava",
     "lint": "eslint .",
     "babelBuild": "babel src -d dist/node",
     "babelWatch": "babel --watch src -d dist/node",
