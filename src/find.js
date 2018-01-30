@@ -57,6 +57,9 @@ module.exports = async function(collection, params) {
   // to fix this, we secondarily sort on _id, which is always unique.
   var shouldSecondarySortOnId = params.paginatedField !== '_id';
 
+  //
+  // params.after - overides params.next
+  //
   // The 'after' param sets the start position for the next page. This is similar to the
   // 'next' param, with the difference that 'after' takes a plain _id instead of an encoded
   // string of both _id and paginatedField values.
@@ -78,6 +81,9 @@ module.exports = async function(collection, params) {
     }
   }
 
+  //
+  // params.before - overides params.previous
+  //
   // The 'before' param sets the start position for the previous page. This is similar to the
   // 'previous' param, with the difference that 'before' takes a plain _id instead of an encoded
   // string of both _id and paginatedField values.
