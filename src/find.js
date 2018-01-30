@@ -26,6 +26,17 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  */
+
+function getPropertyViaDotNotation(propertyName, object) {
+  const parts = propertyName.split('.');
+
+  let prop = object;
+  for (let i=0; i < parts.length; i++) {
+    prop = prop[parts[i]];
+  }
+  return prop;
+}
+
 module.exports = async function(collection, params) {
   if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
@@ -58,7 +69,9 @@ module.exports = async function(collection, params) {
         { [params.paginatedField]: true, _id: false },
       );
       if (doc) {
-        params.next = [doc[params.paginatedField], params.after];
+        // Handle usage of dot notation in paginatedField
+        const prop = getPropertyViaDotNotation(params.paginatedField, doc);
+        params.next = [prop, params.after];
       }
     } else {
       params.next = params.after;
@@ -77,7 +90,9 @@ module.exports = async function(collection, params) {
         { [params.paginatedField]: true, _id: false },
       );
       if (doc) {
-        params.previous = [doc[params.paginatedField], params.before];
+        // Handle usage of dot notation in paginatedField
+        const prop = getPropertyViaDotNotation(params.paginatedField, doc);
+        params.previous = [prop, params.before];
       }
     } else {
       params.previous = params.before;

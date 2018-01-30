@@ -797,7 +797,7 @@ describe('find', (it) => {
     });
   });
 
-  it.describe('test with duplicate values for paginated field', (it) => {
+  it.describe('test with duplicate values for paginated field with', (it) => {
     it('should query first few pages with next/previous', async (t) => {
       const collection = t.context.db.collection('test_duplicate_custom_fields');
       // First page of 2
@@ -1099,7 +1099,7 @@ describe('find', (it) => {
   });
 
   it.describe('test with date as paginated field using dot notation', (it) => {
-    it('should query first few pages', async (t) => {
+    it('should query first few pages with next/previous', async (t) => {
       const collection = t.context.db.collection('test_paging_date_in_object');
       const paginatedField = 'start.date'; // Use dot notation in paginated field.
       const limit = 2;
@@ -1136,6 +1136,53 @@ describe('find', (it) => {
         limit,
         paginatedField,
         previous: res.previous
+      });
+
+      t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.
+      t.is(res.results.length, 2);
+      t.is(res.results[0].counter, 4);
+      t.is(res.results[1].counter, 3);
+      t.false(res.hasPrevious);
+      t.true(res.hasNext);
+    });
+
+    it('should query first few pages with after/before', async (t) => {
+      const collection = t.context.db.collection('test_paging_date_in_object');
+      const paginatedField = 'start.date'; // Use dot notation in paginated field.
+      const limit = 2;
+
+      // First page.
+      var res = await paging.find(collection, {
+        limit,
+        paginatedField,
+      });
+
+      t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.
+      t.is(res.results.length, 2);
+      t.is(res.results[0].counter, 4);
+      t.is(res.results[1].counter, 3);
+      t.false(res.hasPrevious);
+      t.true(res.hasNext);
+
+      // Go forward.
+      res = await paging.find(collection, {
+        limit,
+        paginatedField,
+        after: res.results[res.results.length -1]._id
+      });
+
+      t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.
+      t.is(res.results.length, 2);
+      t.is(res.results[0].counter, 2);
+      t.is(res.results[1].counter, 1);
+      t.true(res.hasPrevious);
+      t.false(res.hasNext);
+
+      // Go backward
+      res = await paging.find(collection, {
+        limit,
+        paginatedField,
+        before: res.results[0]._id
       });
 
       t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.
