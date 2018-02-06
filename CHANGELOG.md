@@ -1,5 +1,7 @@
 ## Changelog
 
+* 6.2.0 Added support for 'after' and 'before' parameters - thanks @lirbank
+
 * 6.1.0 Added support for native mongodb driver (https://github.com/mixmaxhq/mongo-cursor-pagination/pull/24 - thanks @lirbank)
 
 * 6.0.1 Fix issue where calling `find` with a paginated field that has dot notation e.g. `start.dateTime` produces an invalid `next` token.
