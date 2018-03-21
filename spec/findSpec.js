@@ -1244,3 +1244,17 @@ test.serial('find limits should clamp to max limit', async (t) => {
 
   paging.config.MAX_LIMIT = originalMaxLimit;
 });
+
+test.serial('find limits should be deactivable', async (t) => {
+  var originalDefaultLimit = paging.config.DEFAULT_LIMIT;
+  paging.config.DEFAULT_LIMIT = 2;
+
+  const collection = t.context.db.collection('test_paging_limits');
+  var res = await paging.find(collection, {
+    canUnlimit: true,
+    limit: 0
+  });
+  t.is(res.results.length, 6);
+
+  paging.config.DEFAULT_LIMIT = originalDefaultLimit;
+});
