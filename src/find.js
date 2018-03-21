@@ -44,12 +44,17 @@ module.exports = async function(collection, params) {
   params = _.defaults(params, {
     query: {},
     limit: config.DEFAULT_LIMIT,
+    canUnlimit: false,
     paginatedField: '_id'
   });
 
   var queries = [params.query];
 
-  if (params.limit < 1) params.limit = 1;
+  if (params.limit < 1) {
+    if (!params.canUnlimit || params.limit !== 0) {
+      params.limit = 1;
+    }
+  }
   if (params.limit > config.MAX_LIMIT) params.limit = config.MAX_LIMIT;
 
   // If the paginated field is not _id, then it might have duplicate values in it. This is bad
@@ -188,28 +193,43 @@ module.exports = async function(collection, params) {
   // https://www.npmjs.com/package/mongoist#cursor-operations
   var findMethod = collection.findAsCursor ? 'findAsCursor': 'find';
 
-  var results = await collection[findMethod]({ $and: queries }, fields)
-    .sort(sort)
-    .limit(params.limit + 1) // Query one more element to see if there's another page.
-    .toArray();
+  var response;
+  if (params.limit === 0) {
+    var results = await collection[findMethod]({ $and: queries }, fields)
+      .sort(sort)
+      .toArray();
 
-  var hasMore = results.length > params.limit;
-  // Remove the extra element that we added to 'peek' to see if there were more entries.
-  if (hasMore) results.pop();
+    response = {
+      results,
+      previous: results[0],
+      hasPrevious: false,
+      next: results[results.length - 1],
+      hasNext: false
+    };
+  } else {
+    var results = await collection[findMethod]({ $and: queries }, fields)
+      .sort(sort)
+      .limit(params.limit + 1) // Query one more element to see if there's another page.
+      .toArray();
 
-  var hasPrevious = !!params.next || !!(params.previous && hasMore);
-  var hasNext = !!params.previous || hasMore;
+    var hasMore = results.length > params.limit;
+    // Remove the extra element that we added to 'peek' to see if there were more entries.
+    if (hasMore) results.pop();
 
-  // If we sorted reverse to get the previous page, correct the sort order.
-  if (params.previous) results = results.reverse();
+    var hasPrevious = !!params.next || !!(params.previous && hasMore);
+    var hasNext = !!params.previous || hasMore;
 
-  var response = {
-    results,
-    previous: results[0],
-    hasPrevious,
-    next: results[results.length - 1],
-    hasNext
-  };
+    // If we sorted reverse to get the previous page, correct the sort order.
+    if (params.previous) results = results.reverse();
+
+    response = {
+      results,
+      previous: results[0],
+      hasPrevious,
+      next: results[results.length - 1],
+      hasNext
+    };
+  }
 
   if (response.previous) {
     var previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
