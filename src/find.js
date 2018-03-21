@@ -11,7 +11,8 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    or the mongoist package's `db.collection(<collectionName>)` method.
  * @param {Object} params
  *    -query {Object} The find query.
- *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
+ *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`. Can be 0 if canUnlimit field is truthy.
+ *    -canUnlimit {Boolean} Allows to disable the limit (limit can be set to 0).
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
  *      The default is to query all fields.
  *    -paginatedField {String} The field name to query the range for. The field must be:
