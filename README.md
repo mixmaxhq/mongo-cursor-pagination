@@ -2,6 +2,9 @@
 
 This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. __This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day__.
 
+### New
+ * [Now Supports Mongoose](https://github.com/mixmaxhq/mongo-cursor-pagination#with-mongoose)
+
 ## Background
 
 See this [blog post](https://mixmax.com/blog/api-paging-built-the-right-way) for background on why this library was built.
