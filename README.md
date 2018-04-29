@@ -109,6 +109,58 @@ page 2 { results:
   hasMore: false }
 ```
 
+## With Mongoose
+
+Initialize Your Schema
+
+```js 
+const MongoPaging = require('mongo-cursor-pagination');
+const mongoose = require('mongoose');
+const counterSchema = new mongoose.Schema({ counter: Number });
+```
+
+Plug the `mongoosePlugin`.
+
+```js
+// this will add paginate function.
+counterSchema.plugin(MongoPaging.mongoosePlugin);
+
+const counter = mongoose.model('counter', 
+counterSchema);
+
+// default function is "paginate"
+counter.paginate({ limit : 10 })
+.then((result) => {
+  console.log(result);
+});
+
+
+```
+
+for paginate params [refer the find section](https://github.com/mixmaxhq/mongo-cursor-pagination#find)
+
+```js
+const MongoPaging = require('mongo-cursor-pagination');
+const mongoose = require('mongoose');
+
+const counterSchema = new mongoose.Schema({ counter: Number });
+
+// give custom function name
+
+counterSchema.plugin(MongoPaging.mongoosePlugin, { name: 'paginateFN' });
+
+const counter = mongoose.model('counter', 
+counterSchema);
+
+// now you can call the custom named function 
+
+counter.paginateFN(params)
+.then(....)
+.catch(....);
+
+```
+
+
 ### search()
 
 Search uses Mongo's [text search](https://docs.mongodb.com/v3.2/text-search/) feature and will return paged results ordered by search relevancy. As such, and unlike `find()`, it does not take a `paginatedField` parameter.
