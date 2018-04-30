@@ -2,6 +2,9 @@
 
 This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. __This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day__.
 
+### New
+ * [Now Supports Mongoose](https://github.com/mixmaxhq/mongo-cursor-pagination#with-mongoose)
+
 ## Background
 
 See this [blog post](https://mixmax.com/blog/api-paging-built-the-right-way) for background on why this library was built.
@@ -108,6 +111,58 @@ page 2 { results:
   next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI4In0',
   hasMore: false }
 ```
+
+## With Mongoose
+
+Initialize Your Schema
+
+```js 
+const MongoPaging = require('mongo-cursor-pagination');
+const mongoose = require('mongoose');
+const counterSchema = new mongoose.Schema({ counter: Number });
+```
+
+Plug the `mongoosePlugin`.
+
+```js
+// this will add paginate function.
+counterSchema.plugin(MongoPaging.mongoosePlugin);
+
+const counter = mongoose.model('counter', 
+counterSchema);
+
+// default function is "paginate"
+counter.paginate({ limit : 10 })
+.then((result) => {
+  console.log(result);
+});
+
+
+```
+
+for paginate params [refer the find section](https://github.com/mixmaxhq/mongo-cursor-pagination#find)
+
+```js
+const MongoPaging = require('mongo-cursor-pagination');
+const mongoose = require('mongoose');
+
+const counterSchema = new mongoose.Schema({ counter: Number });
+
+// give custom function name
+
+counterSchema.plugin(MongoPaging.mongoosePlugin, { name: 'paginateFN' });
+
+const counter = mongoose.model('counter', 
+counterSchema);
+
+// now you can call the custom named function 
+
+counter.paginateFN(params)
+.then(....)
+.catch(....);
+
+```
+
 
 ### search()
 
