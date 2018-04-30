@@ -1,5 +1,7 @@
 ## Changelog
 
+* 6.3.0 Can be used as a Mongoose plugin
+
 * 6.2.0 Added support for 'after' and 'before' parameters - thanks @lirbank
 
 * 6.1.0 Added support for native mongodb driver (https://github.com/mixmaxhq/mongo-cursor-pagination/pull/24 - thanks @lirbank)
