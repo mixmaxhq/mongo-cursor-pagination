@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "babelBuild": "babel src -d dist/node",
     "babelWatch": "babel --watch src -d dist/node",
-    "prepublish": "yarn run babelBuild"
+    "prepublish": "npm run babelBuild"
   },
   "repository": {
     "type": "git",
