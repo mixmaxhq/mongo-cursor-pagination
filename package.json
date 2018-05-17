@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "babelBuild": "babel src -d dist/node",
     "babelWatch": "babel --watch src -d dist/node",
-    "prepublish": "yarn run babelBuild"
+    "prepublish": "npm run babelBuild"
   },
   "repository": {
     "type": "git",
@@ -53,7 +53,7 @@
     "mockgoose": "7.3.5",
     "mongodb": "^2.2.11",
     "mongodb-memory-server": "^1.6.1",
-    "mongoist": "^1.4.3",
+    "mongoist": "1.4.3",
     "mongoose": "5.0.15"
   },
   "engines": {
