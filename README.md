@@ -103,20 +103,20 @@ page 1 { results:
    [ { _id: 580fd16aca2a6b271562d8bb, counter: 4 },
      { _id: 580fd16aca2a6b271562d8ba, counter: 3 } ],
   next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGJhIn0',
-  hasMore: true }
+  hasNext: true }
 page 2 { results:
    [ { _id: 580fd16aca2a6b271562d8b9, counter: 2 },
      { _id: 580fd16aca2a6b271562d8b8, counter: 1 } ],
   previous: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI5In0',
   next: 'eyIkb2lkIjoiNTgwZmQxNmFjYTJhNmIyNzE1NjJkOGI4In0',
-  hasMore: false }
+  hasNext: false }
 ```
 
 ## With Mongoose
 
 Initialize Your Schema
 
-```js 
+```js
 const MongoPaging = require('mongo-cursor-pagination');
 const mongoose = require('mongoose');
 const counterSchema = new mongoose.Schema({ counter: Number });
@@ -128,7 +128,7 @@ Plug the `mongoosePlugin`.
 // this will add paginate function.
 counterSchema.plugin(MongoPaging.mongoosePlugin);
 
-const counter = mongoose.model('counter', 
+const counter = mongoose.model('counter',
 counterSchema);
 
 // default function is "paginate"
@@ -152,10 +152,10 @@ const counterSchema = new mongoose.Schema({ counter: Number });
 
 counterSchema.plugin(MongoPaging.mongoosePlugin, { name: 'paginateFN' });
 
-const counter = mongoose.model('counter', 
+const counter = mongoose.model('counter',
 counterSchema);
 
-// now you can call the custom named function 
+// now you can call the custom named function
 
 counter.paginateFN(params)
 .then(....)
