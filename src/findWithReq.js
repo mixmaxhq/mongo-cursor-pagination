@@ -1,5 +1,5 @@
 var find = require('./find');
-var dotFieldIntersect = require('./utils/dotFieldIntersect');
+var resolveFields = require('./utils/resolveFields');
 var _ = require('underscore');
 
 /**
@@ -17,7 +17,10 @@ var _ = require('underscore');
  *      it will be ignored.
  * @params {MongoCollection} collection A collection object returned from the MongoDB library's
  *    or the mongoist package's `db.collection(<collectionName>)` method.
- * @param {Object} params See documentation for `find()`.
+ * @param {Object} params See documentation for `find()`, plus these options:
+ *    -overrideFields: an object containing fields that should override fields from the querystring, e.g.
+ *      {_id: 0} or {internalField: 1}. We only support field exclusion for _id, as we expect whitelists
+ *      for fields from both params.fields and params.overrideFields.
  */
 module.exports = async function(req, collection, params) {
   params = params || {};
@@ -38,18 +41,9 @@ module.exports = async function(req, collection, params) {
     params.previous = req.query.previous;
   }
 
-  if (!_.isEmpty(req.query.fields)) {
-    var fields = req.query.fields.split(',');
-    if (params.fields) {
-      // Don't trust fields passed in the querystring, so whitelist them against the
-      // fields defined in parameters.
-      fields = dotFieldIntersect(Object.keys(params.fields), fields);
-    }
-    params.fields = fields.reduce((accum, field) => {
-      accum[field] = 1;
-      return accum;
-    }, {});
-  }
+  // Don't trust fields passed in the querystring, so whitelist them against the fields defined in
+  // parameters.
+  params.fields = resolveFields(req.query.fields.split(','), params.fields, params.overrideFields);
 
   return find(collection, params);
 };
