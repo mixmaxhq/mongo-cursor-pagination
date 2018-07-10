@@ -3,6 +3,37 @@ var resolveFields = require('./utils/resolveFields');
 var _ = require('underscore');
 
 /**
+ * Normalize the given query parameter to an array, so we support both param=a,b and
+ * param[]=a&param[]=b.
+ *
+ * @param {Object} query The parsed query object containing the given parameter.
+ * @param {String} param The parameter to normalize.
+ * @returns {String[]} The normalized array from the given query parameter.
+ * @throws {TypeError} When the query parameter isn't a string, an empty value, or an array of
+ *   strings.
+ */
+function normalizeQueryArray(query, param) {
+  const value = query[param];
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; ++i) {
+      if (!_.isString(value[i])) {
+        throw new TypeError('expected string array or comma-separated string for ' + param);
+      }
+    }
+    return value;
+  }
+  // This goes before _.isString so we don't split an empty string into ['']. The array option just
+  // uses whatever the user provides.
+  if (_.isEmpty(value)) {
+    return [];
+  }
+  if (_.isString(value)) {
+    return value.split(',');
+  }
+  throw new TypeError('expected string array or comma-separated string for ' + param);
+}
+
+/**
  * A wrapper around `find()` that make it easy to implement a basic HTTP API using Express. So your
  * user can call "/list?limit=1&fields=_id,name" and the querystring parameters will be passed
  * to this method on the Express request object.
@@ -43,7 +74,13 @@ module.exports = async function(req, collection, params) {
 
   // Don't trust fields passed in the querystring, so whitelist them against the fields defined in
   // parameters.
-  params.fields = resolveFields(req.query.fields.split(','), params.fields, params.overrideFields);
+  const fields = resolveFields(normalizeQueryArray(req.query, 'fields'), params.fields, params.overrideFields);
+  if (fields === null) {
+    throw new TypeError('no valid fields provided');
+  }
+
+  // Set fields to undefined if it's empty to avoid adding _id: 0 in find.
+  params.fields = _.isEmpty(fields) ? undefined : fields;
 
   return find(collection, params);
 };
