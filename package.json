@@ -38,6 +38,7 @@
     "base64-url": "^1.3.2",
     "mongodb-extended-json": "^1.7.1",
     "object-path": "^0.11.4",
+    "projection-utils": "^1.1.0",
     "semver": "^5.4.1",
     "underscore": "^1.8.3"
   },
