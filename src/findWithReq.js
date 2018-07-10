@@ -20,7 +20,8 @@ var _ = require('underscore');
  * @param {Object} params See documentation for `find()`.
  */
 module.exports = async function(req, collection, params) {
-  params = params || {};
+  // Make a copy of the parameters so we don't modify an object provided to us.
+  params = params ? _.clone(params) : {};
 
   if (!_.isEmpty(req.query.limit)) {
     var limit = parseInt(req.query.limit);
