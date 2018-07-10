@@ -1,5 +1,7 @@
 ## Changelog
 
+* 7.0.0 Add findWithReq overrideFields support. Breaking: now throws errors on unusable `fields`/`overrideFields`, so check your inputs. Also changes our intersection mechanism, so it _could_ cause backwards-incompatible changes to fields resolution. If it does, please file an issue!
+
 * 6.3.0 Can be used as a Mongoose plugin
 
 * 6.2.0 Added support for 'after' and 'before' parameters - thanks @lirbank
