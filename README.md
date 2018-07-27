@@ -1,4 +1,5 @@
 # mongo-cursor-pagination
+[![Build Status](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination.svg?branch=master)](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination)
 
 This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. __This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day__.
 
