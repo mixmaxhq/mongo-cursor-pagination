@@ -1,0 +1,26 @@
+language: node_js
+
+node_js:
+  - 6.9.1
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+
+services:
+  - mongodb
+
+cache:
+  directories:
+    - $HOME/.mongodb-binaries
+    - node_modules
+
+script: npm run ci
+
+# Don’t build pushes to branches other than our published branches. (This doesn’t affect PR
+# builds, which are separate from branch builds in Travis. If we didn’t have this config,
+# Travis would run both types of builds for PRs, consuming our concurrent builds.)
+branches:
+  only:
+    - master
