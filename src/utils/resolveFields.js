@@ -10,15 +10,17 @@ const {ProjectionFieldSet} = require('projection-utils');
  * @returns {ProjectionFieldSet} The synthesized field set.
  */
 function fieldsFromMongo(projection = {}, includeIdDefault = false) {
-  const fields = [];
-  for (const [field, value] of Object.entries(projection)) {
-    if (field !== '_id' && value !== undefined && !value) {
+  const fields = _.reduce(projection, (memo, value, key) => {
+    if (key !== '_id' && value !== undefined && !value) {
       throw new TypeError('projection includes exclusion, but we do not support that');
     }
-    if (value || (field === '_id' && value === undefined && includeIdDefault)) {
-      fields.push(field);
+    if (value || (key === '_id' && value === undefined && includeIdDefault)) {
+      memo.push(key);
     }
-  }
+
+    return memo;
+  }, []);
+
   return ProjectionFieldSet.fromDotted(fields);
 }
 
