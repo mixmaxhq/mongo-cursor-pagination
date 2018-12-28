@@ -5,5 +5,13 @@ const EJSON = require('mongodb-extended-json');
  * encode/decode as a URL-safe string.
  */
 
-exports.encode = obj => encodeURIComponent(Buffer.from(EJSON.stringify(obj), 'utf8').toString('base64'));
-exports.decode = str => EJSON.parse(Buffer.from(decodeURIComponent(str), 'base64').toString('utf8'));
+function encode(obj) {
+  return encodeURIComponent(Buffer.from(EJSON.stringify(obj), 'utf8').toString('base64'));
+}
+
+function decode(str) {
+  return EJSON.parse(Buffer.from(decodeURIComponent(str), 'base64').toString('utf8'));
+}
+
+exports.encode = encode;
+exports.decode = decode;
