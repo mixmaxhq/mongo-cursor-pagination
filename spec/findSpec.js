@@ -210,7 +210,7 @@ describe('find', (it) => {
         // Go forward 3
         res = await paging.find(collection, {
           limit: 3,
-          after: res.results[res.results.length -1]._id
+          after: res.results[res.results.length - 1]._id
         });
 
         t.is(res.results.length, 3);
@@ -223,7 +223,7 @@ describe('find', (it) => {
         // Go forward another 3
         res = await paging.find(collection, {
           limit: 3,
-          after: res.results[res.results.length -1]._id
+          after: res.results[res.results.length - 1]._id
         });
 
         t.is(res.results.length, 2);
@@ -317,7 +317,7 @@ describe('find', (it) => {
         // Go forward 2
         res = await paging.find(collection, {
           limit: 3,
-          after: res.results[res.results.length -1]._id
+          after: res.results[res.results.length - 1]._id
         });
 
         t.is(res.results.length, 3);
@@ -330,7 +330,7 @@ describe('find', (it) => {
         // Go forward another 1, results should be empty.
         res = await paging.find(collection, {
           limit: 2,
-          after: res.results[res.results.length -1]._id
+          after: res.results[res.results.length - 1]._id
         });
 
         t.is(res.results.length, 1);
@@ -400,7 +400,7 @@ describe('find', (it) => {
         // Go forward 2
         res = await paging.find(collection, {
           limit: 3,
-          after: res.results[res.results.length -1]._id
+          after: res.results[res.results.length - 1]._id
         });
 
         t.is(res.results.length, 3);
@@ -560,7 +560,7 @@ describe('find', (it) => {
         // Go forward 3
         res = await paging.find(collection, {
           limit: 3,
-          after: res.results[res.results.length -1]._id,
+          after: res.results[res.results.length - 1]._id,
           sortAscending: true
         });
 
@@ -574,7 +574,7 @@ describe('find', (it) => {
         // Go forward another 3
         res = await paging.find(collection, {
           limit: 3,
-          after: res.results[res.results.length -1]._id,
+          after: res.results[res.results.length - 1]._id,
           sortAscending: true
         });
 
@@ -689,7 +689,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id
       });
 
       t.is(res.results.length, 2);
@@ -702,7 +702,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id
       });
 
       t.is(res.results.length, 2);
@@ -787,7 +787,7 @@ describe('find', (it) => {
         query: { $or: [{ counter: { $gt: 3 } }] },
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id
       });
 
       t.is(res.results.length, 1);
@@ -870,7 +870,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id
       });
 
       t.is(res.results.length, 2);
@@ -883,7 +883,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id
       });
 
       t.is(res.results.length, 2);
@@ -1000,7 +1000,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length -1]._id,
+        after: res.results[res.results.length - 1]._id,
         sortAscending: true
       });
 
@@ -1014,7 +1014,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length -1]._id,
+        after: res.results[res.results.length - 1]._id,
         sortAscending: true
       });
 
@@ -1087,7 +1087,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'date',
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id
       });
 
       t.is(res.results.length, 2);
@@ -1168,7 +1168,7 @@ describe('find', (it) => {
       res = await paging.find(collection, {
         limit,
         paginatedField,
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id
       });
 
       t.is(res.results.start, undefined); // Verify it is not returned since it is not requested.

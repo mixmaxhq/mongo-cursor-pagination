@@ -25,7 +25,7 @@ const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  */
-module.exports = async function(collection, params) {
+module.exports = async function (collection, params) {
   const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField];
 
   params = _.defaults(
@@ -37,9 +37,14 @@ module.exports = async function(collection, params) {
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  const findMethod = collection.findAsCursor ? 'findAsCursor': 'find';
+  const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
-  const results = await collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields)
+  const results = await collection[findMethod](
+    { $and: [cursorQuery, params.query] },
+    collection.findAsCursor
+      ? params.fields
+      : { projection: params.fields }
+  )
     .sort($sort)
     .limit(params.limit + 1) // Query one more element to see if there's another page.
     .toArray();

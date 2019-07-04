@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
- 
+
 const { describe } = require('ava-spec');
 const test = require('ava');
 const mongooseCursorPaginate = require('../src/mongoose.plugin');
@@ -10,12 +10,12 @@ let AuthorSchema = new mongoose.Schema({ name: String });
 
 AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN' });
 
-let Author =  mongoose.model('Author', AuthorSchema);
+let Author = mongoose.model('Author', AuthorSchema);
 
 let PostSchema = new mongoose.Schema({
   title: String,
   date: Date,
-  body : String,
+  body: String,
   author: {
     type: mongoose.Schema.ObjectId,
     ref: 'Author'
@@ -28,7 +28,7 @@ let Post = mongoose.model('Post', PostSchema);
 
 test.before('start mongoose connection and add data into collection', async () => {
   await mongoose.connect(MONGO_URI);
-  await  mongoose.connection.db.dropDatabase();
+  await mongoose.connection.db.dropDatabase();
   const author = await Author.create({ name: 'Pawan Pandey' });
 
   let post, posts = [];
@@ -39,7 +39,7 @@ test.before('start mongoose connection and add data into collection', async () =
       title: 'Post #' + i,
       date: new Date(date.getTime() + i),
       author: author._id,
-      body : 'Post Body #' + i,
+      body: 'Post Body #' + i,
     });
     posts.push(post);
   }
@@ -49,17 +49,17 @@ test.before('start mongoose connection and add data into collection', async () =
 
 describe('mongoose plugin', (it) => {
 
-  it('paginate function should initialized by provided name', function(t){
+  it('paginate function should initialized by provided name', function (t) {
     let promise = Author.paginateFN();
     t.is(promise.then instanceof Function, true);
   });
 
-  it('return promise', function(t) {
+  it('return promise', function (t) {
     let promise = Post.paginate();
     t.is(promise.then instanceof Function, true);
   });
 
-  it('should return data in expected format', async function(t) {
+  it('should return data in expected format', async function (t) {
     let data = await Post.paginate();
     t.is(data.hasOwnProperty('results'), true);
     t.is(data.hasOwnProperty('previous'), true);
