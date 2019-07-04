@@ -27,7 +27,7 @@ const config = require('./config');
  *    -before {String} The _id to start querying previous page.
  *    -hint {String} An optional index hint to provide to the mongo query
  */
-module.exports = async function(collection, params) {
+module.exports = async function (collection, params) {
   const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField];
 
   params = _.defaults(await sanitizeParams(collection, params), { query: {} });
@@ -38,7 +38,14 @@ module.exports = async function(collection, params) {
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
-  const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+  let queryOptions;
+  if (collection.findAsCursor) {
+    queryOptions = params.fields;
+  } else {
+    queryOptions = { projection: params.fields };
+  }
+
+  const query = collection[findMethod]({ $and: [cursorQuery, params.query] },queryOptions);
 
   /**
    * IMPORTANT
