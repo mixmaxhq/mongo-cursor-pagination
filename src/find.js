@@ -28,7 +28,7 @@ const config = require('./config');
  *    -hint {String} An optional index hint to provide to the mongo query
  */
 module.exports = async function (collection, params) {
-  const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField];
+  const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField || '_id'];
 
   params = _.defaults(await sanitizeParams(collection, params), { query: {} });
   const cursorQuery = generateCursorQuery(params);
