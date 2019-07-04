@@ -26,7 +26,7 @@ const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/
  *    -before {String} The _id to start querying previous page.
  */
 module.exports = async function (collection, params) {
-  const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField];
+  const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField || '_id'];
 
   params = _.defaults(
     await sanitizeParams(collection, params),
