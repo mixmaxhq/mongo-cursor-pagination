@@ -1,4 +1,3 @@
-
 const find = require('./find');
 const _ = require('underscore');
 
@@ -16,19 +15,19 @@ module.exports = function (schema, options) {
    * @param {Object} param required parameter
    */
 
-  const fn = function(param) {
+  const paginate = function(param) {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
 
     param = _.extend({}, param);
         
-    return find(this.collection, param);
+    return find(this, param);
   };
 
   if (options && options.name) {
-    schema.statics[options.name] = fn;
+    schema.statics[options.name] = paginate;
   } else {
-    schema.statics.paginate = fn;
+    schema.statics.paginate = paginate;
   }
 };

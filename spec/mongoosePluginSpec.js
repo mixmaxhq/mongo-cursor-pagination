@@ -67,4 +67,9 @@ describe('mongoose plugin', (it) => {
     t.is(data.hasOwnProperty('next'), true);
     t.is(data.hasOwnProperty('hasNext'), true);
   });
+
+  it('should return Mongoose documents', async function(t) {
+    let data = await Post.paginate();
+    t.is(data.results[0].schema, Post.schema);
+  });
 });

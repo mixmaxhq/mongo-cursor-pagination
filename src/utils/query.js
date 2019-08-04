@@ -1,5 +1,5 @@
 const bsonUrlEncoding = require('./bsonUrlEncoding');
-const objectPath = require('object-path');
+const { get } = require('lodash');
 
 module.exports = {
   /**
@@ -32,7 +32,7 @@ module.exports = {
     };
 
     if (response.previous) {
-      const previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
+      const previousPaginatedField = get(response.previous, params.paginatedField);
       if (shouldSecondarySortOnId) {
         response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
       } else {
@@ -40,7 +40,7 @@ module.exports = {
       }
     }
     if (response.next) {
-      const nextPaginatedField = objectPath.get(response.next, params.paginatedField);
+      const nextPaginatedField = get(response.next, params.paginatedField);
       if (shouldSecondarySortOnId) {
         response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
       } else {
