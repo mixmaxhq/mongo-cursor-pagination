@@ -1,7 +1,9 @@
 ## Changelog
 
+* 7.2.0 Add support for `COLLATION` configuration parameter.
+
 * 7.1.0 Add support for `aggregate`.
-	
+
 * 7.0.1 Update base64-url to fix security issue (https://github.com/mixmaxhq/mongo-cursor-pagination/pull/41 - thanks @pwiebe).
 
 * 7.0.0 Add findWithReq overrideFields support. Breaking: now throws errors on unusable `fields`/`overrideFields`, so check your inputs. Also changes our intersection mechanism, so it _could_ cause backwards-incompatible changes to fields resolution. If causes unexpected backwards-incompatible changes, please file an issue!

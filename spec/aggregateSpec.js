@@ -2,6 +2,7 @@ const { describe } = require('ava-spec');
 const test = require('ava');
 const paging = require('../');
 const dbUtils = require('./support/db');
+const _ = require('underscore');
 
 const driver = process.env.DRIVER;
 
@@ -61,6 +62,19 @@ test.before('start mongo server', async () => {
     }, {
       _id: 6,
       name: 'saturn'
+    }]),
+    db.collection('test_aggregation_sort').insert([{
+      name: 'Alpha'
+    }, {
+      name: 'gimel'
+    }, {
+      name: 'Beta'
+    }, {
+      name: 'bet'
+    }, {
+      name: 'Gamma'
+    }, {
+      name: 'aleph'
     }])
   ]);
 });
@@ -574,6 +588,30 @@ describe('aggregate', (it) => {
       t.is(res.results.length, 1);
       t.deepEqual(res.results[0].planets, ['mars', 'jupiter', 'saturn']);
       t.true(res.hasNext);
+    });
+  });
+
+  it.describe('sort aggregations', (it) => {
+    it('sort alphabetically, uppercase first', async (t) => {
+      const collection = t.context.db.collection('test_aggregation_sort');
+
+      const res = await paging.aggregate(collection, {
+        aggregation: [{
+          $sort: { name: 1 }
+        }]
+      });
+
+      paging.config.COLLATION = { locale: 'en' };
+
+      t.deepEqual(_.pluck(res.results, 'name'), ['Alpha', 'Beta', 'Gamma', 'aleph', 'bet', 'gimel']);
+
+      const res_localized = await paging.aggregate(collection, {
+        aggregation: [{
+          $sort: { name: 1 }
+        }]
+      });
+
+      t.deepEqual(_.pluck(res_localized.results, 'name'), ['aleph', 'Alpha', 'bet', 'Beta', 'Gamma', 'gimel']);
     });
   });
 });

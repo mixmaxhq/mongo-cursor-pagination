@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const sanitizeParams = require('./utils/sanitizeParams');
 const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+const config = require('./config');
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
@@ -59,11 +60,13 @@ module.exports = async function aggregate(collection, params) {
   params.aggregation.splice(index + 1, 0, { $sort });
   params.aggregation.splice(index + 2, 0, { $limit: params.limit + 1 });
 
+  let options = config.COLLATION ? { collation: config.COLLATION } : undefined;
+
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor': 'aggregate';
 
-  let results = await collection[aggregateMethod](params.aggregation).toArray();
+  let results = await collection[aggregateMethod](params.aggregation, options).toArray();
 
   return prepareResponse(results, params);
 };

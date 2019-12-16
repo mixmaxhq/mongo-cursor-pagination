@@ -55,7 +55,7 @@
     "mockgoose": "7.3.5",
     "mongodb": "^2.2.11",
     "mongodb-memory-server": "^1.6.1",
-    "mongoist": "1.4.3",
+    "mongoist": "2.3.0",
     "mongoose": "5.0.15"
   },
   "engines": {
