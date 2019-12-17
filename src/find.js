@@ -1,7 +1,7 @@
 const _ = require('underscore');
 const sanitizeParams = require('./utils/sanitizeParams');
 const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
-var config = require('./config');
+const config = require('./config');
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
