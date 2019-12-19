@@ -2,6 +2,7 @@ const { describe } = require('ava-spec');
 const test = require('ava');
 const paging = require('../');
 const dbUtils = require('./support/db');
+const _ = require('underscore');
 
 const driver = process.env.DRIVER;
 
@@ -116,6 +117,19 @@ test.before('start mongo server', async () => {
       counter: 2
     }, {
       counter: 1
+    }]),
+    db.collection('test_sorting').insert([{
+      name: 'Alpha'
+    }, {
+      name: 'gimel'
+    }, {
+      name: 'Beta'
+    }, {
+      name: 'bet'
+    }, {
+      name: 'Gamma'
+    }, {
+      name: 'aleph'
     }])
   ]);
 });
@@ -1191,6 +1205,30 @@ describe('find', (it) => {
       t.is(res.results[1].counter, 3);
       t.false(res.hasPrevious);
       t.true(res.hasNext);
+    });
+  });
+
+  it.describe('test alphabetical sorting', (it) => {
+    it('should query first few pages with next/previous', async (t) => {
+      const collection = t.context.db.collection('test_sorting');
+
+      const res = await paging.find(collection, {
+        paginatedField: 'name',
+        sortAscending: true,
+        limit: 10
+      });
+
+      t.deepEqual(_.pluck(res.results, 'name'), ['Alpha', 'Beta', 'Gamma', 'aleph', 'bet', 'gimel']);
+
+      paging.config.COLLATION = { locale: 'en' };
+
+      const res_localized = await paging.find(collection, {
+        paginatedField: 'name',
+        sortAscending: true,
+        limit: 10
+      });
+
+      t.deepEqual(_.pluck(res_localized.results, 'name'), ['aleph', 'Alpha', 'bet', 'Beta', 'Gamma', 'gimel']);
     });
   });
 });

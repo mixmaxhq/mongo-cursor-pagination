@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const sanitizeParams = require('./utils/sanitizeParams');
 const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+const config = require('./config');
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -39,7 +40,9 @@ module.exports = async function(collection, params) {
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const findMethod = collection.findAsCursor ? 'findAsCursor': 'find';
 
-  const results = await collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields)
+  const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+  const collatedQuery = config.COLLATION ? query.collation(config.COLLATION) : query;
+  const results = await collatedQuery
     .sort($sort)
     .limit(params.limit + 1) // Query one more element to see if there's another page.
     .toArray();
