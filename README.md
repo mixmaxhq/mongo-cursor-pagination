@@ -87,7 +87,7 @@ async function findExample() {
   console.log(result);
 
   // Query next page.
-  result = MongoPaging.find(db.collection('myobjects'), {
+  result = await MongoPaging.find(db.collection('myobjects'), {
     limit: 2,
     next: result.next // This queries the next page
   });
@@ -202,7 +202,7 @@ async function searchExample() {
     mytext: 'text'
   });
 
-  db.collection('myobjects').insertMany([{
+  await db.collection('myobjects').insertMany([{
     mytext: 'dogs'
   }, {
     mytext: 'dogs cats'
