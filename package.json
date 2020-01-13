@@ -52,7 +52,7 @@
     "bson": "^0.5.6",
     "eslint": "^4.9.0",
     "eslint-config-mixmax": "^0.9.0",
-    "mockgoose": "7.3.5",
+    "mockgoose": "^8.0.4",
     "mongodb": "^2.2.11",
     "mongodb-memory-server": "^1.6.1",
     "mongoist": "2.3.0",
