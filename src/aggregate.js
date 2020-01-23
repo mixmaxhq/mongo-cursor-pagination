@@ -35,14 +35,11 @@ const config = require('./config');
  *    -before {String} The _id to start querying previous page.
  */
 module.exports = async function aggregate(collection, params) {
-  params = _.defaults(
-    await sanitizeParams(collection, params),
-    { aggregation: [] }
-  );
+  params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
   let cursorQuery = generateCursorQuery(params);
   let $sort = generateSort(params);
-  
-  let index = _.findIndex(params.aggregation, ((step) => !_.isEmpty(step.$match)));
+
+  let index = _.findIndex(params.aggregation, (step) => !_.isEmpty(step.$match));
 
   if (index < 0) {
     params.aggregation.unshift({ $match: cursorQuery });
@@ -52,8 +49,8 @@ module.exports = async function aggregate(collection, params) {
 
     params.aggregation[index] = {
       $match: {
-        $and: [cursorQuery, matchStep.$match]
-      }
+        $and: [cursorQuery, matchStep.$match],
+      },
     };
   }
 
@@ -64,7 +61,7 @@ module.exports = async function aggregate(collection, params) {
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor': 'aggregate';
+  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
   let results = await collection[aggregateMethod](params.aggregation, options).toArray();
 

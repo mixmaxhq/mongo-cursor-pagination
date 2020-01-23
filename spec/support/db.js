@@ -4,7 +4,7 @@ const MongoClient = require('mongodb');
 
 function start() {
   return new MongoMemoryServer({
-    binary: { version: '3.4.6' }
+    binary: { version: '3.4.6' },
   });
 }
 
@@ -18,5 +18,5 @@ async function db(mongod, driver = null) {
 
 module.exports = {
   db,
-  start
+  start,
 };

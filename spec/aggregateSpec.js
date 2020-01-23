@@ -13,69 +13,97 @@ test.before('start mongo server', async () => {
 
   // Set up collections once for testing later.
   await Promise.all([
-    db.collection('test_paging').insert([{
-      counter: 1
-    }, {
-      counter: 2
-    }, {
-      counter: 3
-    }, {
-      counter: 4,
-      color: 'blue'
-    }, {
-      counter: 5,
-      color: 'blue'
-    }, {
-      counter: 6,
-      color: 'blue'
-    }, {
-      counter: 7,
-      color: 'blue'
-    }, {
-      counter: 8,
-      color: 'blue'
-    }]),
-    db.collection('test_aggregation').insert([{
-      items: [1,2,3]
-    }, {
-      items: [4,5,6]
-    }, {
-      items: [1,3,6]
-    }, {
-      items: [2,4,5]
-    }]),
-    db.collection('test_aggregation_lookup').insert([{
-      _id: 1,
-      name: 'mercury'
-    }, {
-      _id: 2,
-      name: 'venus'
-    }, {
-      _id: 3,
-      name: 'earth'
-    }, {
-      _id: 4,
-      name: 'mars'
-    }, {
-      _id: 5,
-      name: 'jupiter'
-    }, {
-      _id: 6,
-      name: 'saturn'
-    }]),
-    db.collection('test_aggregation_sort').insert([{
-      name: 'Alpha'
-    }, {
-      name: 'gimel'
-    }, {
-      name: 'Beta'
-    }, {
-      name: 'bet'
-    }, {
-      name: 'Gamma'
-    }, {
-      name: 'aleph'
-    }])
+    db.collection('test_paging').insert([
+      {
+        counter: 1,
+      },
+      {
+        counter: 2,
+      },
+      {
+        counter: 3,
+      },
+      {
+        counter: 4,
+        color: 'blue',
+      },
+      {
+        counter: 5,
+        color: 'blue',
+      },
+      {
+        counter: 6,
+        color: 'blue',
+      },
+      {
+        counter: 7,
+        color: 'blue',
+      },
+      {
+        counter: 8,
+        color: 'blue',
+      },
+    ]),
+    db.collection('test_aggregation').insert([
+      {
+        items: [1, 2, 3],
+      },
+      {
+        items: [4, 5, 6],
+      },
+      {
+        items: [1, 3, 6],
+      },
+      {
+        items: [2, 4, 5],
+      },
+    ]),
+    db.collection('test_aggregation_lookup').insert([
+      {
+        _id: 1,
+        name: 'mercury',
+      },
+      {
+        _id: 2,
+        name: 'venus',
+      },
+      {
+        _id: 3,
+        name: 'earth',
+      },
+      {
+        _id: 4,
+        name: 'mars',
+      },
+      {
+        _id: 5,
+        name: 'jupiter',
+      },
+      {
+        _id: 6,
+        name: 'saturn',
+      },
+    ]),
+    db.collection('test_aggregation_sort').insert([
+      {
+        name: 'Alpha',
+      },
+      {
+        name: 'gimel',
+      },
+      {
+        name: 'Beta',
+      },
+      {
+        name: 'bet',
+      },
+      {
+        name: 'Gamma',
+      },
+      {
+        name: 'aleph',
+      },
+    ]),
   ]);
 });
 
@@ -89,7 +117,7 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 3
       let res = await paging.aggregate(collection, {
-        limit: 3
+        limit: 3,
       });
 
       t.is(res.results.length, 3);
@@ -102,7 +130,7 @@ describe('aggregate', (it) => {
       // Go forward 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        next: res.next
+        next: res.next,
       });
 
       t.is(res.results.length, 3);
@@ -115,7 +143,7 @@ describe('aggregate', (it) => {
       // Go forward another 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        next: res.next
+        next: res.next,
       });
 
       t.is(res.results.length, 2);
@@ -127,7 +155,7 @@ describe('aggregate', (it) => {
       // Now back up 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        previous: res.previous
+        previous: res.previous,
       });
 
       t.is(res.results.length, 3);
@@ -140,7 +168,7 @@ describe('aggregate', (it) => {
       // Now back up 3 more
       res = await paging.aggregate(collection, {
         limit: 3,
-        previous: res.previous
+        previous: res.previous,
       });
 
       t.is(res.results.length, 3);
@@ -155,7 +183,7 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 3
       let res = await paging.aggregate(collection, {
-        limit: 3
+        limit: 3,
       });
 
       t.is(res.results.length, 3);
@@ -168,7 +196,7 @@ describe('aggregate', (it) => {
       // Go forward 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id,
       });
 
       t.is(res.results.length, 3);
@@ -181,7 +209,7 @@ describe('aggregate', (it) => {
       // Go forward another 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id,
       });
 
       t.is(res.results.length, 2);
@@ -193,7 +221,7 @@ describe('aggregate', (it) => {
       // Now back up 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        before: res.results[0]._id
+        before: res.results[0]._id,
       });
 
       t.is(res.results.length, 3);
@@ -206,7 +234,7 @@ describe('aggregate', (it) => {
       // Now back up 3 more
       res = await paging.aggregate(collection, {
         limit: 3,
-        before: res.results[0]._id
+        before: res.results[0]._id,
       });
 
       t.is(res.results.length, 3);
@@ -221,7 +249,7 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
       var res = await paging.aggregate(collection, {
-        limit: 4
+        limit: 4,
       });
 
       t.is(res.results.length, 4);
@@ -235,7 +263,7 @@ describe('aggregate', (it) => {
       // Go forward 2
       res = await paging.aggregate(collection, {
         limit: 3,
-        next: res.next
+        next: res.next,
       });
 
       t.is(res.results.length, 3);
@@ -248,7 +276,7 @@ describe('aggregate', (it) => {
       // Go forward another 1, results should be empty.
       res = await paging.aggregate(collection, {
         limit: 2,
-        next: res.next
+        next: res.next,
       });
 
       t.is(res.results.length, 1);
@@ -261,7 +289,7 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
       var res = await paging.aggregate(collection, {
-        limit: 4
+        limit: 4,
       });
 
       t.is(res.results.length, 4);
@@ -275,7 +303,7 @@ describe('aggregate', (it) => {
       // Go forward 2
       res = await paging.aggregate(collection, {
         limit: 3,
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id,
       });
 
       t.is(res.results.length, 3);
@@ -288,7 +316,7 @@ describe('aggregate', (it) => {
       // Go forward another 1, results should be empty.
       res = await paging.aggregate(collection, {
         limit: 2,
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id,
       });
 
       t.is(res.results.length, 1);
@@ -301,7 +329,7 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
       var res = await paging.aggregate(collection, {
-        limit: 4
+        limit: 4,
       });
 
       t.is(res.results.length, 4);
@@ -315,7 +343,7 @@ describe('aggregate', (it) => {
       // Go forward 2
       res = await paging.aggregate(collection, {
         limit: 3,
-        next: res.next
+        next: res.next,
       });
 
       t.is(res.results.length, 3);
@@ -328,7 +356,7 @@ describe('aggregate', (it) => {
       // Go back to beginning.
       res = await paging.aggregate(collection, {
         limit: 100,
-        previous: res.previous
+        previous: res.previous,
       });
 
       t.is(res.results.length, 4);
@@ -344,7 +372,7 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
       var res = await paging.aggregate(collection, {
-        limit: 4
+        limit: 4,
       });
 
       t.is(res.results.length, 4);
@@ -358,7 +386,7 @@ describe('aggregate', (it) => {
       // Go forward 2
       res = await paging.aggregate(collection, {
         limit: 3,
-        after: res.results[res.results.length -1]._id
+        after: res.results[res.results.length - 1]._id,
       });
 
       t.is(res.results.length, 3);
@@ -371,7 +399,7 @@ describe('aggregate', (it) => {
       // Go back to beginning.
       res = await paging.aggregate(collection, {
         limit: 100,
-        before: res.results[0]._id
+        before: res.results[0]._id,
       });
 
       t.is(res.results.length, 4);
@@ -387,9 +415,11 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_paging');
       // First page.
       var res = await paging.aggregate(collection, {
-        aggregation: [{
-          $match: { color: 'blue' }
-        }]
+        aggregation: [
+          {
+            $match: { color: 'blue' },
+          },
+        ],
       });
 
       t.is(res.results.length, 5);
@@ -403,9 +433,11 @@ describe('aggregate', (it) => {
       // First page.
       var res = await paging.aggregate(collection, {
         limit: 3,
-        aggregation: [{
-          $match: { nonexistantfield: true }
-        }]
+        aggregation: [
+          {
+            $match: { nonexistantfield: true },
+          },
+        ],
       });
 
       t.is(res.results.length, 0);
@@ -418,7 +450,7 @@ describe('aggregate', (it) => {
       // First page of 3
       var res = await paging.aggregate(collection, {
         limit: 3,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -432,7 +464,7 @@ describe('aggregate', (it) => {
       res = await paging.aggregate(collection, {
         limit: 3,
         next: res.next,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -446,7 +478,7 @@ describe('aggregate', (it) => {
       res = await paging.aggregate(collection, {
         limit: 3,
         next: res.next,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 2);
@@ -459,7 +491,7 @@ describe('aggregate', (it) => {
       res = await paging.aggregate(collection, {
         limit: 3,
         previous: res.previous,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -473,7 +505,7 @@ describe('aggregate', (it) => {
       res = await paging.aggregate(collection, {
         limit: 3,
         previous: res.previous,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -489,7 +521,7 @@ describe('aggregate', (it) => {
       // First page of 3
       var res = await paging.aggregate(collection, {
         limit: 3,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -502,8 +534,8 @@ describe('aggregate', (it) => {
       // Go forward 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        after: res.results[res.results.length -1]._id,
-        sortAscending: true
+        after: res.results[res.results.length - 1]._id,
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -516,8 +548,8 @@ describe('aggregate', (it) => {
       // Go forward another 3
       res = await paging.aggregate(collection, {
         limit: 3,
-        after: res.results[res.results.length -1]._id,
-        sortAscending: true
+        after: res.results[res.results.length - 1]._id,
+        sortAscending: true,
       });
 
       t.is(res.results.length, 2);
@@ -530,7 +562,7 @@ describe('aggregate', (it) => {
       res = await paging.aggregate(collection, {
         limit: 3,
         before: res.results[0]._id,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -544,7 +576,7 @@ describe('aggregate', (it) => {
       res = await paging.aggregate(collection, {
         limit: 3,
         before: res.results[0]._id,
-        sortAscending: true
+        sortAscending: true,
       });
 
       t.is(res.results.length, 3);
@@ -561,28 +593,34 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_aggregation');
 
       const res = await paging.aggregate(collection, {
-        aggregation: [{
-          $match: {
-            items: 5
-          }
-        }, {
-          $unwind: '$items'
-        }, {
-          $lookup: {
-            from: 'test_aggregation_lookup',
-            localField: 'items',
-            foreignField: '_id',
-            as: 'itemDoc'
-          }
-        }, {
-          $unwind: '$itemDoc'
-        }, {
-          $group: {
-            _id: '$_id',
-            planets: { $push: '$itemDoc.name' }
-          }
-        }],
-        limit: 1
+        aggregation: [
+          {
+            $match: {
+              items: 5,
+            },
+          },
+          {
+            $unwind: '$items',
+          },
+          {
+            $lookup: {
+              from: 'test_aggregation_lookup',
+              localField: 'items',
+              foreignField: '_id',
+              as: 'itemDoc',
+            },
+          },
+          {
+            $unwind: '$itemDoc',
+          },
+          {
+            $group: {
+              _id: '$_id',
+              planets: { $push: '$itemDoc.name' },
+            },
+          },
+        ],
+        limit: 1,
       });
 
       t.is(res.results.length, 1);
@@ -596,22 +634,40 @@ describe('aggregate', (it) => {
       const collection = t.context.db.collection('test_aggregation_sort');
 
       const res = await paging.aggregate(collection, {
-        aggregation: [{
-          $sort: { name: 1 }
-        }]
+        aggregation: [
+          {
+            $sort: { name: 1 },
+          },
+        ],
       });
 
       paging.config.COLLATION = { locale: 'en' };
 
-      t.deepEqual(_.pluck(res.results, 'name'), ['Alpha', 'Beta', 'Gamma', 'aleph', 'bet', 'gimel']);
+      t.deepEqual(_.pluck(res.results, 'name'), [
+        'Alpha',
+        'Beta',
+        'Gamma',
+        'aleph',
+        'bet',
+        'gimel',
+      ]);
 
       const res_localized = await paging.aggregate(collection, {
-        aggregation: [{
-          $sort: { name: 1 }
-        }]
+        aggregation: [
+          {
+            $sort: { name: 1 },
+          },
+        ],
       });
 
-      t.deepEqual(_.pluck(res_localized.results, 'name'), ['aleph', 'Alpha', 'bet', 'Beta', 'Gamma', 'gimel']);
+      t.deepEqual(_.pluck(res_localized.results, 'name'), [
+        'aleph',
+        'Alpha',
+        'bet',
+        'Beta',
+        'Gamma',
+        'gimel',
+      ]);
     });
   });
 });

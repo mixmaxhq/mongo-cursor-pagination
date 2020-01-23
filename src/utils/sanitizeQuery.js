@@ -69,7 +69,11 @@ module.exports = function sanitizeQuery(query, params) {
 
   // Don't trust fields passed in the querystring, so whitelist them against the fields defined in
   // parameters.
-  const fields = resolveFields(normalizeQueryArray(query, 'fields'), params.fields, params.overrideFields);
+  const fields = resolveFields(
+    normalizeQueryArray(query, 'fields'),
+    params.fields,
+    params.overrideFields
+  );
   if (fields === null) {
     throw new TypeError('no valid fields provided');
   }

@@ -13,5 +13,5 @@ module.exports = {
   aggregate,
   search,
   mongoosePlugin,
-  sanitizeQuery
+  sanitizeQuery,
 };

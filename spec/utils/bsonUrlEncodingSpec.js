@@ -19,13 +19,16 @@ describe('bson url encoding', (it) => {
       _id: mongo.ObjectID('58164d86f69ab45942c6ff38'),
       date: new Date('Sun Oct 30 2016 12:32:35 GMT-0700 (PDT)'),
       number: 1,
-      string: 'complex String &$##$-/?'
+      string: 'complex String &$##$-/?',
     };
     await t.context.db.collection('test_objects').insert(obj);
     var bsonObject = await t.context.db.collection('test_objects').findOne({});
     var str = bsonUrlEncoding.encode(bsonObject);
 
-    t.is(str, 'eyJfaWQiOnsiJG9pZCI6IjU4MTY0ZDg2ZjY5YWI0NTk0MmM2ZmYzOCJ9LCJkYXRlIjp7IiRkYXRlIjoiMjAxNi0xMC0zMFQxOTozMjozNS4wMDBaIn0sIm51bWJlciI6MSwic3RyaW5nIjoiY29tcGxleCBTdHJpbmcgJiQjIyQtLz8ifQ');
+    t.is(
+      str,
+      'eyJfaWQiOnsiJG9pZCI6IjU4MTY0ZDg2ZjY5YWI0NTk0MmM2ZmYzOCJ9LCJkYXRlIjp7IiRkYXRlIjoiMjAxNi0xMC0zMFQxOTozMjozNS4wMDBaIn0sIm51bWJlciI6MSwic3RyaW5nIjoiY29tcGxleCBTdHJpbmcgJiQjIyQtLz8ifQ'
+    );
 
     var decoded = bsonUrlEncoding.decode(str);
     // Check types
