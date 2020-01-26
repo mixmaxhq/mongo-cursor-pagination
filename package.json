@@ -44,7 +44,7 @@
     "underscore": "^1.9.2"
   },
   "devDependencies": {
-    "ava": "^0.22.0",
+    "ava": "^3.1.0",
     "ava-spec": "^1.1.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
