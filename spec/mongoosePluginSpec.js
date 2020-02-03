@@ -31,12 +31,11 @@ test.before('start mongoose connection and add data into collection', async () =
   await mongoose.connection.db.dropDatabase();
   const author = await Author.create({ name: 'Pawan Pandey' });
 
-  let post,
-    posts = [];
-  const date = new Date();
+  const posts = [],
+    date = new Date();
 
   for (let i = 1; i <= 100; i++) {
-    post = new Post({
+    const post = new Post({
       title: 'Post #' + i,
       date: new Date(date.getTime() + i),
       author: author._id,
@@ -61,10 +60,10 @@ describe('mongoose plugin', (it) => {
 
   it('should return data in expected format', async function(t) {
     const data = await Post.paginate();
-    t.is(data.hasOwnProperty('results'), true);
-    t.is(data.hasOwnProperty('previous'), true);
-    t.is(data.hasOwnProperty('hasPrevious'), true);
-    t.is(data.hasOwnProperty('next'), true);
-    t.is(data.hasOwnProperty('hasNext'), true);
+    t.is(hasOwnProperty.call(data, 'results'), true);
+    t.is(hasOwnProperty.call(data, 'previous'), true);
+    t.is(hasOwnProperty.call(data, 'hasPrevious'), true);
+    t.is(hasOwnProperty.call(data, 'next'), true);
+    t.is(hasOwnProperty.call(data, 'hasNext'), true);
   });
 });

@@ -22,7 +22,7 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *      the results.
  */
 module.exports = async function(collection, searchString, params) {
-  if (_.isString(params.limit)) params.limit = parseInt(params.limit);
+  if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 
   params = _.defaults(params, {
