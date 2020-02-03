@@ -4,15 +4,15 @@ const { describe } = require('ava-spec');
 const test = require('ava');
 const mongooseCursorPaginate = require('../src/mongoose.plugin');
 
-let MONGO_URI = 'mongodb://127.0.0.1/mongoose_paginate';
+const MONGO_URI = 'mongodb://127.0.0.1/mongoose_paginate';
 
-let AuthorSchema = new mongoose.Schema({ name: String });
+const AuthorSchema = new mongoose.Schema({ name: String });
 
 AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN' });
 
-let Author = mongoose.model('Author', AuthorSchema);
+const Author = mongoose.model('Author', AuthorSchema);
 
-let PostSchema = new mongoose.Schema({
+const PostSchema = new mongoose.Schema({
   title: String,
   date: Date,
   body: String,
@@ -24,7 +24,7 @@ let PostSchema = new mongoose.Schema({
 
 PostSchema.plugin(mongooseCursorPaginate);
 
-let Post = mongoose.model('Post', PostSchema);
+const Post = mongoose.model('Post', PostSchema);
 
 test.before('start mongoose connection and add data into collection', async () => {
   await mongoose.connect(MONGO_URI);
@@ -33,7 +33,7 @@ test.before('start mongoose connection and add data into collection', async () =
 
   let post,
     posts = [];
-  let date = new Date();
+  const date = new Date();
 
   for (let i = 1; i <= 100; i++) {
     post = new Post({
@@ -50,17 +50,17 @@ test.before('start mongoose connection and add data into collection', async () =
 
 describe('mongoose plugin', (it) => {
   it('paginate function should initialized by provided name', function(t) {
-    let promise = Author.paginateFN();
+    const promise = Author.paginateFN();
     t.is(promise.then instanceof Function, true);
   });
 
   it('return promise', function(t) {
-    let promise = Post.paginate();
+    const promise = Post.paginate();
     t.is(promise.then instanceof Function, true);
   });
 
   it('should return data in expected format', async function(t) {
-    let data = await Post.paginate();
+    const data = await Post.paginate();
     t.is(data.hasOwnProperty('results'), true);
     t.is(data.hasOwnProperty('previous'), true);
     t.is(data.hasOwnProperty('hasPrevious'), true);

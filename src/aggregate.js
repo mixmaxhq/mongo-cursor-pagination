@@ -36,8 +36,8 @@ const config = require('./config');
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
-  let cursorQuery = generateCursorQuery(params);
-  let $sort = generateSort(params);
+  const cursorQuery = generateCursorQuery(params);
+  const $sort = generateSort(params);
 
   let index = _.findIndex(params.aggregation, (step) => !_.isEmpty(step.$match));
 
@@ -57,13 +57,13 @@ module.exports = async function aggregate(collection, params) {
   params.aggregation.splice(index + 1, 0, { $sort });
   params.aggregation.splice(index + 2, 0, { $limit: params.limit + 1 });
 
-  let options = config.COLLATION ? { collation: config.COLLATION } : undefined;
+  const options = config.COLLATION ? { collation: config.COLLATION } : undefined;
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
-  let results = await collection[aggregateMethod](params.aggregation, options).toArray();
+  const results = await collection[aggregateMethod](params.aggregation, options).toArray();
 
   return prepareResponse(results, params);
 };
