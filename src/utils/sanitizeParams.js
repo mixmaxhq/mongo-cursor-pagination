@@ -18,7 +18,7 @@ module.exports = async function sanitizeParams(collection, params) {
   // If the paginated field is not _id, then it might have duplicate values in it. This is bad
   // because then we can't exclusively use it for our range queries (that use $lt and $gt). So
   // to fix this, we secondarily sort on _id, which is always unique.
-  var shouldSecondarySortOnId = params.paginatedField !== '_id';
+  const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   //
   // params.after - overides params.next

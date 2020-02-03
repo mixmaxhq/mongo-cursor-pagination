@@ -1,6 +1,6 @@
-var _ = require('underscore');
-var config = require('./config');
-var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
+const _ = require('underscore');
+const config = require('./config');
+const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
 
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from
@@ -91,7 +91,7 @@ module.exports = async function(collection, searchString, params) {
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  var aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
+  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
   const results = await collection[aggregateMethod](aggregate).toArray();
 

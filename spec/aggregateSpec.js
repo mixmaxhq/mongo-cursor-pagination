@@ -248,7 +248,7 @@ describe('aggregate', (it) => {
     it('should handle hitting the end with next/previous', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
-      var res = await paging.aggregate(collection, {
+      let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
@@ -288,7 +288,7 @@ describe('aggregate', (it) => {
     it('should handle hitting the end with after/before', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
-      var res = await paging.aggregate(collection, {
+      let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
@@ -328,7 +328,7 @@ describe('aggregate', (it) => {
     it('should handle hitting the beginning with next/previous', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
-      var res = await paging.aggregate(collection, {
+      let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
@@ -371,7 +371,7 @@ describe('aggregate', (it) => {
     it('should handle hitting the beginning with after/before', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 2
-      var res = await paging.aggregate(collection, {
+      let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
@@ -414,7 +414,7 @@ describe('aggregate', (it) => {
     it('should use passed-in simple aggregation', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page.
-      var res = await paging.aggregate(collection, {
+      const res = await paging.aggregate(collection, {
         aggregation: [
           {
             $match: { color: 'blue' },
@@ -431,7 +431,7 @@ describe('aggregate', (it) => {
     it('should not return "next" or "previous" if there are no results', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page.
-      var res = await paging.aggregate(collection, {
+      const res = await paging.aggregate(collection, {
         limit: 3,
         aggregation: [
           {
@@ -448,7 +448,7 @@ describe('aggregate', (it) => {
     it('should respect sortAscending option with next/previous', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 3
-      var res = await paging.aggregate(collection, {
+      let res = await paging.aggregate(collection, {
         limit: 3,
         sortAscending: true,
       });
@@ -519,7 +519,7 @@ describe('aggregate', (it) => {
     it('should respect sortAscending option with after/before', async (t) => {
       const collection = t.context.db.collection('test_paging');
       // First page of 3
-      var res = await paging.aggregate(collection, {
+      let res = await paging.aggregate(collection, {
         limit: 3,
         sortAscending: true,
       });

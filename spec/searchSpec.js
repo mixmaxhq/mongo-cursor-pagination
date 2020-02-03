@@ -104,7 +104,7 @@ describe('search', (it) => {
     it('should query first few pages', async (t) => {
       const collection = t.context.db.collection('test_paging_search');
       // First page of 2
-      var res = await paging.search(collection, 'one', {
+      let res = await paging.search(collection, 'one', {
         fields: {
           mytext: 1,
         },
@@ -161,7 +161,7 @@ describe('search', (it) => {
     it('should query first few pages', async (t) => {
       const collection = t.context.db.collection('test_duplicate_search');
       // First page of 2.
-      var res = await paging.search(collection, 'one', {
+      let res = await paging.search(collection, 'one', {
         fields: {
           mytext: 1,
           counter: 1,

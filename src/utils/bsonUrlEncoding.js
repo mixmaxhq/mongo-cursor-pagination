@@ -1,5 +1,5 @@
-var EJSON = require('mongodb-extended-json');
-var base64url = require('base64-url');
+const EJSON = require('mongodb-extended-json');
+const base64url = require('base64-url');
 
 /**
  * These will take a BSON object (an database result returned by the MongoDB library) and

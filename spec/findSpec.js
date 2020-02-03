@@ -323,7 +323,7 @@ describe('find', (it) => {
       it('should handle hitting the end with next/previous', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page of 2
-        var res = await paging.find(collection, {
+        let res = await paging.find(collection, {
           limit: 4,
         });
 
@@ -363,7 +363,7 @@ describe('find', (it) => {
       it('should handle hitting the end with after/before', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page of 2
-        var res = await paging.find(collection, {
+        let res = await paging.find(collection, {
           limit: 4,
         });
 
@@ -403,7 +403,7 @@ describe('find', (it) => {
       it('should handle hitting the beginning with next/previous', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page of 2
-        var res = await paging.find(collection, {
+        let res = await paging.find(collection, {
           limit: 4,
         });
 
@@ -446,7 +446,7 @@ describe('find', (it) => {
       it('should handle hitting the beginning with after/before', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page of 2
-        var res = await paging.find(collection, {
+        let res = await paging.find(collection, {
           limit: 4,
         });
 
@@ -489,7 +489,7 @@ describe('find', (it) => {
       it('should use passed-in criteria', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page.
-        var res = await paging.find(collection, {
+        const res = await paging.find(collection, {
           query: {
             color: 'blue',
           },
@@ -504,7 +504,7 @@ describe('find', (it) => {
       it('should use the "fields" parameter', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page.
-        var res = await paging.find(collection, {
+        const res = await paging.find(collection, {
           query: {
             color: 'blue',
           },
@@ -520,7 +520,7 @@ describe('find', (it) => {
       it('should not return "next" or "previous" if there are no results', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page.
-        var res = await paging.find(collection, {
+        const res = await paging.find(collection, {
           limit: 3,
           query: {
             nonexistantfield: true,
@@ -535,7 +535,7 @@ describe('find', (it) => {
       it('should respect sortAscending option with next/previous', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page of 3
-        var res = await paging.find(collection, {
+        let res = await paging.find(collection, {
           limit: 3,
           sortAscending: true,
         });
@@ -606,7 +606,7 @@ describe('find', (it) => {
       it('should respect sortAscending option with after/before', async (t) => {
         const collection = t.context.db.collection('test_paging');
         // First page of 3
-        var res = await paging.find(collection, {
+        let res = await paging.find(collection, {
           limit: 3,
           sortAscending: true,
         });
@@ -680,7 +680,7 @@ describe('find', (it) => {
     it('should query first few pages with next/previous', async (t) => {
       const collection = t.context.db.collection('test_paging_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
       });
@@ -734,7 +734,7 @@ describe('find', (it) => {
     it('should query first few pages with after/before', async (t) => {
       const collection = t.context.db.collection('test_paging_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
       });
@@ -787,7 +787,7 @@ describe('find', (it) => {
 
     it('should not include the paginatedField in the results if not desired', async (t) => {
       const collection = t.context.db.collection('test_paging_custom_fields');
-      var res = await paging.find(collection, {
+      const res = await paging.find(collection, {
         limit: 1,
         fields: {
           counter: 1,
@@ -801,7 +801,7 @@ describe('find', (it) => {
     it('should not overwrite $or used in a query with next/previous', async (t) => {
       const collection = t.context.db.collection('test_paging_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         query: { $or: [{ counter: { $gt: 3 } }] },
         limit: 2,
         paginatedField: 'timestamp',
@@ -830,7 +830,7 @@ describe('find', (it) => {
     it('should not overwrite $or used in a query with after/before', async (t) => {
       const collection = t.context.db.collection('test_paging_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         query: { $or: [{ counter: { $gt: 3 } }] },
         limit: 2,
         paginatedField: 'timestamp',
@@ -861,7 +861,7 @@ describe('find', (it) => {
     it('should query first few pages with next/previous', async (t) => {
       const collection = t.context.db.collection('test_duplicate_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
       });
@@ -915,7 +915,7 @@ describe('find', (it) => {
     it('should query first few pages with after/before', async (t) => {
       const collection = t.context.db.collection('test_duplicate_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
       });
@@ -968,7 +968,7 @@ describe('find', (it) => {
 
     it('should not include fields not desired', async (t) => {
       const collection = t.context.db.collection('test_duplicate_custom_fields');
-      var res = await paging.find(collection, {
+      const res = await paging.find(collection, {
         limit: 1,
         fields: {
           counter: 1,
@@ -985,7 +985,7 @@ describe('find', (it) => {
     it('should respect sortAscending with next/previous', async (t) => {
       const collection = t.context.db.collection('test_duplicate_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
         sortAscending: true,
@@ -1043,7 +1043,7 @@ describe('find', (it) => {
     it('should respect sortAscending with after/before', async (t) => {
       const collection = t.context.db.collection('test_duplicate_custom_fields');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
         sortAscending: true,
@@ -1103,7 +1103,7 @@ describe('find', (it) => {
     it('should query first few pages with next/previous', async (t) => {
       const collection = t.context.db.collection('test_paging_date');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'date',
       });
@@ -1131,7 +1131,7 @@ describe('find', (it) => {
     it('should query first few pages with after/before', async (t) => {
       const collection = t.context.db.collection('test_paging_date');
       // First page of 2
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit: 2,
         paginatedField: 'date',
       });
@@ -1164,7 +1164,7 @@ describe('find', (it) => {
       const limit = 2;
 
       // First page.
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit,
         paginatedField,
       });
@@ -1211,7 +1211,7 @@ describe('find', (it) => {
       const limit = 2;
 
       // First page.
-      var res = await paging.find(collection, {
+      let res = await paging.find(collection, {
         limit,
         paginatedField,
       });
@@ -1298,7 +1298,7 @@ describe('find', (it) => {
  */
 test.serial('find limits should clamp lower limit', async (t) => {
   const collection = t.context.db.collection('test_paging_limits');
-  var res = await paging.find(collection, {
+  const res = await paging.find(collection, {
     limit: -1,
   });
 
@@ -1307,9 +1307,9 @@ test.serial('find limits should clamp lower limit', async (t) => {
 
 test.serial('find limits should set a default limit', async (t) => {
   const collection = t.context.db.collection('test_paging_limits');
-  var originalDefaultLimit = paging.config.DEFAULT_LIMIT;
+  const originalDefaultLimit = paging.config.DEFAULT_LIMIT;
   paging.config.DEFAULT_LIMIT = 2;
-  var res = await paging.find(collection, {});
+  const res = await paging.find(collection, {});
 
   t.is(res.results.length, 2);
 
@@ -1318,9 +1318,9 @@ test.serial('find limits should set a default limit', async (t) => {
 
 test.serial('find limits should allow overriding the limit', async (t) => {
   const collection = t.context.db.collection('test_paging_limits');
-  var originalDefaultLimit = paging.config.DEFAULT_LIMIT;
+  const originalDefaultLimit = paging.config.DEFAULT_LIMIT;
   paging.config.DEFAULT_LIMIT = 2;
-  var res = await paging.find(collection, {
+  const res = await paging.find(collection, {
     limit: 4,
   });
 
@@ -1331,9 +1331,9 @@ test.serial('find limits should allow overriding the limit', async (t) => {
 
 test.serial('find limits should clamp to max limit', async (t) => {
   const collection = t.context.db.collection('test_paging_limits');
-  var originalMaxLimit = paging.config.MAX_LIMIT;
+  const originalMaxLimit = paging.config.MAX_LIMIT;
   paging.config.MAX_LIMIT = 2;
-  var res = await paging.find(collection, {
+  const res = await paging.find(collection, {
     limit: 999,
   });
 

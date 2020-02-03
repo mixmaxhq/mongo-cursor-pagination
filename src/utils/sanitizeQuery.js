@@ -52,7 +52,7 @@ module.exports = function sanitizeQuery(query, params) {
   params = params || {};
 
   if (!_.isEmpty(query.limit)) {
-    var limit = parseInt(query.limit, 10);
+    const limit = parseInt(query.limit, 10);
     // Don't let the user specify a higher limit than params.limit, if defined.
     if (!isNaN(limit) && (!params.limit || params.limit > limit)) {
       params.limit = limit;
