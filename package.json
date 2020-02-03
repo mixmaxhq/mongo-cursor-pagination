@@ -40,7 +40,7 @@
     "mongodb-extended-json": "^1.10.1",
     "object-path": "^0.11.4",
     "projection-utils": "^1.1.0",
-    "semver": "^5.4.1",
+    "semver": "^7.1.2",
     "underscore": "^1.9.2"
   },
   "devDependencies": {
