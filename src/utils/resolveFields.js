@@ -1,5 +1,5 @@
 const _ = require('underscore');
-const {ProjectionFieldSet} = require('projection-utils');
+const { ProjectionFieldSet } = require('projection-utils');
 
 /**
  * Produce a ProjectionFieldSet from the given mongo projection, after validating it to ensure it
@@ -10,16 +10,20 @@ const {ProjectionFieldSet} = require('projection-utils');
  * @returns {ProjectionFieldSet} The synthesized field set.
  */
 function fieldsFromMongo(projection = {}, includeIdDefault = false) {
-  const fields = _.reduce(projection, (memo, value, key) => {
-    if (key !== '_id' && value !== undefined && !value) {
-      throw new TypeError('projection includes exclusion, but we do not support that');
-    }
-    if (value || (key === '_id' && value === undefined && includeIdDefault)) {
-      memo.push(key);
-    }
+  const fields = _.reduce(
+    projection,
+    (memo, value, key) => {
+      if (key !== '_id' && value !== undefined && !value) {
+        throw new TypeError('projection includes exclusion, but we do not support that');
+      }
+      if (value || (key === '_id' && value === undefined && includeIdDefault)) {
+        memo.push(key);
+      }
 
-    return memo;
-  }, []);
+      return memo;
+    },
+    []
+  );
 
   return ProjectionFieldSet.fromDotted(fields);
 }
@@ -49,13 +53,15 @@ function resolveFields(desiredFields, allowedFields, overrideFields) {
   }
 
   // If no desired fields are specified, we treat that as wanting the default set of fields.
-  const desiredFieldset = _.isEmpty(desiredFields) ? new ProjectionFieldSet([[]]) :
-    ProjectionFieldSet.fromDotted(desiredFields);
+  const desiredFieldset = _.isEmpty(desiredFields)
+    ? new ProjectionFieldSet([[]])
+    : ProjectionFieldSet.fromDotted(desiredFields);
 
   // If allowedFields isn't provided, we treat that as not having restrictions. However, if it's an
   // empty array, we treat that as have no valid fields.
-  const allowedFieldset = allowedFields ? fieldsFromMongo(allowedFields) :
-    new ProjectionFieldSet([[]]);
+  const allowedFieldset = allowedFields
+    ? fieldsFromMongo(allowedFields)
+    : new ProjectionFieldSet([[]]);
 
   // Don't trust fields passed in the querystring, so whitelist them against the
   // fields defined in parameters. Add override fields from parameters.
@@ -71,7 +77,8 @@ function resolveFields(desiredFields, allowedFields, overrideFields) {
   const projection = fields.toMongo();
 
   // Whether overrideFields explicitly removes _id.
-  const disableIdOverride = overrideFields && overrideFields._id !== undefined && !overrideFields._id;
+  const disableIdOverride =
+    overrideFields && overrideFields._id !== undefined && !overrideFields._id;
 
   // Explicitly exclude the _id field (which mongo includes by default) if we don't allow it, or
   // if we've disabled it in the override.

@@ -1,5 +1,5 @@
-var find = require('./find');
-var sanitizeQuery = require('./utils/sanitizeQuery');
+const find = require('./find');
+const sanitizeQuery = require('./utils/sanitizeQuery');
 
 /**
  * A wrapper around `find()` that make it easy to implement a basic HTTP API using Express. So your

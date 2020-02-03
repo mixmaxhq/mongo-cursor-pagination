@@ -1,6 +1,6 @@
-var _ = require('underscore');
-var config = require('./config');
-var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
+const _ = require('underscore');
+const config = require('./config');
+const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
 
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from
@@ -22,12 +22,12 @@ var bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *      the results.
  */
 module.exports = async function(collection, searchString, params) {
-  if (_.isString(params.limit)) params.limit = parseInt(params.limit);
+  if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 
   params = _.defaults(params, {
     query: {},
-    limit: config.MAX_LIMIT
+    limit: config.MAX_LIMIT,
   });
 
   if (params.limit < 1) params.limit = 1;
@@ -35,56 +35,63 @@ module.exports = async function(collection, searchString, params) {
 
   // We must perform an aggregate query since Mongo can't query a range when using $text search.
 
-  const aggregate = [{
-    $match: _.extend({}, params.query, {
-      $text: {
-        $search: searchString
-      }
-    })
-  }, {
-    $project: _.extend({}, params.fields, {
-      _id: 1,
-      score: {
-        $meta: 'textScore'
-      }
-    })
-  }, {
-    $sort: {
-      score: {
-        $meta: 'textScore'
+  const aggregate = [
+    {
+      $match: _.extend({}, params.query, {
+        $text: {
+          $search: searchString,
+        },
+      }),
+    },
+    {
+      $project: _.extend({}, params.fields, {
+        _id: 1,
+        score: {
+          $meta: 'textScore',
+        },
+      }),
+    },
+    {
+      $sort: {
+        score: {
+          $meta: 'textScore',
+        },
+        _id: -1,
       },
-      _id: -1
-    }
-  }];
+    },
+  ];
 
   if (params.next) {
     aggregate.push({
       $match: {
-        $or: [{
-          score: {
-            $lt: params.next[0]
-          }
-        }, {
-          score: {
-            $eq: params.next[0]
+        $or: [
+          {
+            score: {
+              $lt: params.next[0],
+            },
           },
-          _id: {
-            $lt: params.next[1]
-          }
-        }]
-      }
+          {
+            score: {
+              $eq: params.next[0],
+            },
+            _id: {
+              $lt: params.next[1],
+            },
+          },
+        ],
+      },
     });
   }
 
   aggregate.push({
-    $limit: params.limit
+    $limit: params.limit,
   });
 
   let response;
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  var aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor': 'aggregate';
+  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
   const results = await collection[aggregateMethod](aggregate).toArray();
 
@@ -92,11 +99,11 @@ module.exports = async function(collection, searchString, params) {
   if (fullPageOfResults) {
     response = {
       results,
-      next: bsonUrlEncoding.encode([_.last(results).score, _.last(results)._id])
+      next: bsonUrlEncoding.encode([_.last(results).score, _.last(results)._id]),
     };
   } else {
     response = {
-      results
+      results,
     };
   }
   return response;

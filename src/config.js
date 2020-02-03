@@ -7,5 +7,5 @@ module.exports = {
   /**
    * {Number} The default limit (page size), if none is specified.
    */
-  DEFAULT_LIMIT: 50
+  DEFAULT_LIMIT: 50,
 };

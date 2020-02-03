@@ -29,16 +29,13 @@ const config = require('./config');
 module.exports = async function(collection, params) {
   const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField];
 
-  params = _.defaults(
-    await sanitizeParams(collection, params),
-    { query: {} }
-  );
+  params = _.defaults(await sanitizeParams(collection, params), { query: {} });
   const cursorQuery = generateCursorQuery(params);
   const $sort = generateSort(params);
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  const findMethod = collection.findAsCursor ? 'findAsCursor': 'find';
+  const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
   const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
   const collatedQuery = config.COLLATION ? query.collation(config.COLLATION) : query;

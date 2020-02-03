@@ -1,4 +1,3 @@
-
 const find = require('./find');
 const _ = require('underscore');
 
@@ -9,8 +8,7 @@ const _ = require('underscore');
  * @param {string} options.name name of the function.
  */
 
-module.exports = function (schema, options) {
-
+module.exports = function(schema, options) {
   /**
    * paginate function
    * @param {Object} param required parameter
@@ -22,7 +20,7 @@ module.exports = function (schema, options) {
     }
 
     param = _.extend({}, param);
-        
+
     return find(this.collection, param);
   };
 

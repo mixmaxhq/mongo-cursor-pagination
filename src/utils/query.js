@@ -28,7 +28,7 @@ module.exports = {
       previous: results[0],
       hasPrevious,
       next: results[results.length - 1],
-      hasNext
+      hasNext,
     };
 
     if (response.previous) {
@@ -56,22 +56,23 @@ module.exports = {
    *
    * @param {Object} params The params originally passed to `find` or `aggregate`
    *
-   * @return {Object} a sort object 
+   * @return {Object} a sort object
    */
   generateSort(params) {
-    const sortAsc = (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
+    const sortAsc =
+      (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
     const sortDir = sortAsc ? 1 : -1;
     const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
     if (shouldSecondarySortOnId) {
       return {
         [params.paginatedField]: sortDir,
-        _id: sortDir
+        _id: sortDir,
       };
     }
 
     return {
-      [params.paginatedField]: sortDir
+      [params.paginatedField]: sortDir,
     };
   },
 
@@ -85,7 +86,8 @@ module.exports = {
   generateCursorQuery(params) {
     if (!params.next && !params.previous) return {};
 
-    const sortAsc = (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
+    const sortAsc =
+      (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
     const comparisonOp = sortAsc ? '$gt' : '$lt';
     const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
@@ -94,25 +96,28 @@ module.exports = {
 
     if (shouldSecondarySortOnId) {
       return {
-        $or: [{
-          [params.paginatedField]: {
-            [comparisonOp]: op[0]
-          }
-        }, {
-          [params.paginatedField]: {
-            $eq: op[0]
+        $or: [
+          {
+            [params.paginatedField]: {
+              [comparisonOp]: op[0],
+            },
           },
-          _id: {
-            [comparisonOp]: op[1]
-          }
-        }]
+          {
+            [params.paginatedField]: {
+              $eq: op[0],
+            },
+            _id: {
+              [comparisonOp]: op[1],
+            },
+          },
+        ],
       };
     }
 
     return {
       [params.paginatedField]: {
-        [comparisonOp]: op
-      }
+        [comparisonOp]: op,
+      },
     };
-  }
+  },
 };
