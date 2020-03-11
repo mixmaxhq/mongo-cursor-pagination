@@ -55,7 +55,7 @@
     "eslint-config-mixmax": "^3.4.0",
     "mockgoose": "^8.0.4",
     "mongodb": "^2.2.11",
-    "mongodb-memory-server": "^1.6.1",
+    "mongodb-memory-server": "^6.3.3",
     "mongoist": "2.3.0",
     "mongoose": "5.7.5",
     "prettier": "^1.19.1"
