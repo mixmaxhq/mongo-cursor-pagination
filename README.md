@@ -304,6 +304,15 @@ If the `limit` parameter isn't passed, then this library will default to returni
 The collation to use for alphabetical sorting, both with `find` and `aggregate`, can be selected by setting `mongoPaging.config.COLLATION`. If this parameter is
 not set, no collation will be provided for the aggregation/cursor, which means that MongoDB will use whatever collation was set for the collection.
 
+## Important note regarding collation
+
+If using a global collation setting, ensure that your collections' indexes (that index upon string fields)
+have been created with the same collation option; if this isn't the case, your queries will be unable to
+take advantage of any indexes.
+
+See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
+
+
 ### Indexes for sorting
 
 `mongo-cursor-pagination` uses `_id` as a secondary sorting field when providing a `paginatedField` property. It is recommended that you have an index for optimal performance. Example:

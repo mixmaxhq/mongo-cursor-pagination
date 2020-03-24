@@ -57,6 +57,15 @@ module.exports = async function aggregate(collection, params) {
   params.aggregation.splice(index + 1, 0, { $sort });
   params.aggregation.splice(index + 2, 0, { $limit: params.limit + 1 });
 
+  /**
+   * IMPORTANT
+   *
+   * If using a global collation setting, ensure that your collections' indexes (that index upon string fields)
+   * have been created with the same collation option; if this isn't the case, your queries will be unable to
+   * take advantage of any indexes.
+   *
+   * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
+   */
   const options = config.COLLATION ? { collation: config.COLLATION } : undefined;
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
