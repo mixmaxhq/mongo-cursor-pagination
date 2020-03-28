@@ -38,6 +38,16 @@ module.exports = async function(collection, params) {
   const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
   const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+
+  /**
+   * IMPORTANT
+   *
+   * If using a global collation setting, ensure that your collections' indexes (that index upon string fields)
+   * have been created with the same collation option; if this isn't the case, your queries will be unable to
+   * take advantage of any indexes.
+   *
+   * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
+   */
   const collatedQuery = config.COLLATION ? query.collation(config.COLLATION) : query;
   const results = await collatedQuery
     .sort($sort)
