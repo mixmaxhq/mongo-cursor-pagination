@@ -51,7 +51,7 @@
     "babel-core": "^6.26.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "eslint": "^6.8.0",
-    "eslint-config-mixmax": "^3.4.0",
+    "eslint-config-mixmax": "^4.9.0",
     "mockgoose": "^8.0.4",
     "mongodb": "^2.2.11",
     "mongodb-memory-server": "^1.6.1",
