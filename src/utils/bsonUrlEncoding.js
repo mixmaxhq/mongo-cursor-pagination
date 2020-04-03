@@ -1,4 +1,4 @@
-const EJSON = require('mongodb-extended-json');
+const { EJSON } = require('bson');
 const base64url = require('base64-url');
 
 /**
