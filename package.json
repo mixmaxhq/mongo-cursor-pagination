@@ -37,7 +37,7 @@
   "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
   "dependencies": {
     "base64-url": "^2.2.0",
-    "mongodb-extended-json": "^1.10.1",
+    "bson": "^4.0.4",
     "object-path": "^0.11.4",
     "projection-utils": "^1.1.0",
     "semver": "^5.4.1",
@@ -50,7 +50,6 @@
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "bson": "^0.5.6",
     "eslint": "^6.8.0",
     "eslint-config-mixmax": "^3.4.0",
     "mockgoose": "^8.0.4",

@@ -27,7 +27,7 @@ describe('bson url encoding', (it) => {
 
     t.is(
       str,
-      'eyJfaWQiOnsiJG9pZCI6IjU4MTY0ZDg2ZjY5YWI0NTk0MmM2ZmYzOCJ9LCJkYXRlIjp7IiRkYXRlIjoiMjAxNi0xMC0zMFQxOTozMjozNS4wMDBaIn0sIm51bWJlciI6MSwic3RyaW5nIjoiY29tcGxleCBTdHJpbmcgJiQjIyQtLz8ifQ'
+      'eyJfaWQiOnsiJG9pZCI6IjU4MTY0ZDg2ZjY5YWI0NTk0MmM2ZmYzOCJ9LCJkYXRlIjp7IiRkYXRlIjoiMjAxNi0xMC0zMFQxOTozMjozNVoifSwibnVtYmVyIjoxLCJzdHJpbmciOiJjb21wbGV4IFN0cmluZyAmJCMjJC0vPyJ9'
     );
 
     const decoded = bsonUrlEncoding.decode(str);
