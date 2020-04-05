@@ -45,7 +45,7 @@
   },
   "devDependencies": {
     "@mixmaxhq/prettier-config": "^1.0.0",
-    "ava": "^0.22.0",
+    "ava": "^3.6.0",
     "ava-spec": "^1.1.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
