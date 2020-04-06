@@ -41,7 +41,7 @@
     "object-path": "^0.11.4",
     "projection-utils": "^1.1.0",
     "semver": "^5.4.1",
-    "underscore": "^1.8.3"
+    "underscore": "^1.9.2"
   },
   "devDependencies": {
     "@mixmaxhq/prettier-config": "^1.0.0",
