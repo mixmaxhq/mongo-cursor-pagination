@@ -1,6 +1,6 @@
 {
   "name": "mongo-cursor-pagination",
-  "version": "7.1.0",
+  "version": "7.2.0",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "index.js",
   "files": [
@@ -37,26 +37,27 @@
   "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
   "dependencies": {
     "base64-url": "^2.2.0",
-    "mongodb-extended-json": "^1.7.1",
+    "bson": "^4.0.4",
     "object-path": "^0.11.4",
     "projection-utils": "^1.1.0",
     "semver": "^5.4.1",
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "@mixmaxhq/prettier-config": "^1.0.0",
     "ava": "^0.22.0",
     "ava-spec": "^1.1.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "babel-register": "^6.26.0",
-    "bson": "^0.5.6",
-    "eslint": "^4.9.0",
-    "eslint-config-mixmax": "^0.9.0",
+    "eslint": "^6.8.0",
+    "eslint-config-mixmax": "^3.4.0",
+    "mockgoose": "^8.0.4",
     "mongodb": "^3.2.7",
     "mongodb-memory-server": "^1.6.1",
-    "mongoist": "2.0.0",
-    "mongoose": "5.6.3"
+    "mongoist": "2.3.0",
+    "mongoose": "5.7.5",
+    "prettier": "^2.0.4"
   },
   "engines": {
     "node": ">= 6.9.1"

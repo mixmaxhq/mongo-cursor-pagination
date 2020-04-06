@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const sanitizeParams = require('./utils/sanitizeParams');
 const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+const config = require('./config');
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -25,13 +26,11 @@ const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  */
-module.exports = async function (collection, params) {
-  const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField || '_id'];
+module.exports = async function(collection, params) {
+  const removePaginatedFieldInResponse =
+    params.fields && !params.fields[params.paginatedField || '_id'];
 
-  params = _.defaults(
-    await sanitizeParams(collection, params),
-    { query: {} }
-  );
+  params = _.defaults(await sanitizeParams(collection, params), { query: {} });
   const cursorQuery = generateCursorQuery(params);
   const $sort = generateSort(params);
 
@@ -39,12 +38,25 @@ module.exports = async function (collection, params) {
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
-  const results = await collection[findMethod](
+  let query = collection[findMethod](
     { $and: [cursorQuery, params.query] },
-    collection.findAsCursor
-      ? params.fields
-      : { projection: params.fields }
-  )
+    collection.findAsCursor ? params.fields : { projection: params.fields }
+  );
+
+  if (config.COLLATION) {
+    /**
+     * IMPORTANT
+     *
+     * If using a global collation setting, ensure that your collections' indexes (that index upon string fields)
+     * have been created with the same collation option; if this isn't the case, your queries will be unable to
+     * take advantage of any indexes.
+     *
+     * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
+     */
+    query = query.collation(config.COLLATION);
+  }
+
+  const results = await query
     .sort($sort)
     .limit(params.limit + 1) // Query one more element to see if there's another page.
     .toArray();

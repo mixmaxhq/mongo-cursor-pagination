@@ -87,7 +87,7 @@ async function findExample() {
   console.log(result);
 
   // Query next page.
-  result = MongoPaging.find(db.collection('myobjects'), {
+  result = await MongoPaging.find(db.collection('myobjects'), {
     limit: 2,
     next: result.next // This queries the next page
   });
@@ -202,7 +202,7 @@ async function searchExample() {
     mytext: 'text'
   });
 
-  db.collection('myobjects').insertMany([{
+  await db.collection('myobjects').insertMany([{
     mytext: 'dogs'
   }, {
     mytext: 'dogs cats'
@@ -298,6 +298,20 @@ router.get('/myobjects', async (req, res, next) => {
 ### Number of results
 
 If the `limit` parameter isn't passed, then this library will default to returning 50 results. This can be overridden by setting `mongoPaging.config.DEFAULT_LIMIT = <new default limit>;`. Regardless of the `limit` passed in, a maximum of 300 documents will be returned. This can be overridden by setting `mongoPaging.config.MAX_LIMIT = <new max limit>;`.
+
+### Alphabetical sorting
+
+The collation to use for alphabetical sorting, both with `find` and `aggregate`, can be selected by setting `mongoPaging.config.COLLATION`. If this parameter is
+not set, no collation will be provided for the aggregation/cursor, which means that MongoDB will use whatever collation was set for the collection.
+
+## Important note regarding collation
+
+If using a global collation setting, ensure that your collections' indexes (that index upon string fields)
+have been created with the same collation option; if this isn't the case, your queries will be unable to
+take advantage of any indexes.
+
+See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
+
 
 ### Indexes for sorting
 

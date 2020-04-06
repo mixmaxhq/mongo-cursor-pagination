@@ -52,7 +52,7 @@ module.exports = function sanitizeQuery(query, params) {
   params = params || {};
 
   if (!_.isEmpty(query.limit)) {
-    var limit = parseInt(query.limit);
+    const limit = parseInt(query.limit, 10);
     // Don't let the user specify a higher limit than params.limit, if defined.
     if (!isNaN(limit) && (!params.limit || params.limit > limit)) {
       params.limit = limit;
@@ -69,7 +69,11 @@ module.exports = function sanitizeQuery(query, params) {
 
   // Don't trust fields passed in the querystring, so whitelist them against the fields defined in
   // parameters.
-  const fields = resolveFields(normalizeQueryArray(query, 'fields'), params.fields, params.overrideFields);
+  const fields = resolveFields(
+    normalizeQueryArray(query, 'fields'),
+    params.fields,
+    params.overrideFields
+  );
   if (fields === null) {
     throw new TypeError('no valid fields provided');
   }
