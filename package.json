@@ -57,7 +57,7 @@
     "mongodb-memory-server": "^1.6.1",
     "mongoist": "2.3.0",
     "mongoose": "5.7.5",
-    "prettier": "^1.19.1"
+    "prettier": "^2.0.4"
   },
   "engines": {
     "node": ">= 6.9.1"
