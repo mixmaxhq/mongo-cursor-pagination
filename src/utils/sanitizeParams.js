@@ -35,9 +35,7 @@ module.exports = async function sanitizeParams(collection, params) {
 
       const doc = await collection.findOne(
         { _id: params.after },
-        collection.findAsCursor
-          ? projection
-          : { projection }
+        collection.findAsCursor ? projection : { projection }
       );
       if (doc) {
         // Handle usage of dot notation in paginatedField
@@ -57,16 +55,13 @@ module.exports = async function sanitizeParams(collection, params) {
   // string of both _id and paginatedField values.
   if (params.before) {
     if (shouldSecondarySortOnId) {
-
       const projection = { [params.paginatedField]: true, _id: false };
 
       // Since the primary sort field is not provided by the 'before' pagination cursor we
       // have to look it up when the paginated field is not _id.
       const doc = await collection.findOne(
         { _id: params.before },
-        collection.findAsCursor
-          ? projection
-          : { projection }
+        collection.findAsCursor ? projection : { projection }
       );
       if (doc) {
         // Handle usage of dot notation in paginatedField

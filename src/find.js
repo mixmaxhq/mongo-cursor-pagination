@@ -27,8 +27,9 @@ const config = require('./config');
  *    -before {String} The _id to start querying previous page.
  *    -hint {String} An optional index hint to provide to the mongo query
  */
-module.exports = async function (collection, params) {
-  const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField || '_id'];
+module.exports = async function(collection, params) {
+  const removePaginatedFieldInResponse =
+    params.fields && !params.fields[params.paginatedField || '_id'];
 
   params = _.defaults(await sanitizeParams(collection, params), { query: {} });
   const cursorQuery = generateCursorQuery(params);
