@@ -15,7 +15,7 @@
     "ci:commitlint": "commitlint-jenkins --pr-only",
     "lint": "eslint .",
     "prepublishOnly": "npm run babelBuild && if [ \"$CI\" = '' ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
-    "semantic-release": "semantic-release",
+    "semantic-release": "SEMANTIC_COMMITLINT_SKIP=5ed5489,e2ab709,187f1fe,0dcc73f semantic-release",
     "test": "DRIVER=mongoist jest && DRIVER=native jest"
   },
   "repository": {
