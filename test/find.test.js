@@ -499,6 +499,23 @@ describe('find', () => {
         expect(res.hasPrevious).toBe(false);
       });
 
+      it('uses the hint parameter', async () => {
+        const collection = t.db.collection('test_paging');
+        await t.db.collection('test_paging').ensureIndex({ color: 1 }, { name: 'color_1' });
+        // First page.
+        const res = await paging.find(collection, {
+          query: {
+            color: 'blue',
+          },
+          hint: 'color_1',
+        });
+
+        expect(res.results.length).toEqual(5);
+        expect(res.results[0].color).toEqual('blue');
+        expect(res.hasNext).toBe(false);
+        expect(res.hasPrevious).toBe(false);
+      });
+
       it('uses the "fields" parameter', async () => {
         const collection = t.db.collection('test_paging');
         // First page.
