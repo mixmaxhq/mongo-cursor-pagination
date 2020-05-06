@@ -1,3 +1,10 @@
+## [7.3.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.2.1...v7.3.0) (2020-05-06)
+
+
+### Features
+
+* **find:** add optional hint parameter for the cursor ([17616da](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/17616da43641ff2d455e70d96368e839afb216ae))
+
 ### [7.2.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.2.0...v7.2.1) (2020-05-06)
 
 
