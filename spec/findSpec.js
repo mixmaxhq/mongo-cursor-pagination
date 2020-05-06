@@ -501,8 +501,26 @@ describe('find', (it) => {
         t.false(res.hasPrevious);
       });
 
+      it('should use a the hint parameter', async (t) => {
+        const collection = t.context.db.collection('test_paging');
+        await t.context.db.collection('test_paging').ensureIndex({ color: 1 }, { name: 'color_1' });
+        // First page.
+        const res = await paging.find(collection, {
+          query: {
+            color: 'blue',
+          },
+          hint: 'color_1',
+        });
+
+        t.is(res.results.length, 5);
+        t.is(res.results[0].color, 'blue');
+        t.false(res.hasNext);
+        t.false(res.hasPrevious);
+      });
+
       it('should use the "fields" parameter', async (t) => {
         const collection = t.context.db.collection('test_paging');
+
         // First page.
         const res = await paging.find(collection, {
           query: {
