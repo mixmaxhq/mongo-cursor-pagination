@@ -9,12 +9,14 @@
     "src"
   ],
   "scripts": {
-    "ci": "npm run lint && npm run test",
-    "test": "DRIVER=mongoist jest && DRIVER=native jest",
-    "lint": "eslint .",
     "babelBuild": "babel src -d dist/node",
     "babelWatch": "babel --watch src -d dist/node",
-    "prepublish": "npm run babelBuild"
+    "ci": "npm run lint && npm run test",
+    "ci:commitlint": "commitlint-jenkins --pr-only",
+    "lint": "eslint .",
+    "prepublishOnly": "npm run babelBuild && if [ \"$CI\" = '' ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
+    "semantic-release": "semantic-release",
+    "test": "DRIVER=mongoist jest && DRIVER=native jest"
   },
   "repository": {
     "type": "git",
@@ -44,10 +46,14 @@
     "underscore": "^1.9.2"
   },
   "devDependencies": {
+    "@commitlint/config-conventional": "^8.3.4",
+    "@mixmaxhq/commitlint-jenkins": "^1.4.4",
     "@mixmaxhq/prettier-config": "^1.0.0",
+    "@mixmaxhq/semantic-release-config": "^2.0.0",
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "cz-conventional-changelog": "^3.2.0",
     "eslint": "^6.8.0",
     "eslint-config-mixmax": "^3.4.0",
     "jest": "^26.0.1",
@@ -56,7 +62,8 @@
     "mongodb-memory-server": "^5.2.11",
     "mongoist": "2.3.0",
     "mongoose": "5.7.5",
-    "prettier": "^1.19.1"
+    "prettier": "^1.19.1",
+    "semantic-release": "^17.0.7"
   },
   "engines": {
     "node": ">= 6.9.1"
@@ -69,5 +76,22 @@
     "files": [
       "spec/**/*Spec.js"
     ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    },
+    "manualPublishMessage": "This repository is configured to use semantic-release for its releases. Please do not release manually.\n"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "release": {
+    "extends": "@mixmaxhq/semantic-release-config"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
