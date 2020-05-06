@@ -1,55 +1,54 @@
-const { describe } = require('ava-spec');
 const resolveFields = require('../../src/utils/resolveFields');
 
-describe('resolveFields', (it) => {
-  it('should support empty fields', (t) => {
-    t.deepEqual(resolveFields(), {});
-    t.deepEqual(resolveFields([]), {});
-    t.deepEqual(resolveFields([], null), {});
-    t.deepEqual(resolveFields([], null, {}), {});
+describe('resolveFields', () => {
+  it('should support empty fields', () => {
+    expect(resolveFields()).toEqual({});
+    expect(resolveFields([])).toEqual({});
+    expect(resolveFields([], null)).toEqual({});
+    expect(resolveFields([], null, {})).toEqual({});
 
-    t.deepEqual(resolveFields([], {}), null);
-    t.deepEqual(resolveFields([], {}, {}), null);
+    expect(resolveFields([], {})).toEqual(null);
+    expect(resolveFields([], {}, {})).toEqual(null);
   });
 
-  it('should support default fields', (t) => {
+  it('should support default fields', () => {
     const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
     const fieldsMinusId = Object.assign({ _id: 0 }, fields);
     const fieldsPlusId = Object.assign({ _id: 1 }, fields);
-    t.deepEqual(resolveFields([], fields), fieldsMinusId);
-    t.deepEqual(resolveFields([], fieldsMinusId), fieldsMinusId);
-    t.deepEqual(resolveFields([], fieldsPlusId), fieldsPlusId);
+    expect(resolveFields([], fields)).toEqual(fieldsMinusId);
+    expect(resolveFields([], fieldsMinusId)).toEqual(fieldsMinusId);
+    expect(resolveFields([], fieldsPlusId)).toEqual(fieldsPlusId);
   });
 
-  it('should let override disable the id field', (t) => {
+  it('should let override disable the id field', () => {
     const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
     const fieldsMinusId = Object.assign({ _id: 0 }, fields);
     const fieldsPlusId = Object.assign({ _id: 1 }, fields);
-    t.deepEqual(resolveFields([], fieldsPlusId, { _id: 0 }), fieldsMinusId);
+    expect(resolveFields([], fieldsPlusId, { _id: 0 })).toEqual(fieldsMinusId);
   });
 
-  it('should select fields', (t) => {
+  it('should select fields', () => {
     const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
     const fieldsPlusId = Object.assign({ _id: 1 }, fields);
-    t.deepEqual(resolveFields(['_id', 'users.services.google.token'], fields), {
+    expect(resolveFields(['_id', 'users.services.google.token'], fields)).toEqual({
       _id: 0,
       'users.services.google.token': 1,
     });
-    t.deepEqual(resolveFields(['_id', 'users.services.google.token'], fieldsPlusId), {
+    expect(resolveFields(['_id', 'users.services.google.token'], fieldsPlusId)).toEqual({
       _id: 1,
       'users.services.google.token': 1,
     });
-    t.deepEqual(resolveFields(['users.services.google.token'], fields), {
+    expect(resolveFields(['users.services.google.token'], fields)).toEqual({
       _id: 0,
       'users.services.google.token': 1,
     });
-    t.deepEqual(resolveFields(['users'], fields), {
+    expect(resolveFields(['users'], fields)).toEqual({
       _id: 0,
       'users.id': 1,
       'users.email': 1,
       'users.services.google.token': 1,
     });
-    t.deepEqual(resolveFields(['users'], fieldsPlusId), {
+    expect(resolveFields(['users'], fieldsPlusId)).toEqual({
       _id: 0,
       'users.id': 1,
       'users.email': 1,
@@ -57,9 +56,9 @@ describe('resolveFields', (it) => {
     });
   });
 
-  it('should add fields from the override', (t) => {
+  it('should add fields from the override', () => {
     const fields = { 'users.id': 1, 'users.email': 1, 'users.services.google.token': 1, extra: 1 };
-    t.deepEqual(resolveFields(['_id', 'users'], fields, { another: 1 }), {
+    expect(resolveFields(['_id', 'users'], fields, { another: 1 })).toEqual({
       _id: 0,
       'users.id': 1,
       'users.email': 1,
