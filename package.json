@@ -1,6 +1,6 @@
 {
   "name": "mongo-cursor-pagination",
-  "version": "7.2.0",
+  "version": "7.2.1",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "index.js",
   "files": [

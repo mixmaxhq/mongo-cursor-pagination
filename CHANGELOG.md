@@ -1,3 +1,12 @@
+### [7.2.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.2.0...v7.2.1) (2020-05-06)
+
+
+### Bug Fixes
+
+* apply no-var rule changes ([8cf0620](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/8cf0620b023ac460a62788b9d11763211d5a5f88))
+* comply with new eslint rules ([e5851bd](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/e5851bde1a86ab322aa6eac4c56995d98f80e74b))
+* eslint cleanup ([3c3c913](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/3c3c91311cab97d51896f16c8463d73bdb7d9225))
+
 ## Changelog
 
 * 7.2.0 Add support for `COLLATION` configuration parameter.
