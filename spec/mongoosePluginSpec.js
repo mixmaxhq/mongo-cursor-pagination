@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
-
-const { describe } = require('ava-spec');
-const test = require('ava');
+const dbUtils = require('./support/db');
 const mongooseCursorPaginate = require('../src/mongoose.plugin');
-
-const MONGO_URI = 'mongodb://127.0.0.1/mongoose_paginate';
 
 const AuthorSchema = new mongoose.Schema({ name: String });
 
@@ -26,44 +22,50 @@ PostSchema.plugin(mongooseCursorPaginate);
 
 const Post = mongoose.model('Post', PostSchema);
 
-test.before('start mongoose connection and add data into collection', async () => {
-  await mongoose.connect(MONGO_URI);
-  await mongoose.connection.db.dropDatabase();
-  const author = await Author.create({ name: 'Pawan Pandey' });
+let mongod;
+describe('mongoose plugin', () => {
+  beforeAll(async () => {
+    mongod = await dbUtils.start();
+    await mongoose.connect(await mongod.getConnectionString());
+    await mongoose.connection.db.dropDatabase();
+    const author = await Author.create({ name: 'Pawan Pandey' });
 
-  const posts = [],
-    date = new Date();
+    const posts = [],
+      date = new Date();
 
-  for (let i = 1; i <= 100; i++) {
-    const post = new Post({
-      title: 'Post #' + i,
-      date: new Date(date.getTime() + i),
-      author: author._id,
-      body: 'Post Body #' + i,
-    });
-    posts.push(post);
-  }
+    for (let i = 1; i <= 100; i++) {
+      const post = new Post({
+        title: 'Post #' + i,
+        date: new Date(date.getTime() + i),
+        author: author._id,
+        body: 'Post Body #' + i,
+      });
+      posts.push(post);
+    }
 
-  await Post.create(posts);
-});
+    await Post.create(posts);
+  });
 
-describe('mongoose plugin', (it) => {
-  it('paginate function should initialized by provided name', function(t) {
+  afterAll(async () => {
+    await mongod.stop();
+  });
+
+  it('initializes the pagination function by the provided name', () => {
     const promise = Author.paginateFN();
-    t.is(promise.then instanceof Function, true);
+    expect(promise.then instanceof Function).toBe(true);
   });
 
-  it('return promise', function(t) {
+  it('returns a promise', () => {
     const promise = Post.paginate();
-    t.is(promise.then instanceof Function, true);
+    expect(promise.then instanceof Function).toBe(true);
   });
 
-  it('should return data in expected format', async function(t) {
+  it('returns data in the expected format', async () => {
     const data = await Post.paginate();
-    t.is(hasOwnProperty.call(data, 'results'), true);
-    t.is(hasOwnProperty.call(data, 'previous'), true);
-    t.is(hasOwnProperty.call(data, 'hasPrevious'), true);
-    t.is(hasOwnProperty.call(data, 'next'), true);
-    t.is(hasOwnProperty.call(data, 'hasNext'), true);
+    expect(hasOwnProperty.call(data, 'results')).toBe(true);
+    expect(hasOwnProperty.call(data, 'previous')).toBe(true);
+    expect(hasOwnProperty.call(data, 'hasPrevious')).toBe(true);
+    expect(hasOwnProperty.call(data, 'next')).toBe(true);
+    expect(hasOwnProperty.call(data, 'hasNext')).toBe(true);
   });
 });

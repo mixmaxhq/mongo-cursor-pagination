@@ -1,5 +1,3 @@
-const { describe } = require('ava-spec');
-const test = require('ava');
 const paging = require('../');
 const dbUtils = require('./support/db');
 const _ = require('underscore');
@@ -7,125 +5,125 @@ const _ = require('underscore');
 const driver = process.env.DRIVER;
 
 let mongod;
-test.before('start mongo server', async () => {
-  mongod = dbUtils.start();
-  const db = await dbUtils.db(mongod, driver);
 
-  // Set up collections once for testing later.
-  await Promise.all([
-    db.collection('test_paging').insert([
-      {
-        counter: 1,
-      },
-      {
-        counter: 2,
-      },
-      {
-        counter: 3,
-      },
-      {
-        counter: 4,
-        color: 'blue',
-      },
-      {
-        counter: 5,
-        color: 'blue',
-      },
-      {
-        counter: 6,
-        color: 'blue',
-      },
-      {
-        counter: 7,
-        color: 'blue',
-      },
-      {
-        counter: 8,
-        color: 'blue',
-      },
-    ]),
-    db.collection('test_aggregation').insert([
-      {
-        items: [1, 2, 3],
-      },
-      {
-        items: [4, 5, 6],
-      },
-      {
-        items: [1, 3, 6],
-      },
-      {
-        items: [2, 4, 5],
-      },
-    ]),
-    db.collection('test_aggregation_lookup').insert([
-      {
-        _id: 1,
-        name: 'mercury',
-      },
-      {
-        _id: 2,
-        name: 'venus',
-      },
-      {
-        _id: 3,
-        name: 'earth',
-      },
-      {
-        _id: 4,
-        name: 'mars',
-      },
-      {
-        _id: 5,
-        name: 'jupiter',
-      },
-      {
-        _id: 6,
-        name: 'saturn',
-      },
-    ]),
-    db.collection('test_aggregation_sort').insert([
-      {
-        name: 'Alpha',
-      },
-      {
-        name: 'gimel',
-      },
-      {
-        name: 'Beta',
-      },
-      {
-        name: 'bet',
-      },
-      {
-        name: 'Gamma',
-      },
-      {
-        name: 'aleph',
-      },
-    ]),
-  ]);
-});
+describe('aggregate', () => {
+  const t = {};
+  beforeAll(async () => {
+    mongod = dbUtils.start();
+    t.db = await dbUtils.db(mongod, driver);
 
-describe('aggregate', (it) => {
-  it.beforeEach(async (t) => {
-    t.context.db = await dbUtils.db(mongod, driver);
+    // Set up collections once for testing later.
+    await Promise.all([
+      t.db.collection('test_paging').insert([
+        {
+          counter: 1,
+        },
+        {
+          counter: 2,
+        },
+        {
+          counter: 3,
+        },
+        {
+          counter: 4,
+          color: 'blue',
+        },
+        {
+          counter: 5,
+          color: 'blue',
+        },
+        {
+          counter: 6,
+          color: 'blue',
+        },
+        {
+          counter: 7,
+          color: 'blue',
+        },
+        {
+          counter: 8,
+          color: 'blue',
+        },
+      ]),
+      t.db.collection('test_aggregation').insert([
+        {
+          items: [1, 2, 3],
+        },
+        {
+          items: [4, 5, 6],
+        },
+        {
+          items: [1, 3, 6],
+        },
+        {
+          items: [2, 4, 5],
+        },
+      ]),
+      t.db.collection('test_aggregation_lookup').insert([
+        {
+          _id: 1,
+          name: 'mercury',
+        },
+        {
+          _id: 2,
+          name: 'venus',
+        },
+        {
+          _id: 3,
+          name: 'earth',
+        },
+        {
+          _id: 4,
+          name: 'mars',
+        },
+        {
+          _id: 5,
+          name: 'jupiter',
+        },
+        {
+          _id: 6,
+          name: 'saturn',
+        },
+      ]),
+      t.db.collection('test_aggregation_sort').insert([
+        {
+          name: 'Alpha',
+        },
+        {
+          name: 'gimel',
+        },
+        {
+          name: 'Beta',
+        },
+        {
+          name: 'bet',
+        },
+        {
+          name: 'Gamma',
+        },
+        {
+          name: 'aleph',
+        },
+      ]),
+    ]);
   });
 
-  it.describe('test pagination', (it) => {
-    it('should query first few pages with next/previous', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+  afterAll(() => mongod.stop());
+
+  describe('test pagination', () => {
+    it('queries the first few pages with next/previous', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 3
       let res = await paging.aggregate(collection, {
         limit: 3,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 3
       res = await paging.aggregate(collection, {
@@ -133,12 +131,12 @@ describe('aggregate', (it) => {
         next: res.next,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 5);
-      t.is(res.results[1].counter, 4);
-      t.is(res.results[2].counter, 3);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(5);
+      expect(res.results[1].counter).toEqual(4);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go forward another 3
       res = await paging.aggregate(collection, {
@@ -146,11 +144,11 @@ describe('aggregate', (it) => {
         next: res.next,
       });
 
-      t.is(res.results.length, 2);
-      t.is(res.results[0].counter, 2);
-      t.is(res.results[1].counter, 1);
-      t.true(res.hasPrevious);
-      t.false(res.hasNext);
+      expect(res.results.length).toEqual(2);
+      expect(res.results[0].counter).toEqual(2);
+      expect(res.results[1].counter).toEqual(1);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
 
       // Now back up 3
       res = await paging.aggregate(collection, {
@@ -158,12 +156,12 @@ describe('aggregate', (it) => {
         previous: res.previous,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 5);
-      t.is(res.results[1].counter, 4);
-      t.is(res.results[2].counter, 3);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(5);
+      expect(res.results[1].counter).toEqual(4);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
       res = await paging.aggregate(collection, {
@@ -171,27 +169,27 @@ describe('aggregate', (it) => {
         previous: res.previous,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
     });
 
-    it('should query first few pages with after/before', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('queries the first few pages with after/before', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 3
       let res = await paging.aggregate(collection, {
         limit: 3,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 3
       res = await paging.aggregate(collection, {
@@ -199,12 +197,12 @@ describe('aggregate', (it) => {
         after: res.results[res.results.length - 1]._id,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 5);
-      t.is(res.results[1].counter, 4);
-      t.is(res.results[2].counter, 3);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(5);
+      expect(res.results[1].counter).toEqual(4);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go forward another 3
       res = await paging.aggregate(collection, {
@@ -212,11 +210,11 @@ describe('aggregate', (it) => {
         after: res.results[res.results.length - 1]._id,
       });
 
-      t.is(res.results.length, 2);
-      t.is(res.results[0].counter, 2);
-      t.is(res.results[1].counter, 1);
-      t.true(res.hasPrevious);
-      t.false(res.hasNext);
+      expect(res.results.length).toEqual(2);
+      expect(res.results[0].counter).toEqual(2);
+      expect(res.results[1].counter).toEqual(1);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
 
       // Now back up 3
       res = await paging.aggregate(collection, {
@@ -224,12 +222,12 @@ describe('aggregate', (it) => {
         before: res.results[0]._id,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 5);
-      t.is(res.results[1].counter, 4);
-      t.is(res.results[2].counter, 3);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(5);
+      expect(res.results[1].counter).toEqual(4);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
       res = await paging.aggregate(collection, {
@@ -237,28 +235,28 @@ describe('aggregate', (it) => {
         before: res.results[0]._id,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
     });
 
-    it('should handle hitting the end with next/previous', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('handles hitting the end with next/previous', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 2
       let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
-      t.is(res.results.length, 4);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.is(res.results[3].counter, 5);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(4);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.results[3].counter).toEqual(5);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 2
       res = await paging.aggregate(collection, {
@@ -266,39 +264,39 @@ describe('aggregate', (it) => {
         next: res.next,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 3);
-      t.is(res.results[2].counter, 2);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(3);
+      expect(res.results[2].counter).toEqual(2);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
-      // Go forward another 1, results should be empty.
+      // Go forward another 1, results be empty.
       res = await paging.aggregate(collection, {
         limit: 2,
         next: res.next,
       });
 
-      t.is(res.results.length, 1);
-      t.is(res.results[0].counter, 1);
-      t.true(res.hasPrevious);
-      t.false(res.hasNext);
+      expect(res.results.length).toEqual(1);
+      expect(res.results[0].counter).toEqual(1);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
     });
 
-    it('should handle hitting the end with after/before', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('handles hitting the end with after/before', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 2
       let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
-      t.is(res.results.length, 4);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.is(res.results[3].counter, 5);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(4);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.results[3].counter).toEqual(5);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 2
       res = await paging.aggregate(collection, {
@@ -306,39 +304,39 @@ describe('aggregate', (it) => {
         after: res.results[res.results.length - 1]._id,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 3);
-      t.is(res.results[2].counter, 2);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(3);
+      expect(res.results[2].counter).toEqual(2);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
-      // Go forward another 1, results should be empty.
+      // Go forward another 1, results be empty.
       res = await paging.aggregate(collection, {
         limit: 2,
         after: res.results[res.results.length - 1]._id,
       });
 
-      t.is(res.results.length, 1);
-      t.is(res.results[0].counter, 1);
-      t.true(res.hasPrevious);
-      t.false(res.hasNext);
+      expect(res.results.length).toEqual(1);
+      expect(res.results[0].counter).toEqual(1);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
     });
 
-    it('should handle hitting the beginning with next/previous', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('handles hitting the beginning with next/previous', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 2
       let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
-      t.is(res.results.length, 4);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.is(res.results[3].counter, 5);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(4);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.results[3].counter).toEqual(5);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 2
       res = await paging.aggregate(collection, {
@@ -346,12 +344,12 @@ describe('aggregate', (it) => {
         next: res.next,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 3);
-      t.is(res.results[2].counter, 2);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(3);
+      expect(res.results[2].counter).toEqual(2);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go back to beginning.
       res = await paging.aggregate(collection, {
@@ -359,29 +357,29 @@ describe('aggregate', (it) => {
         previous: res.previous,
       });
 
-      t.is(res.results.length, 4);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.is(res.results[3].counter, 5);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(4);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.results[3].counter).toEqual(5);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
     });
 
-    it('should handle hitting the beginning with after/before', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('handles hitting the beginning with after/before', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 2
       let res = await paging.aggregate(collection, {
         limit: 4,
       });
 
-      t.is(res.results.length, 4);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.is(res.results[3].counter, 5);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(4);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.results[3].counter).toEqual(5);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 2
       res = await paging.aggregate(collection, {
@@ -389,12 +387,12 @@ describe('aggregate', (it) => {
         after: res.results[res.results.length - 1]._id,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 3);
-      t.is(res.results[2].counter, 2);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(3);
+      expect(res.results[2].counter).toEqual(2);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go back to beginning.
       res = await paging.aggregate(collection, {
@@ -402,17 +400,17 @@ describe('aggregate', (it) => {
         before: res.results[0]._id,
       });
 
-      t.is(res.results.length, 4);
-      t.is(res.results[0].counter, 8);
-      t.is(res.results[1].counter, 7);
-      t.is(res.results[2].counter, 6);
-      t.is(res.results[3].counter, 5);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(4);
+      expect(res.results[0].counter).toEqual(8);
+      expect(res.results[1].counter).toEqual(7);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.results[3].counter).toEqual(5);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
     });
 
-    it('should use passed-in simple aggregation', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('uses passed-in simple aggregation', async () => {
+      const collection = t.db.collection('test_paging');
       // First page.
       const res = await paging.aggregate(collection, {
         aggregation: [
@@ -422,14 +420,14 @@ describe('aggregate', (it) => {
         ],
       });
 
-      t.is(res.results.length, 5);
-      t.is(res.results[0].color, 'blue');
-      t.false(res.hasNext);
-      t.false(res.hasPrevious);
+      expect(res.results.length).toEqual(5);
+      expect(res.results[0].color).toEqual('blue');
+      expect(res.hasNext).toBe(false);
+      expect(res.hasPrevious).toBe(false);
     });
 
-    it('should not return "next" or "previous" if there are no results', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('does not return "next" or "previous" if there are no results', async () => {
+      const collection = t.db.collection('test_paging');
       // First page.
       const res = await paging.aggregate(collection, {
         limit: 3,
@@ -440,25 +438,25 @@ describe('aggregate', (it) => {
         ],
       });
 
-      t.is(res.results.length, 0);
-      t.false(res.hasNext);
-      t.false(res.hasPrevious);
+      expect(res.results.length).toEqual(0);
+      expect(res.hasNext).toBe(false);
+      expect(res.hasPrevious).toBe(false);
     });
 
-    it('should respect sortAscending option with next/previous', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('respects sortAscending option with next/previous', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 3
       let res = await paging.aggregate(collection, {
         limit: 3,
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 1);
-      t.is(res.results[1].counter, 2);
-      t.is(res.results[2].counter, 3);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(1);
+      expect(res.results[1].counter).toEqual(2);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 3
       res = await paging.aggregate(collection, {
@@ -467,12 +465,12 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 5);
-      t.is(res.results[2].counter, 6);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(5);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go forward another 3
       res = await paging.aggregate(collection, {
@@ -481,11 +479,11 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 2);
-      t.is(res.results[0].counter, 7);
-      t.is(res.results[1].counter, 8);
-      t.true(res.hasPrevious);
-      t.false(res.hasNext);
+      expect(res.results.length).toEqual(2);
+      expect(res.results[0].counter).toEqual(7);
+      expect(res.results[1].counter).toEqual(8);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
 
       // // Now back up 3
       res = await paging.aggregate(collection, {
@@ -494,12 +492,12 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 5);
-      t.is(res.results[2].counter, 6);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(5);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
       res = await paging.aggregate(collection, {
@@ -508,28 +506,28 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 1);
-      t.is(res.results[1].counter, 2);
-      t.is(res.results[2].counter, 3);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(1);
+      expect(res.results[1].counter).toEqual(2);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
     });
 
-    it('should respect sortAscending option with after/before', async (t) => {
-      const collection = t.context.db.collection('test_paging');
+    it('respects sortAscending option with after/before', async () => {
+      const collection = t.db.collection('test_paging');
       // First page of 3
       let res = await paging.aggregate(collection, {
         limit: 3,
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 1);
-      t.is(res.results[1].counter, 2);
-      t.is(res.results[2].counter, 3);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(1);
+      expect(res.results[1].counter).toEqual(2);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
 
       // Go forward 3
       res = await paging.aggregate(collection, {
@@ -538,12 +536,12 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 5);
-      t.is(res.results[2].counter, 6);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(5);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Go forward another 3
       res = await paging.aggregate(collection, {
@@ -552,11 +550,11 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 2);
-      t.is(res.results[0].counter, 7);
-      t.is(res.results[1].counter, 8);
-      t.true(res.hasPrevious);
-      t.false(res.hasNext);
+      expect(res.results.length).toEqual(2);
+      expect(res.results[0].counter).toEqual(7);
+      expect(res.results[1].counter).toEqual(8);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(false);
 
       // // Now back up 3
       res = await paging.aggregate(collection, {
@@ -565,12 +563,12 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 4);
-      t.is(res.results[1].counter, 5);
-      t.is(res.results[2].counter, 6);
-      t.true(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(4);
+      expect(res.results[1].counter).toEqual(5);
+      expect(res.results[2].counter).toEqual(6);
+      expect(res.hasPrevious).toBe(true);
+      expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
       res = await paging.aggregate(collection, {
@@ -579,18 +577,18 @@ describe('aggregate', (it) => {
         sortAscending: true,
       });
 
-      t.is(res.results.length, 3);
-      t.is(res.results[0].counter, 1);
-      t.is(res.results[1].counter, 2);
-      t.is(res.results[2].counter, 3);
-      t.false(res.hasPrevious);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(3);
+      expect(res.results[0].counter).toEqual(1);
+      expect(res.results[1].counter).toEqual(2);
+      expect(res.results[2].counter).toEqual(3);
+      expect(res.hasPrevious).toBe(false);
+      expect(res.hasNext).toBe(true);
     });
   });
 
-  it.describe('lookup aggregations', (it) => {
-    it('return expected results from aggregation', async (t) => {
-      const collection = t.context.db.collection('test_aggregation');
+  describe('lookup aggregations', () => {
+    it('returns results from the aggregation', async () => {
+      const collection = t.db.collection('test_aggregation');
 
       const res = await paging.aggregate(collection, {
         aggregation: [
@@ -623,15 +621,15 @@ describe('aggregate', (it) => {
         limit: 1,
       });
 
-      t.is(res.results.length, 1);
-      t.deepEqual(res.results[0].planets, ['mars', 'jupiter', 'saturn']);
-      t.true(res.hasNext);
+      expect(res.results.length).toEqual(1);
+      expect(res.results[0].planets).toEqual(['mars', 'jupiter', 'saturn']);
+      expect(res.hasNext).toBe(true);
     });
   });
 
-  it.describe('sort aggregations', (it) => {
-    it('sort alphabetically, uppercase first', async (t) => {
-      const collection = t.context.db.collection('test_aggregation_sort');
+  describe('sort aggregations', () => {
+    it('sorts alphabetically, uppercase first', async () => {
+      const collection = t.db.collection('test_aggregation_sort');
 
       const res = await paging.aggregate(collection, {
         aggregation: [
@@ -643,7 +641,7 @@ describe('aggregate', (it) => {
 
       paging.config.COLLATION = { locale: 'en' };
 
-      t.deepEqual(_.pluck(res.results, 'name'), [
+      expect(_.pluck(res.results, 'name')).toEqual([
         'Alpha',
         'Beta',
         'Gamma',
@@ -660,7 +658,7 @@ describe('aggregate', (it) => {
         ],
       });
 
-      t.deepEqual(_.pluck(res_localized.results, 'name'), [
+      expect(_.pluck(res_localized.results, 'name')).toEqual([
         'aleph',
         'Alpha',
         'bet',
