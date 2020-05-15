@@ -4,7 +4,7 @@
 <!--- What can go wrong with this change? How will these changes affect adjacent code/features? How will we handle any adverse issues? --->
 
 #### Test Plan
-<!--- What steps do you take to ensure that this PR does what it's supposed to do? How do you ensure that adjacent code/features are still working as predicted? --->
+<!--- How do we know this PR does what it's supposed to do? How do we ensure that adjacent code/features are still working? How do we evaluate the performance implications of this PR?--->
 
 #### Checklist
 - [ ] I've increased test coverage
