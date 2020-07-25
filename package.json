@@ -68,15 +68,6 @@
   "engines": {
     "node": ">= 6.9.1"
   },
-  "ava": {
-    "require": [
-      "babel-register"
-    ],
-    "timeout": "60s",
-    "files": [
-      "spec/**/*Spec.js"
-    ]
-  },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
