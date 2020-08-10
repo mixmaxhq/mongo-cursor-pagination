@@ -1,3 +1,10 @@
+### [7.3.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.3.0...v7.3.1) (2020-08-10)
+
+
+### Bug Fixes
+
+* **bson:** fixes regression where string _ids were no longer supported ([1487195](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/1487195444fb1b6f151014522e498000d1dd452d))
+
 ## [7.3.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.2.1...v7.3.0) (2020-05-06)
 
 
