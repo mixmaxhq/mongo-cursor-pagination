@@ -1,7 +1,7 @@
 const paging = require('../');
 const dbUtils = require('./support/db');
 const _ = require('underscore');
-
+const { ObjectId } = require('mongoist');
 const driver = process.env.DRIVER;
 
 let mongod;
@@ -620,6 +620,559 @@ describe('find', () => {
 
       it('respects sortAscending option with after/before', async () => {
         const collection = t.db.collection('test_paging');
+        // First page of 3
+        let res = await paging.find(collection, {
+          limit: 3,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(1);
+        expect(res.results[1].counter).toEqual(2);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 3
+        res = await paging.find(collection, {
+          limit: 3,
+          after: res.results[res.results.length - 1]._id,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(5);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward another 3
+        res = await paging.find(collection, {
+          limit: 3,
+          after: res.results[res.results.length - 1]._id,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(2);
+        expect(res.results[0].counter).toEqual(7);
+        expect(res.results[1].counter).toEqual(8);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
+
+        // // Now back up 3
+        res = await paging.find(collection, {
+          limit: 3,
+          before: res.results[0]._id,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(5);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Now back up 3 more
+        res = await paging.find(collection, {
+          limit: 3,
+          before: res.results[0]._id,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(1);
+        expect(res.results[1].counter).toEqual(2);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+      });
+    });
+
+    describe('when using strings as _ids', () => {
+      beforeEach(async () => {
+        await t.db.collection('test_paging_string_ids').insert([
+          {
+            _id: new ObjectId().toString(),
+            counter: 1,
+          },
+          {
+            _id: new ObjectId().toString(),
+            counter: 2,
+          },
+          {
+            _id: new ObjectId().toString(),
+            counter: 3,
+          },
+          {
+            _id: new ObjectId().toString(),
+            counter: 4,
+            color: 'blue',
+          },
+          {
+            _id: new ObjectId().toString(),
+            counter: 5,
+            color: 'blue',
+          },
+          {
+            _id: new ObjectId().toString(),
+            counter: 6,
+            color: 'blue',
+          },
+          {
+            _id: new ObjectId().toString(),
+            counter: 7,
+            color: 'blue',
+          },
+          {
+            _id: new ObjectId().toString(),
+            counter: 8,
+            color: 'blue',
+          },
+        ]);
+      });
+
+      afterEach(async () => {
+        await t.db.collection('test_paging_string_ids').remove({});
+      });
+
+      it('queries first few pages with next/previous', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page of 3
+        let res = await paging.find(collection, {
+          limit: 3,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 3
+        res = await paging.find(collection, {
+          limit: 3,
+          next: res.next,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(5);
+        expect(res.results[1].counter).toEqual(4);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward another 3
+        res = await paging.find(collection, {
+          limit: 3,
+          next: res.next,
+        });
+
+        expect(res.results.length).toEqual(2);
+        expect(res.results[0].counter).toEqual(2);
+        expect(res.results[1].counter).toEqual(1);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
+
+        // Now back up 3
+        res = await paging.find(collection, {
+          limit: 3,
+          previous: res.previous,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(5);
+        expect(res.results[1].counter).toEqual(4);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Now back up 3 more
+        res = await paging.find(collection, {
+          limit: 3,
+          previous: res.previous,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+      });
+
+      it('queries first few pages with after/before', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page of 3
+        let res = await paging.find(collection, {
+          limit: 3,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 3
+        res = await paging.find(collection, {
+          limit: 3,
+          after: res.results[res.results.length - 1]._id,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(5);
+        expect(res.results[1].counter).toEqual(4);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward another 3
+        res = await paging.find(collection, {
+          limit: 3,
+          after: res.results[res.results.length - 1]._id,
+        });
+
+        expect(res.results.length).toEqual(2);
+        expect(res.results[0].counter).toEqual(2);
+        expect(res.results[1].counter).toEqual(1);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
+
+        // Now back up 3
+        res = await paging.find(collection, {
+          limit: 3,
+          before: res.results[0]._id,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(5);
+        expect(res.results[1].counter).toEqual(4);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Now back up 3 more
+        res = await paging.find(collection, {
+          limit: 3,
+          before: res.results[0]._id,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+      });
+
+      it('handles hitting the end with next/previous', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page of 2
+        let res = await paging.find(collection, {
+          limit: 4,
+        });
+
+        expect(res.results.length).toEqual(4);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.results[3].counter).toEqual(5);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 2
+        res = await paging.find(collection, {
+          limit: 3,
+          next: res.next,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(3);
+        expect(res.results[2].counter).toEqual(2);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward another 1, results be empty.
+        res = await paging.find(collection, {
+          limit: 2,
+          next: res.next,
+        });
+
+        expect(res.results.length).toEqual(1);
+        expect(res.results[0].counter).toEqual(1);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
+      });
+
+      it('handles hitting the end with after/before', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page of 2
+        let res = await paging.find(collection, {
+          limit: 4,
+        });
+
+        expect(res.results.length).toEqual(4);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.results[3].counter).toEqual(5);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 2
+        res = await paging.find(collection, {
+          limit: 3,
+          after: res.results[res.results.length - 1]._id,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(3);
+        expect(res.results[2].counter).toEqual(2);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward another 1, results be empty.
+        res = await paging.find(collection, {
+          limit: 2,
+          after: res.results[res.results.length - 1]._id,
+        });
+
+        expect(res.results.length).toEqual(1);
+        expect(res.results[0].counter).toEqual(1);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
+      });
+
+      it('handles hitting the beginning with next/previous', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page of 2
+        let res = await paging.find(collection, {
+          limit: 4,
+        });
+
+        expect(res.results.length).toEqual(4);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.results[3].counter).toEqual(5);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 2
+        res = await paging.find(collection, {
+          limit: 3,
+          next: res.next,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(3);
+        expect(res.results[2].counter).toEqual(2);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go back to beginning.
+        res = await paging.find(collection, {
+          limit: 100,
+          previous: res.previous,
+        });
+
+        expect(res.results.length).toEqual(4);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.results[3].counter).toEqual(5);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+      });
+
+      it('handles hitting the beginning with after/before', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page of 2
+        let res = await paging.find(collection, {
+          limit: 4,
+        });
+
+        expect(res.results.length).toEqual(4);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.results[3].counter).toEqual(5);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 2
+        res = await paging.find(collection, {
+          limit: 3,
+          after: res.results[res.results.length - 1]._id,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(3);
+        expect(res.results[2].counter).toEqual(2);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go back to beginning.
+        res = await paging.find(collection, {
+          limit: 100,
+          before: res.results[0]._id,
+        });
+
+        expect(res.results.length).toEqual(4);
+        expect(res.results[0].counter).toEqual(8);
+        expect(res.results[1].counter).toEqual(7);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.results[3].counter).toEqual(5);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+      });
+
+      it('uses passed-in criteria', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page.
+        const res = await paging.find(collection, {
+          query: {
+            color: 'blue',
+          },
+        });
+
+        expect(res.results.length).toEqual(5);
+        expect(res.results[0].color).toEqual('blue');
+        expect(res.hasNext).toBe(false);
+        expect(res.hasPrevious).toBe(false);
+      });
+
+      it('uses the hint parameter', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        await t.db
+          .collection('test_paging_string_ids')
+          .ensureIndex({ color: 1 }, { name: 'color_1' });
+        // First page.
+        const res = await paging.find(collection, {
+          query: {
+            color: 'blue',
+          },
+          hint: 'color_1',
+        });
+
+        expect(res.results.length).toEqual(5);
+        expect(res.results[0].color).toEqual('blue');
+        expect(res.hasNext).toBe(false);
+        expect(res.hasPrevious).toBe(false);
+      });
+
+      it('uses the "fields" parameter', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page.
+        const res = await paging.find(collection, {
+          query: {
+            color: 'blue',
+          },
+          fields: {
+            _id: 1,
+          },
+        });
+
+        expect(res.results.length).toEqual(5);
+        expect(res.results[0].color).toBeFalsy();
+      });
+
+      it('does not return "next" or "previous" if there are no results', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page.
+        const res = await paging.find(collection, {
+          limit: 3,
+          query: {
+            nonexistantfield: true,
+          },
+        });
+
+        expect(res.results.length).toEqual(0);
+        expect(res.hasNext).toBe(false);
+        expect(res.hasPrevious).toBe(false);
+      });
+
+      it('respects sortAscending option with next/previous', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
+        // First page of 3
+        let res = await paging.find(collection, {
+          limit: 3,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(1);
+        expect(res.results[1].counter).toEqual(2);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward 3
+        res = await paging.find(collection, {
+          limit: 3,
+          next: res.next,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(5);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Go forward another 3
+        res = await paging.find(collection, {
+          limit: 3,
+          next: res.next,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(2);
+        expect(res.results[0].counter).toEqual(7);
+        expect(res.results[1].counter).toEqual(8);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(false);
+
+        // // Now back up 3
+        res = await paging.find(collection, {
+          limit: 3,
+          previous: res.previous,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(4);
+        expect(res.results[1].counter).toEqual(5);
+        expect(res.results[2].counter).toEqual(6);
+        expect(res.hasPrevious).toBe(true);
+        expect(res.hasNext).toBe(true);
+
+        // Now back up 3 more
+        res = await paging.find(collection, {
+          limit: 3,
+          previous: res.previous,
+          sortAscending: true,
+        });
+
+        expect(res.results.length).toEqual(3);
+        expect(res.results[0].counter).toEqual(1);
+        expect(res.results[1].counter).toEqual(2);
+        expect(res.results[2].counter).toEqual(3);
+        expect(res.hasPrevious).toBe(false);
+        expect(res.hasNext).toBe(true);
+      });
+
+      it('respects sortAscending option with after/before', async () => {
+        const collection = t.db.collection('test_paging_string_ids');
         // First page of 3
         let res = await paging.find(collection, {
           limit: 3,

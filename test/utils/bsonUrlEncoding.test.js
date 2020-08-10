@@ -33,4 +33,14 @@ describe('bson url encoding', () => {
     expect(typeof decoded.number).toEqual('number');
     expect(typeof decoded.string).toEqual('string');
   });
+
+  it('encodes and decodes strings', async () => {
+    const str = bsonUrlEncoding.encode('string _id');
+
+    expect(str).toEqual('InN0cmluZyBfaWQi');
+
+    const decoded = bsonUrlEncoding.decode(str);
+    expect(decoded).toEqual('string _id');
+    expect(typeof decoded).toEqual('string');
+  });
 });
