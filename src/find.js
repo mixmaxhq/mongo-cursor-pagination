@@ -27,7 +27,7 @@ const config = require('./config');
  *    -before {String} The _id to start querying previous page.
  *    -hint {String} An optional index hint to provide to the mongo query
  */
-module.exports = async function(collection, params) {
+module.exports = async function (collection, params) {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
@@ -46,7 +46,7 @@ module.exports = async function(collection, params) {
     queryOptions = { projection: params.fields };
   }
 
-  const query = collection[findMethod]({ $and: [cursorQuery, params.query] },queryOptions);
+  const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, queryOptions);
 
   /**
    * IMPORTANT

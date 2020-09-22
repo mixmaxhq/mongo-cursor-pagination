@@ -68,4 +68,13 @@ describe('mongoose plugin', () => {
     expect(hasOwnProperty.call(data, 'next')).toBe(true);
     expect(hasOwnProperty.call(data, 'hasNext')).toBe(true);
   });
+
+  it('returns data with expected fields', async () => {
+    const data = await Post.paginate({ fields: { title: 1 }, limit: 1 });
+    const [post] = data.results;
+    expect(post.title).toBeTruthy();
+    expect(post.date).toBeFalsy();
+    expect(post.author).toBeFalsy();
+    expect(post.body).toBeFalsy();
+  });
 });

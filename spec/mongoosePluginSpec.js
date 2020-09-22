@@ -48,22 +48,31 @@ test.before('start mongoose connection and add data into collection', async () =
 });
 
 describe('mongoose plugin', (it) => {
-  it('paginate function should initialized by provided name', function(t) {
+  it('paginate function should initialized by provided name', function (t) {
     const promise = Author.paginateFN();
     t.is(promise.then instanceof Function, true);
   });
 
-  it('return promise', function(t) {
+  it('return promise', function (t) {
     const promise = Post.paginate();
     t.is(promise.then instanceof Function, true);
   });
 
-  it('should return data in expected format', async function(t) {
+  it('should return data in expected format', async function (t) {
     const data = await Post.paginate();
     t.is(hasOwnProperty.call(data, 'results'), true);
     t.is(hasOwnProperty.call(data, 'previous'), true);
     t.is(hasOwnProperty.call(data, 'hasPrevious'), true);
     t.is(hasOwnProperty.call(data, 'next'), true);
     t.is(hasOwnProperty.call(data, 'hasNext'), true);
+  });
+
+  it('returns data with expected fields', async (t) => {
+    const data = await Post.paginate({ fields: { title: 1 }, limit: 1 });
+    const [post] = data.results;
+    t.is(hasOwnProperty.call(post, 'title'), true);
+    t.is(hasOwnProperty.call(post, 'date'), false);
+    t.is(hasOwnProperty.call(post, 'author'), false);
+    t.is(hasOwnProperty.call(post, 'body'), false);
   });
 });
