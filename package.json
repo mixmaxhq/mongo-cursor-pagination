@@ -59,7 +59,7 @@
     "jest": "^26.0.1",
     "mockgoose": "^8.0.4",
     "mongodb": "^2.2.11",
-    "mongodb-memory-server": "^5.2.11",
+    "mongodb-memory-server": "^6.9.1",
     "mongoist": "2.3.0",
     "mongoose": "5.7.5",
     "prettier": "^1.19.1",
