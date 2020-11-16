@@ -33,6 +33,7 @@ const config = require('./config');
  *    -previous {String} The value to start querying previous page.
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
+ *    -readPref {String} the MongoDB readPref (https://docs.mongodb.com/manual/core/read-preference/) 
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
@@ -67,12 +68,13 @@ module.exports = async function aggregate(collection, params) {
    * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
    */
   const options = config.COLLATION ? { collation: config.COLLATION } : undefined;
+  const readPreference = options.readPref || 'primary';
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
-  const results = await collection[aggregateMethod](params.aggregation, options).toArray();
+  const results = await collection[aggregateMethod](params.aggregation, options).readPref(readPreference).toArray();
 
   return prepareResponse(results, params);
 };
