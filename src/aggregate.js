@@ -4,7 +4,7 @@ const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/
 const config = require('./config');
 
 /**
- * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
+ * Performs an aggregate() query on a passed-in Mongo, using criteria you specify.
  * Unlike `find()`, this method requires fine tuning by the user, and must comply with the following
  * two criteria so that the pagination magic can work properly.
  *
@@ -68,13 +68,13 @@ module.exports = async function aggregate(collection, params) {
    * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
    */
   const options = config.COLLATION ? { collation: config.COLLATION } : undefined;
-  const readPreference = options.readPref || 'primary';
+  const readPreference = params.readPref || 'primary';
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
-  const results = await collection[aggregateMethod](params.aggregation, options).readPref(readPreference).toArray();
+  const results = await collection[aggregateMethod](params.aggregation, {...options, readPreference}).toArray();
 
   return prepareResponse(results, params);
 };
