@@ -68,13 +68,13 @@ module.exports = async function aggregate(collection, params) {
    * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
    */
   const options = config.COLLATION ? { collation: config.COLLATION } : undefined;
-  //const readPreference = params.readPref || 'primary';
+  const readPreference = params.readPref || 'primary';
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
-  const results = await collection[aggregateMethod](params.aggregation, options).toArray();
+  const results = await collection[aggregateMethod](params.aggregation, {...options, read: readPreference}).toArray();
 
   return prepareResponse(results, params);
 };
