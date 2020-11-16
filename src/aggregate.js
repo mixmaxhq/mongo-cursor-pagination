@@ -75,7 +75,7 @@ module.exports = async function aggregate(collection, params) {
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
   
   console.log('foobar', collection[aggregateMethod](params.aggregation, options));
-  const results = await collection[aggregateMethod](params.aggregation, options).toArray();
+  const results = await collection[aggregateMethod](params.aggregation, options).read('secondaryPreferred').toArray();
 
   return prepareResponse(results, params);
 };
