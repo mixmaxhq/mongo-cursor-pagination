@@ -69,6 +69,7 @@ module.exports = async function aggregate(collection, params) {
    */
   const options = config.COLLATION ? { collation: config.COLLATION } : undefined;
   const readPreference = params.readPref || 'primary';
+  console.log('combinedOptions', { ...options, readPreference });
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
