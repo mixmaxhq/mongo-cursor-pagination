@@ -4,7 +4,7 @@ const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/
 const config = require('./config');
 
 /**
- * Performs an aggregate() query on a passed-in Mongo, using criteria you specify.
+ * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
  * Unlike `find()`, this method requires fine tuning by the user, and must comply with the following
  * two criteria so that the pagination magic can work properly.
  *
