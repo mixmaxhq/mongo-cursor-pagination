@@ -76,14 +76,10 @@ module.exports = async function aggregate(collection, params) {
       ...params.options,
     };
   }
-  console.log('params', params)
-  console.log('combinedOptions', options);
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
-  
-  console.log('collection[aggregateMethod](params.aggregation, options)', collection[aggregateMethod](params.aggregation, options));
   
   const results = await collection[aggregateMethod](params.aggregation, options).toArray();
 
