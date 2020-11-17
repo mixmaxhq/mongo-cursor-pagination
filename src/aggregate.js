@@ -33,7 +33,7 @@ const config = require('./config');
  *    -previous {String} The value to start querying previous page.
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
- *    -readPref {String} the MongoDB readPref (https://docs.mongodb.com/manual/core/read-preference/) 
+ *    -options {Object} An object of options for implementing features like read preference (https://docs.mongodb.com/manual/core/read-preference/) 
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
@@ -67,17 +67,25 @@ module.exports = async function aggregate(collection, params) {
    *
    * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
    */
-  const options = config.COLLATION ? { collation: config.COLLATION } : undefined;
-  const readPreference = params.readPref || 'primary';
-  console.log('combinedOptions', { ...options, readPreference });
+  let options = config.COLLATION ? { collation: config.COLLATION } : {};
+  
+  // Spread options passed in as a parameter
+  if (params.options) {
+    options = {
+      ...options,
+      ...params.options,
+    };
+  }
+  
+  console.log('combinedOptions', options);
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
   
-  console.log('collection[aggregateMethod](params.aggregation, { ...options, readPreference })', collection[aggregateMethod](params.aggregation, { ...options, readPreference }));
+  console.log('collection[aggregateMethod](params.aggregation, options)', collection[aggregateMethod](params.aggregation, { ...options, readPreference }));
   
-  const results = await collection[aggregateMethod](params.aggregation, { ...options, readPreference }).toArray();
+  const results = await collection[aggregateMethod](params.aggregation, options).toArray();
 
   return prepareResponse(results, params);
 };
