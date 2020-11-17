@@ -75,6 +75,8 @@ module.exports = async function aggregate(collection, params) {
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
   
+  console.log('collection[aggregateMethod](params.aggregation, { ...options, readPreference })', collection[aggregateMethod](params.aggregation, { ...options, readPreference }));
+  
   const results = await collection[aggregateMethod](params.aggregation, { ...options, readPreference }).toArray();
 
   return prepareResponse(results, params);
