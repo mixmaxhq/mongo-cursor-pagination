@@ -76,7 +76,7 @@ module.exports = async function aggregate(collection, params) {
       ...params.options,
     };
   }
-  
+  console.log('params', params)
   console.log('combinedOptions', options);
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
