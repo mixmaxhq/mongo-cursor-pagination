@@ -61,7 +61,7 @@
     "mongodb": "^2.2.11",
     "mongodb-memory-server": "^5.2.11",
     "mongoist": "2.3.0",
-    "mongoose": "5.7.5",
+    "mongoose": "5.10.19",
     "prettier": "^1.19.1",
     "semantic-release": "^17.0.7"
   },
