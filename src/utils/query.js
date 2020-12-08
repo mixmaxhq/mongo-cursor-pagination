@@ -25,28 +25,25 @@ module.exports = {
     // Remove the extra element that we added to 'peek' to see if there were more entries.
     if (hasMore) results.pop();
 
+    // build the cursor for each result document
+    results = results.map((result) => {
+      result._cursor = buildCursor(result, params.paginatedField, shouldSecondarySortOnId);
+      return result;
+    });
+
     const hasPrevious = !!params.next || !!(params.previous && hasMore);
     const hasNext = !!params.previous || hasMore;
 
     // If we sorted reverse to get the previous page, correct the sort order.
     if (params.previous) results = results.reverse();
 
-    const response = {
+    return {
       results,
-      previous: results[0],
+      previous: results[0]._cursor,
       hasPrevious,
-      next: results[results.length - 1],
+      next: results[results.length - 1]._cursor,
       hasNext,
     };
-
-    if (response.previous) {
-      response.previous = buildCursor(response.previous, params.paginatedField, shouldSecondarySortOnId);
-    }
-    if (response.next) {
-      response.next = buildCursor(response.next, params.paginatedField, shouldSecondarySortOnId);
-    }
-
-    return response;
   },
 
   /**
