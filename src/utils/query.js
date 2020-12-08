@@ -39,9 +39,9 @@ module.exports = {
 
     return {
       results,
-      previous: results[0]._cursor,
+      previous: results.length ? results[0]._cursor : null,
       hasPrevious,
-      next: results[results.length - 1]._cursor,
+      next: results.length ? results[results.length - 1]._cursor : null,
       hasNext,
     };
   },
