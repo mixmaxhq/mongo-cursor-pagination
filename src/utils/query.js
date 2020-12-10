@@ -9,6 +9,12 @@ function buildCursor(doc, paginatedField, shouldSecondarySortOnId) {
   return bsonUrlEncoding.encode(cursorData);
 }
 
+function injectCursor(doc, paginatedField, shouldSecondarySortOnId) {
+  doc._cursor = buildCursor(doc, paginatedField, shouldSecondarySortOnId);
+
+  return doc;
+}
+
 module.exports = {
   /**
    * Parses the raw results from a find or aggregate query and generates a response object that
@@ -27,10 +33,9 @@ module.exports = {
 
     if (params.includeCursor) {
       // build the cursor for each result document
-      results = results.map((result) => {
-        result._cursor = buildCursor(result, params.paginatedField, shouldSecondarySortOnId);
-        return result;
-      });
+      results = results.map((result) =>
+        injectCursor(result, params.paginatedField, shouldSecondarySortOnId)
+      );
     }
 
     const hasPrevious = !!params.next || !!(params.previous && hasMore);
