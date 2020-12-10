@@ -1,19 +1,4 @@
-const bsonUrlEncoding = require('./bsonUrlEncoding');
-const objectPath = require('object-path');
-
-function buildCursor(doc, paginatedField, shouldSecondarySortOnId) {
-  const nextPaginatedField = objectPath.get(doc, paginatedField);
-
-  const cursorData = shouldSecondarySortOnId ? [nextPaginatedField, doc._id] : nextPaginatedField;
-
-  return bsonUrlEncoding.encode(cursorData);
-}
-
-function injectCursor(doc, paginatedField, shouldSecondarySortOnId) {
-  doc._cursor = buildCursor(doc, paginatedField, shouldSecondarySortOnId);
-
-  return doc;
-}
+const { injectCursor, buildCursor } = require('./cursor');
 
 module.exports = {
   /**
