@@ -12,15 +12,12 @@ module.exports = {
    */
   prepareResponse(results, params) {
     const hasMore = results.length > params.limit;
-    const shouldSecondarySortOnId = params.paginatedField !== '_id';
     // Remove the extra element that we added to 'peek' to see if there were more entries.
     if (hasMore) results.pop();
 
     if (params.includeCursor) {
       // build the cursor for each result document
-      results = results.map((result) =>
-        injectCursor(result, params.paginatedField, shouldSecondarySortOnId)
-      );
+      results = results.map((result) => injectCursor(result, params.paginatedField));
     }
 
     const hasPrevious = !!params.next || !!(params.previous && hasMore);
