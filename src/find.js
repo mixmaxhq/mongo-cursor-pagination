@@ -26,6 +26,7 @@ const config = require('./config');
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  *    -hint {String} An optional index hint to provide to the mongo query
+ *    -includeCursor {Boolean} Whether to inject the cursor of each document in it's _cursor property
  */
 module.exports = async function(collection, params) {
   const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField];

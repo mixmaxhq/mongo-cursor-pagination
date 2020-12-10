@@ -25,11 +25,13 @@ module.exports = {
     // Remove the extra element that we added to 'peek' to see if there were more entries.
     if (hasMore) results.pop();
 
-    // build the cursor for each result document
-    results = results.map((result) => {
-      result._cursor = buildCursor(result, params.paginatedField, shouldSecondarySortOnId);
-      return result;
-    });
+    if (params.includeCursor) {
+      // build the cursor for each result document
+      results = results.map((result) => {
+        result._cursor = buildCursor(result, params.paginatedField, shouldSecondarySortOnId);
+        return result;
+      });
+    }
 
     const hasPrevious = !!params.next || !!(params.previous && hasMore);
     const hasNext = !!params.previous || hasMore;
@@ -39,9 +41,9 @@ module.exports = {
 
     return {
       results,
-      previous: results.length ? results[0]._cursor : null,
+      previous: results.length ? buildCursor(results[0]) : null,
       hasPrevious,
-      next: results.length ? results[results.length - 1]._cursor : null,
+      next: results.length ? buildCursor(results[results.length - 1]) : null,
       hasNext,
     };
   },

@@ -33,6 +33,7 @@ const config = require('./config');
  *    -previous {String} The value to start querying previous page.
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
+ *    -includeCursor {Boolean} Whether to inject the cursor of each document in it's _cursor property
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
