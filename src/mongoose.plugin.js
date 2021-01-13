@@ -8,13 +8,13 @@ const _ = require('underscore');
  * @param {string} options.name name of the function.
  */
 
-module.exports = function (schema, options) {
+module.exports = function(schema, options) {
   /**
    * paginate function
    * @param {Object} param required parameter
    */
 
-  const fn = function (param) {
+  const fn = function(param) {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
