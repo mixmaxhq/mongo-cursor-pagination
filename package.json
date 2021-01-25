@@ -55,7 +55,7 @@
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "cz-conventional-changelog": "^3.2.0",
     "eslint": "^6.8.0",
-    "eslint-config-mixmax": "^3.4.0",
+    "eslint-config-mixmax": "^4.11.2",
     "jest": "^26.0.1",
     "mockgoose": "^8.0.4",
     "mongodb": "^2.2.11",
