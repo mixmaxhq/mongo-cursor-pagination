@@ -1,10 +1,12 @@
 # mongo-cursor-pagination
+
 [![Build Status](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination.svg?branch=master)](https://travis-ci.org/mixmaxhq/mongo-cursor-pagination)
 
-This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. __This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day__.
+This module aids in implementing "cursor-based" pagination using Mongo range queries or relevancy-based search results. **This module is currently used in production for the [Mixmax API](https://developer.mixmax.com) to return millions of results a day**.
 
 ### New
- * [Now Supports Mongoose](https://github.com/mixmaxhq/mongo-cursor-pagination#with-mongoose)
+
+- [Now Supports Mongoose](https://github.com/mixmaxhq/mongo-cursor-pagination#with-mongoose)
 
 ## Background
 
@@ -20,9 +22,9 @@ This module helps in implementing #2 - cursor based paging - by providing a meth
 
 Here are some examples of cursor-based APIs:
 
-* [Twitter](https://dev.twitter.com/overview/api/cursoring)
-* [Stripe](https://stripe.com/docs/api#pagination-starting_after)
-* [Facebook](https://developers.facebook.com/docs/graph-api/using-graph-api/#cursors)
+- [Twitter](https://dev.twitter.com/overview/api/cursoring)
+- [Stripe](https://stripe.com/docs/api#pagination-starting_after)
+- [Facebook](https://developers.facebook.com/docs/graph-api/using-graph-api/#cursors)
 
 ## Install
 
@@ -70,26 +72,31 @@ const MongoPaging = require('mongo-cursor-pagination');
 const db = mongoist('mongodb://localhost:27017/mydb');
 
 async function findExample() {
-  await db.collection('myobjects').insertMany([{
-    counter: 1
-  }, {
-    counter: 2
-  }, {
-    counter: 3
-  }, {
-    counter: 4
-  }]);
+  await db.collection('myobjects').insertMany([
+    {
+      counter: 1,
+    },
+    {
+      counter: 2,
+    },
+    {
+      counter: 3,
+    },
+    {
+      counter: 4,
+    },
+  ]);
 
   // Query the first page.
   let result = await MongoPaging.find(db.collection('myobjects'), {
-    limit: 2
+    limit: 2,
   });
   console.log(result);
 
   // Query next page.
   result = await MongoPaging.find(db.collection('myobjects'), {
     limit: 2,
-    next: result.next // This queries the next page
+    next: result.next, // This queries the next page
   });
   console.log(result);
 }
@@ -129,16 +136,12 @@ Plug the `mongoosePlugin`.
 // this will add paginate function.
 counterSchema.plugin(MongoPaging.mongoosePlugin);
 
-const counter = mongoose.model('counter',
-counterSchema);
+const counter = mongoose.model('counter', counterSchema);
 
 // default function is "paginate"
-counter.paginate({ limit : 10 })
-.then((result) => {
+counter.paginate({ limit: 10 }).then((result) => {
   console.log(result);
 });
-
-
 ```
 
 for paginate params [refer the find section](https://github.com/mixmaxhq/mongo-cursor-pagination#find)
@@ -164,6 +167,22 @@ counter.paginateFN(params)
 
 ```
 
+You can also use the search function (as described below) like so;
+
+```js
+// this will add paginate function.
+counterSchema.plugin(MongoPaging.mongoosePlugin);
+
+// give custom function name
+// counterSchema.plugin(MongoPaging.mongoosePlugin, { searchFnName: 'searchFN' });
+
+const counter = mongoose.model('counter', counterSchema);
+
+// default function is "paginate"
+counter.search('dog', { limit: 10 }).then((result) => {
+  console.log(result);
+});
+```
 
 ### search()
 
@@ -199,30 +218,34 @@ const db = mongoist('mongodb://localhost:27017/mydb');
 
 async function searchExample() {
   await db.collection('myobjects').ensureIndex({
-    mytext: 'text'
+    mytext: 'text',
   });
 
-  await db.collection('myobjects').insertMany([{
-    mytext: 'dogs'
-  }, {
-    mytext: 'dogs cats'
-  }, {
-    mytext: 'dogs cats pigs'
-  }]);
+  await db.collection('myobjects').insertMany([
+    {
+      mytext: 'dogs',
+    },
+    {
+      mytext: 'dogs cats',
+    },
+    {
+      mytext: 'dogs cats pigs',
+    },
+  ]);
 
   // Query the first page.
   let result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
     fields: {
-      mytext: 1
+      mytext: 1,
     },
-    limit: 2
+    limit: 2,
   });
   console.log(result);
 
   // Query next page.
   result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
     limit: 2,
-    next: result.next // This queries the next page
+    next: result.next, // This queries the next page
   });
   console.log(result);
 }
@@ -312,7 +335,6 @@ take advantage of any indexes.
 
 See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
 
-
 ### Indexes for sorting
 
 `mongo-cursor-pagination` uses `_id` as a secondary sorting field when providing a `paginatedField` property. It is recommended that you have an index for optimal performance. Example:
@@ -335,7 +357,7 @@ For the above query to be optimal, you should have an index like:
 db.people.ensureIndex({
   name: 1,
   city: 1,
-  _id: 1
+  _id: 1,
 });
 ```
 
@@ -345,4 +367,4 @@ To run tests, you first must [start a Mongo server on port 27017](https://mongod
 
 ## Future ideas
 
-* Add support to `search()` to query previous pages.
+- Add support to `search()` to query previous pages.
