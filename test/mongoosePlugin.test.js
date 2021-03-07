@@ -3,6 +3,7 @@ const dbUtils = require('./support/db');
 const mongooseCursorPaginate = require('../src/mongoose.plugin');
 
 const AuthorSchema = new mongoose.Schema({ name: String });
+AuthorSchema.index({ name: 'text' });
 
 AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN', searchFnName: 'searchFN' });
 
@@ -45,6 +46,8 @@ describe('mongoose plugin', () => {
     }
 
     await Post.create(posts);
+    await Author.ensureIndexes();
+    await Post.ensureIndexes();
   });
 
   afterAll(async () => {
@@ -72,12 +75,12 @@ describe('mongoose plugin', () => {
 
   //#region search
   it('initializes the search function by the provided name', () => {
-    const promise = Author.searchFN();
+    const promise = Author.searchFN('');
     expect(promise.then instanceof Function).toBe(true);
   });
 
   it('returns a promise for search function', () => {
-    const promise = Post.search();
+    const promise = Post.search('');
     expect(promise.then instanceof Function).toBe(true);
   });
 
