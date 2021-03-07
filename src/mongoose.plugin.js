@@ -10,12 +10,12 @@ const _ = require('underscore');
  * @param {string} options.searchFnName name of the function.
  */
 
-module.exports = function (schema, options) {
+module.exports = function(schema, options) {
   /**
    * paginate function
    * @param {Object} params required parameter
    */
-  const findFn = function (params) {
+  const findFn = function(params) {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
@@ -30,7 +30,7 @@ module.exports = function (schema, options) {
    * @param {String} searchString String to search on. Required parameter
    * @param {Object} params
    */
-  const searchFn = function (searchString, params) {
+  const searchFn = function(searchString, params) {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
