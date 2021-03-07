@@ -3,8 +3,9 @@ const dbUtils = require('./support/db');
 const mongooseCursorPaginate = require('../src/mongoose.plugin');
 
 const AuthorSchema = new mongoose.Schema({ name: String });
+AuthorSchema.index({ name: 'text' });
 
-AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN' });
+AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN', searchFnName: 'searchFN' });
 
 const Author = mongoose.model('Author', AuthorSchema);
 
@@ -19,6 +20,7 @@ const PostSchema = new mongoose.Schema({
 });
 
 PostSchema.plugin(mongooseCursorPaginate);
+PostSchema.index({ title: 'text' });
 
 const Post = mongoose.model('Post', PostSchema);
 
@@ -44,6 +46,8 @@ describe('mongoose plugin', () => {
     }
 
     await Post.create(posts);
+    await Author.ensureIndexes();
+    await Post.ensureIndexes();
   });
 
   afterAll(async () => {
@@ -68,4 +72,22 @@ describe('mongoose plugin', () => {
     expect(hasOwnProperty.call(data, 'next')).toBe(true);
     expect(hasOwnProperty.call(data, 'hasNext')).toBe(true);
   });
+
+  //#region search
+  it('initializes the search function by the provided name', () => {
+    const promise = Author.searchFN('');
+    expect(promise.then instanceof Function).toBe(true);
+  });
+
+  it('returns a promise for search function', () => {
+    const promise = Post.search('');
+    expect(promise.then instanceof Function).toBe(true);
+  });
+
+  it('returns data in the expected format for search function', async () => {
+    const data = await Post.search('Post #1', { limit: 3 });
+    expect(hasOwnProperty.call(data, 'results')).toBe(true);
+    expect(hasOwnProperty.call(data, 'next')).toBe(true);
+  });
+  //#endregion
 });
