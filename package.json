@@ -60,7 +60,7 @@
     "mockgoose": "^8.0.4",
     "mongodb": "^2.2.11",
     "mongodb-memory-server": "^5.2.11",
-    "mongoist": "2.3.0",
+    "mongoist": "2.5.3",
     "mongoose": "5.11.10",
     "prettier": "^1.19.1",
     "semantic-release": "^17.2.3"
