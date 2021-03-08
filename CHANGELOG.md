@@ -1,3 +1,15 @@
+## [7.4.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.3.1...v7.4.0) (2021-03-08)
+
+
+### Features
+
+* **mongoose-plugin:** add search function ([0efd73c](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/0efd73c9a5e53887226a4a1d2b61605a0e168514))
+
+
+### Bug Fixes
+
+* skip bad commit message ([4c85357](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/4c85357f1079c6f73877ba6775b2eb6ad962c422))
+
 ### [7.3.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.3.0...v7.3.1) (2020-08-10)
 
 
