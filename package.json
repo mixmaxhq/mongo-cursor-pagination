@@ -43,7 +43,7 @@
     "object-path": "^0.11.5",
     "projection-utils": "^1.1.0",
     "semver": "^5.4.1",
-    "underscore": "^1.9.2"
+    "underscore": "^1.13.1"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^8.3.4",
