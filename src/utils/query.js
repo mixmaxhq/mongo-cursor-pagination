@@ -1,6 +1,40 @@
 const bsonUrlEncoding = require('./bsonUrlEncoding');
 const objectPath = require('object-path');
 
+/**
+ * Helper function to encode pagination tokens.
+ *
+ * NOTE: this function modifies the passed-in `response` argument directly.
+ *
+ * @param      {Object}  params
+ *   * @param      {String}  paginatedField
+ * @param      {Object}  response  The response
+ *   @param      {String?}  previous
+ *   @param      {String?}  next
+ *
+ * @returns void
+ */
+function encodePaginationTokens(params, response) {
+  const shouldSecondarySortOnId = params.paginatedField !== '_id';
+
+  if (response.previous) {
+    const previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
+    if (shouldSecondarySortOnId) {
+      response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
+    } else {
+      response.previous = bsonUrlEncoding.encode(previousPaginatedField);
+    }
+  }
+  if (response.next) {
+    const nextPaginatedField = objectPath.get(response.next, params.paginatedField);
+    if (shouldSecondarySortOnId) {
+      response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
+    } else {
+      response.next = bsonUrlEncoding.encode(nextPaginatedField);
+    }
+  }
+}
+
 module.exports = {
   /**
    * Parses the raw results from a find or aggregate query and generates a response object that
@@ -13,7 +47,6 @@ module.exports = {
    */
   prepareResponse(results, params) {
     const hasMore = results.length > params.limit;
-    const shouldSecondarySortOnId = params.paginatedField !== '_id';
     // Remove the extra element that we added to 'peek' to see if there were more entries.
     if (hasMore) results.pop();
 
@@ -31,25 +64,12 @@ module.exports = {
       hasNext,
     };
 
-    if (response.previous) {
-      const previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
-      if (shouldSecondarySortOnId) {
-        response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
-      } else {
-        response.previous = bsonUrlEncoding.encode(previousPaginatedField);
-      }
-    }
-    if (response.next) {
-      const nextPaginatedField = objectPath.get(response.next, params.paginatedField);
-      if (shouldSecondarySortOnId) {
-        response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
-      } else {
-        response.next = bsonUrlEncoding.encode(nextPaginatedField);
-      }
-    }
+    encodePaginationTokens(params, response);
 
     return response;
   },
+
+  encodePaginationTokens,
 
   /**
    * Generates a `$sort` object given the parameters
