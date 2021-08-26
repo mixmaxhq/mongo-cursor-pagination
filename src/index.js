@@ -4,6 +4,7 @@ const find = require('./find');
 const findWithReq = require('./findWithReq');
 const search = require('./search');
 const sanitizeQuery = require('./utils/sanitizeQuery');
+const { encodePaginationTokens } = require('./utils/query');
 const mongoosePlugin = require('./mongoose.plugin');
 
 module.exports = {
@@ -14,4 +15,5 @@ module.exports = {
   search,
   mongoosePlugin,
   sanitizeQuery,
+  encodePaginationTokens,
 };
