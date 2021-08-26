@@ -1,3 +1,15 @@
+## [7.5.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.4.0...v7.5.0) (2021-08-26)
+
+
+### Features
+
+* extract/expose a function to encode pagination tokens ([04dc7fa](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/04dc7fafc0038393302442df8b472b1ad74b5d28))
+
+
+### Bug Fixes
+
+* only export the function we need ([8f80382](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/8f8038275607f03b67966d0d116dab8b5c6ee9fa))
+
 ## [7.4.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.3.1...v7.4.0) (2021-03-08)
 
 
