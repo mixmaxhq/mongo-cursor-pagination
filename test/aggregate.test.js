@@ -85,6 +85,14 @@ describe('aggregate', () => {
           name: 'saturn',
         },
       ]),
+      t.db.collection('test_aggregation_lookup').ensureIndex(
+        {
+          name: 'text',
+        },
+        {
+          name: 'test_index',
+        }
+      ),
       t.db.collection('test_aggregation_sort').insert([
         {
           name: 'Alpha',
@@ -666,6 +674,35 @@ describe('aggregate', () => {
         'Gamma',
         'gimel',
       ]);
+    });
+  });
+
+  describe('aggregation options', () => {
+    let spy;
+    beforeEach(() => {
+      spy = jest.spyOn(paging, 'aggregate');
+    });
+
+    afterEach(() => {
+      spy.mockRestore();
+    });
+
+    it('invokes aggregate with a `hint` if one is passed in via params object', async () => {
+      const collection = t.db.collection('test_aggregation_lookup');
+
+      await paging.aggregate(collection, {
+        aggregation: [
+          {
+            $sort: { name: 1 },
+          },
+        ],
+        hint: 'test_index',
+      });
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({ hint: 'test_index' })
+      );
     });
   });
 });
