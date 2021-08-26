@@ -1,3 +1,10 @@
+## [7.6.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.5.0...v7.6.0) (2021-08-26)
+
+
+### Features
+
+* add support for aggregation `hint`s ([b90acd4](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/b90acd46c0d70c664ef5270e64a584f124558264))
+
 ## [7.5.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.4.0...v7.5.0) (2021-08-26)
 
 
