@@ -1083,6 +1083,7 @@ describe('find', () => {
 
         expect(res.results.length).toEqual(5);
         expect(res.results[0].color).toBeFalsy();
+        expect(res.results[0]._id).not.toBeFalsy();
       });
 
       it('does not return "next" or "previous" if there are no results', async () => {
