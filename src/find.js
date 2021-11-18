@@ -29,7 +29,8 @@ const config = require('./config');
  */
 module.exports = async function(collection, params) {
   // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
-  const removePaginatedFieldInResponse = params.fields && !params.fields[params.paginatedField || '_id'];
+  const removePaginatedFieldInResponse =
+    params.fields && !params.fields[params.paginatedField || '_id'];
 
   params = _.defaults(await sanitizeParams(collection, params), { query: {} });
   const cursorQuery = generateCursorQuery(params);
