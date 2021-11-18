@@ -1,3 +1,10 @@
+### [7.6.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.6.0...v7.6.1) (2021-11-18)
+
+
+### Bug Fixes
+
+* return _id when paginatedField is not set ([1a056d7](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/1a056d7ed291760c0734a22375d8c049b14b4aaf)), closes [#309](https://github.com/mixmaxhq/mongo-cursor-pagination/issues/309)
+
 ## [7.6.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.5.0...v7.6.0) (2021-08-26)
 
 
