@@ -1,7 +1,8 @@
 const _ = require('underscore');
-const sanitizeParams = require('./utils/sanitizeParams');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+
 const config = require('./config');
+const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+const sanitizeParams = require('./utils/sanitizeParams');
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
@@ -34,29 +35,28 @@ const config = require('./config');
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  *    -options {Object} Aggregation options
+ * @param {(() => number) | undefined | null} getPipelineIndexFn Functor that determines where to insert the pagination-specific operations in the pipeline
+ *    This parameter controls the placement of the pagination-specific operations in the pipeline to allow more advanced use cases
+ *    - undefined => preserves legacy behavior (backwards-compatible)
+ *    - null => allows a more "common" behavior that allows data transformation prior to pagination (eg. includes reshaping _id value to be used in default pagination)
+ *    - custom function => allows for a user-defined impl (special/advanced cases such as post-processing of results server-side)
  */
-module.exports = async function aggregate(collection, params) {
+module.exports = async function aggregate(collection, params, getPipelineIndexFn) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
   const cursorQuery = generateCursorQuery(params);
   const $sort = generateSort(params);
 
-  let index = _.findIndex(params.aggregation, (step) => !_.isEmpty(step.$match));
-
-  if (index < 0) {
-    params.aggregation.unshift({ $match: cursorQuery });
-    index = 0;
-  } else {
-    const matchStep = params.aggregation[index];
-
-    params.aggregation[index] = {
-      $match: {
-        $and: [cursorQuery, matchStep.$match],
-      },
-    };
+  if (getPipelineIndexFn === undefined) {
+    getPipelineIndexFn = () => _.findIndex(params.aggregation, (step) => !_.isEmpty(step.$match));
+  } else if (getPipelineIndexFn === null) {
+    getPipelineIndexFn = () => params.aggregation.length - 1;
   }
+  const index = getPipelineIndexFn();
 
-  params.aggregation.splice(index + 1, 0, { $sort });
-  params.aggregation.splice(index + 2, 0, { $limit: params.limit + 1 });
+  // assumes consecutive matches can/should be optimized by the server engine rather than client side
+  params.aggregation.splice(index + 1, 0, { $match: cursorQuery });
+  params.aggregation.splice(index + 2, 0, { $sort });
+  params.aggregation.splice(index + 3, 0, { $limit: params.limit + 1 });
 
   // Aggregation options:
   // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
@@ -76,7 +76,6 @@ module.exports = async function aggregate(collection, params) {
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
-
   const results = await collection[aggregateMethod](params.aggregation, options).toArray();
 
   return prepareResponse(results, params);
