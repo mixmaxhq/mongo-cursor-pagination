@@ -55,8 +55,8 @@ module.exports = async function aggregate(collection, params) {
     };
   }
 
-  params.aggregation.splice(index + 1, 0, { $sort });
-  params.aggregation.splice(index + 2, 0, { $limit: params.limit + 1 });
+  params.aggregation.push({ $sort });
+  params.aggregation.push({ $limit: params.limit + 1 });
 
   // Aggregation options:
   // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
