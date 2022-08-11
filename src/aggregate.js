@@ -34,11 +34,11 @@ const config = require('./config');
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  *    -options {Object} Aggregation options
+ *    -sortAscending {Boolean} If true, sort in ascending order. If false, sort in descending order.
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
   const cursorQuery = generateCursorQuery(params);
-  const $sort = generateSort(params);
 
   let index = _.findIndex(params.aggregation, (step) => !_.isEmpty(step.$match));
 
@@ -55,8 +55,15 @@ module.exports = async function aggregate(collection, params) {
     };
   }
 
-  params.aggregation.splice(index + 1, 0, { $sort });
-  params.aggregation.splice(index + 2, 0, { $limit: params.limit + 1 });
+  const hasSort = _.find(params.aggregation, (step) => !_.isEmpty(step.$sort));
+
+  // Sort and limit must be the last step in the pipeline,
+  // otherwise they will be in between the params.aggregation.
+  if (!hasSort) {
+    const $sort = generateSort(params);
+    params.aggregation.push({ $sort });
+  }
+  params.aggregation.push({ $limit: params.limit + 1 });
 
   // Aggregation options:
   // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
