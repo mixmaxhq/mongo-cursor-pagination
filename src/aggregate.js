@@ -34,6 +34,7 @@ const config = require('./config');
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  *    -options {Object} Aggregation options
+ *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
@@ -71,7 +72,8 @@ module.exports = async function aggregate(collection, params) {
    *
    * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
    */
-  if (config.COLLATION) options.collation = config.COLLATION;
+  const collation = params.collation || config.COLLATION;
+  if (collation) options.collation = collation;
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations

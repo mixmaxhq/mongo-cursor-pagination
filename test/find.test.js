@@ -1841,15 +1841,31 @@ describe('find', () => {
         'gimel',
       ]);
 
+      const res_localized = await paging.find(collection, {
+        paginatedField: 'name',
+        sortAscending: true,
+        limit: 10,
+        collation: { locale: 'en' },
+      });
+
+      expect(_.pluck(res_localized.results, 'name')).toEqual([
+        'aleph',
+        'Alpha',
+        'bet',
+        'Beta',
+        'Gamma',
+        'gimel',
+      ]);
+
       paging.config.COLLATION = { locale: 'en' };
 
-      const res_localized = await paging.find(collection, {
+      const res_static_localized = await paging.find(collection, {
         paginatedField: 'name',
         sortAscending: true,
         limit: 10,
       });
 
-      expect(_.pluck(res_localized.results, 'name')).toEqual([
+      expect(_.pluck(res_static_localized.results, 'name')).toEqual([
         'aleph',
         'Alpha',
         'bet',

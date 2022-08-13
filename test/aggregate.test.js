@@ -647,8 +647,6 @@ describe('aggregate', () => {
         ],
       });
 
-      paging.config.COLLATION = { locale: 'en' };
-
       expect(_.pluck(res.results, 'name')).toEqual([
         'Alpha',
         'Beta',
@@ -664,9 +662,29 @@ describe('aggregate', () => {
             $sort: { name: 1 },
           },
         ],
+        collation: { locale: 'en' },
       });
 
       expect(_.pluck(res_localized.results, 'name')).toEqual([
+        'aleph',
+        'Alpha',
+        'bet',
+        'Beta',
+        'Gamma',
+        'gimel',
+      ]);
+
+      paging.config.COLLATION = { locale: 'en' };
+
+      const res_static_localized = await paging.aggregate(collection, {
+        aggregation: [
+          {
+            $sort: { name: 1 },
+          },
+        ],
+      });
+
+      expect(_.pluck(res_static_localized.results, 'name')).toEqual([
         'aleph',
         'Alpha',
         'bet',

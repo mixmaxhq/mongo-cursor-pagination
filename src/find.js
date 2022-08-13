@@ -26,6 +26,7 @@ const config = require('./config');
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  *    -hint {String} An optional index hint to provide to the mongo query
+ *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }
  */
 module.exports = async function(collection, params) {
   // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
@@ -51,7 +52,8 @@ module.exports = async function(collection, params) {
    *
    * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
    */
-  const collatedQuery = config.COLLATION ? query.collation(config.COLLATION) : query;
+  const collation = params.collation || config.COLLATION;
+  const collatedQuery = collation ? query.collation(collation) : query;
   // Query one more element to see if there's another page.
   const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
   if (params.hint) cursor.hint(params.hint);
