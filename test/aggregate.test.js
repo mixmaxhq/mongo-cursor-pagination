@@ -692,6 +692,22 @@ describe('aggregate', () => {
         'Gamma',
         'gimel',
       ]);
+
+      const res_excluding_collation = await paging.aggregate(collection, {
+        paginatedField: 'name',
+        sortAscending: true,
+        limit: 10,
+        collation: null,
+      });
+
+      expect(_.pluck(res_excluding_collation.results, 'name')).toEqual([
+        'Alpha',
+        'Beta',
+        'Gamma',
+        'aleph',
+        'bet',
+        'gimel',
+      ]);
     });
   });
 
