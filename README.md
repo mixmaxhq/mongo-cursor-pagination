@@ -329,11 +329,33 @@ not set, no collation will be provided for the aggregation/cursor, which means t
 
 ## Important note regarding collation
 
-If using a global collation setting, ensure that your collections' indexes (that index upon string fields)
+If using a global collation setting, or a query with collation argument, ensure that your collections' indexes (that index upon string fields)
 have been created with the same collation option; if this isn't the case, your queries will be unable to
 take advantage of any indexes.
 
 See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
+
+For instance, given the following index:
+
+```js
+db.people.createIndex({ city: 1, _id: 1 });
+```
+
+When executing the query:
+
+```js
+MongoPaging.find(db.people, {
+  limit: 25,
+  paginatedField: 'city'
+  collation: { locale: 'en' },
+});
+```
+
+The index won't be used for the query because it doesn't include the collation used. The index should added as such:
+
+```js
+db.people.createIndex({ city: 1, _id: 1 }, { collation: { locale: 'en' } });
+```
 
 ### Indexes for sorting
 
@@ -354,7 +376,7 @@ MongoPaging.find(db.people, {
 For the above query to be optimal, you should have an index like:
 
 ```js
-db.people.ensureIndex({
+db.people.createIndex({
   name: 1,
   city: 1,
   _id: 1,
