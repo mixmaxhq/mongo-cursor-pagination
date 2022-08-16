@@ -34,6 +34,7 @@ const config = require('./config');
  *    -after {String} The _id to start querying the page.
  *    -before {String} The _id to start querying previous page.
  *    -options {Object} Aggregation options
+ *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
@@ -65,13 +66,12 @@ module.exports = async function aggregate(collection, params) {
   /**
    * IMPORTANT
    *
-   * If using a global collation setting, ensure that your collections' indexes (that index upon string fields)
-   * have been created with the same collation option; if this isn't the case, your queries will be unable to
-   * take advantage of any indexes.
-   *
-   * See mongo documentation: https://docs.mongodb.com/manual/reference/collation/#collation-and-index-use
+   * If using collation, check the README:
+   * https://github.com/mixmaxhq/mongo-cursor-pagination#important-note-regarding-collation
    */
-  if (config.COLLATION) options.collation = config.COLLATION;
+  const isCollationNull = params.collation === null;
+  const collation = params.collation || config.COLLATION;
+  if (collation && !isCollationNull) options.collation = collation;
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
