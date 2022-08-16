@@ -1,3 +1,16 @@
+## [7.7.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.6.1...v7.7.0) (2022-08-16)
+
+
+### Features
+
+* allow collation as arg on find and aggregate ([cdfcfcb](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/cdfcfcbf355f177d0589341f603b0458e4fc5c64))
+* turn global collation off for single query ([c2ff6da](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/c2ff6dae5824820414d5286f91d0cd7eedf0ba90))
+
+
+### Bug Fixes
+
+* skip commit with wrong scope ([#322](https://github.com/mixmaxhq/mongo-cursor-pagination/issues/322)) ([e2729ac](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/e2729ac584a483f28e1275f70eb7ebd8ec44556b))
+
 ### [7.6.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.6.0...v7.6.1) (2021-11-18)
 
 
