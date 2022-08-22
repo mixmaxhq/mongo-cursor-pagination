@@ -36,7 +36,8 @@ module.exports = async function sanitizeParams(collection, params) {
       );
       if (doc) {
         // Handle usage of dot notation in paginatedField
-        const prop = getPropertyViaDotNotation(params.paginatedField, doc);
+        let prop = getPropertyViaDotNotation(params.paginatedField, doc);
+        if (params.sortCaseInsensitive) prop = prop.toLowerCase();
         params.next = [prop, params.after];
       }
     } else {
@@ -60,7 +61,8 @@ module.exports = async function sanitizeParams(collection, params) {
       );
       if (doc) {
         // Handle usage of dot notation in paginatedField
-        const prop = getPropertyViaDotNotation(params.paginatedField, doc);
+        let prop = getPropertyViaDotNotation(params.paginatedField, doc);
+        if (params.sortCaseInsensitive) prop = prop.toLowerCase();
         params.previous = [prop, params.before];
       }
     } else {

@@ -25,10 +25,14 @@ const config = require('./config');
  *    -paginatedField {String} The field name to query the range for. The field must be:
  *        1. Orderable. We must sort by this value. If duplicate values for paginatedField field
  *          exist, the results will be secondarily ordered by the _id.
- *        2. Indexed. For large collections, this should be indexed for query performance.
+ *        2. Indexed. If the aggregation pipieline can return a large number of documents, this should
+ *          be indexed for query performance.
  *        3. Immutable. If the value changes between paged queries, it could appear twice.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
+ *    -sortAscending {boolean} Whether to sort in ascending order by the `paginatedField`.
+ *    -sortCaseInsensitive {boolean} Whether to ignore case when sorting, in which case `paginatedField`
+ *      must be a string property.
  *    -next {String} The value to start querying the page.
  *    -previous {String} The value to start querying previous page.
  *    -after {String} The _id to start querying the page.
@@ -38,31 +42,29 @@ const config = require('./config');
  */
 module.exports = async function aggregate(collection, params) {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
-  const cursorQuery = generateCursorQuery(params);
+
+  const $match = generateCursorQuery(params);
   const $sort = generateSort(params);
+  const $limit = params.limit + 1;
 
-  let index = _.findIndex(params.aggregation, (step) => !_.isEmpty(step.$match));
-
-  if (index < 0) {
-    params.aggregation.unshift({ $match: cursorQuery });
-    index = 0;
-  } else {
-    const matchStep = params.aggregation[index];
-
-    params.aggregation[index] = {
-      $match: {
-        $and: [cursorQuery, matchStep.$match],
-      },
-    };
+  let addFields = [];
+  let cleanUp = [];
+  if (params.sortCaseInsensitive) {
+    addFields = [{ $addFields: { __lc: { $toLower: '$' + params.paginatedField } } }];
+    cleanUp = [{ $project: { __lc: 0 } }];
   }
-
-  params.aggregation.splice(index + 1, 0, { $sort });
-  params.aggregation.splice(index + 2, 0, { $limit: params.limit + 1 });
+  const aggregation = params.aggregation.concat([
+    ...addFields,
+    { $match },
+    { $sort },
+    { $limit },
+    ...cleanUp,
+  ]);
 
   // Aggregation options:
   // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
   // https://mongodb.github.io/node-mongodb-native/4.0/interfaces/aggregateoptions.html
-  const options = params.options || {};
+  const options = { ...params.options };
   /**
    * IMPORTANT
    *
@@ -77,7 +79,7 @@ module.exports = async function aggregate(collection, params) {
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
-  const results = await collection[aggregateMethod](params.aggregation, options).toArray();
+  const results = await collection[aggregateMethod](aggregation, options).toArray();
 
   return prepareResponse(results, params);
 };
