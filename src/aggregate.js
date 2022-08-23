@@ -25,9 +25,9 @@ const config = require('./config');
  *    -paginatedField {String} The field name to query the range for. The field must be:
  *        1. Orderable. We must sort by this value. If duplicate values for paginatedField field
  *          exist, the results will be secondarily ordered by the _id.
- *        2. Indexed. If the aggregation pipieline can return a large number of documents, this should
- *          be indexed for query performance.
- *        3. Immutable. If the value changes between paged queries, it could appear twice.
+ *        2. Immutable. If the value changes between paged queries, it could appear twice.
+ *        3. Accessible. The field must be present in the aggregation's end result so the
+ *          aggregation steps added at the end of the pipeline to implement the paging can access it.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
  *    -sortAscending {boolean} Whether to sort in ascending order by the `paginatedField`.
