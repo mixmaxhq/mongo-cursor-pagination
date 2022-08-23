@@ -1,3 +1,15 @@
+## [7.8.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.7.0...v7.8.0) (2022-08-23)
+
+
+### Features
+
+* add a `sortCaseInsensitive` option to `find` and `aggregate` ([#323](https://github.com/mixmaxhq/mongo-cursor-pagination/issues/323)) ([f4543f6](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/f4543f643bac890c627d538e6200c5f5a1d45ebc))
+
+
+### Bug Fixes
+
+* improve documentation and skip commit ([e33a493](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/e33a493f98712dbbdac2ea3ed6a9a5c731dea448))
+
 ## [7.7.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.6.1...v7.7.0) (2022-08-16)
 
 
