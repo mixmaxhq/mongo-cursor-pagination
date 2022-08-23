@@ -58,6 +58,8 @@ Call `find()` with the following parameters:
         The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
         The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
       -sortAscending {Boolean} True to sort using paginatedField ascending (default is false - descending).
+      -sortCaseInsensitive {boolean} Whether to ignore case when sorting, in which case `paginatedField`
+        must be a string property.
       -next {String} The value to start querying the page.
       -previous {String} The value to start querying previous page.
    @param {Function} done Node errback style function.
@@ -327,7 +329,7 @@ If the `limit` parameter isn't passed, then this library will default to returni
 The collation to use for alphabetical sorting, both with `find` and `aggregate`, can be selected by setting `mongoPaging.config.COLLATION`. If this parameter is
 not set, no collation will be provided for the aggregation/cursor, which means that MongoDB will use whatever collation was set for the collection.
 
-## Important note regarding collation
+## (!) Important note regarding collation (!)
 
 If using a global collation setting, or a query with collation argument, ensure that your collections' indexes (that index upon string fields)
 have been created with the same collation option; if this isn't the case, your queries will be unable to
