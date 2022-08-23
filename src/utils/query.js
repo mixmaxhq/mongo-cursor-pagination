@@ -7,7 +7,9 @@ const objectPath = require('object-path');
  * NOTE: this function modifies the passed-in `response` argument directly.
  *
  * @param      {Object}  params
- *   * @param      {String}  paginatedField
+ *   @param      {String}  paginatedField
+ *   @param      {boolean} sortCaseInsensitive
+ *
  * @param      {Object}  response  The response
  *   @param      {String?}  previous
  *   @param      {String?}  next
@@ -18,7 +20,8 @@ function encodePaginationTokens(params, response) {
   const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   if (response.previous) {
-    const previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
+    let previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
+    if (params.sortCaseInsensitive) previousPaginatedField = previousPaginatedField.toLowerCase();
     if (shouldSecondarySortOnId) {
       response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
     } else {
@@ -26,7 +29,8 @@ function encodePaginationTokens(params, response) {
     }
   }
   if (response.next) {
-    const nextPaginatedField = objectPath.get(response.next, params.paginatedField);
+    let nextPaginatedField = objectPath.get(response.next, params.paginatedField);
+    if (params.sortCaseInsensitive) nextPaginatedField = nextPaginatedField.toLowerCase();
     if (shouldSecondarySortOnId) {
       response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
     } else {
@@ -82,18 +86,18 @@ module.exports = {
     const sortAsc =
       (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
     const sortDir = sortAsc ? 1 : -1;
-    const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
-    if (shouldSecondarySortOnId) {
+    if (params.paginatedField == '_id') {
       return {
-        [params.paginatedField]: sortDir,
+        _id: sortDir,
+      };
+    } else {
+      const field = params.sortCaseInsensitive ? '__lc' : params.paginatedField;
+      return {
+        [field]: sortDir,
         _id: sortDir,
       };
     }
-
-    return {
-      [params.paginatedField]: sortDir,
-    };
   },
 
   /**
@@ -109,21 +113,27 @@ module.exports = {
     const sortAsc =
       (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
     const comparisonOp = sortAsc ? '$gt' : '$lt';
-    const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
     // a `next` cursor will have precedence over a `previous` cursor.
     const op = params.next || params.previous;
 
-    if (shouldSecondarySortOnId) {
+    if (params.paginatedField == '_id') {
+      return {
+        _id: {
+          [comparisonOp]: op,
+        },
+      };
+    } else {
+      const field = params.sortCaseInsensitive ? '__lc' : params.paginatedField;
       return {
         $or: [
           {
-            [params.paginatedField]: {
+            [field]: {
               [comparisonOp]: op[0],
             },
           },
           {
-            [params.paginatedField]: {
+            [field]: {
               $eq: op[0],
             },
             _id: {
@@ -133,11 +143,5 @@ module.exports = {
         ],
       };
     }
-
-    return {
-      [params.paginatedField]: {
-        [comparisonOp]: op,
-      },
-    };
   },
 };

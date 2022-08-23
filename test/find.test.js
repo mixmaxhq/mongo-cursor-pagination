@@ -184,6 +184,10 @@ describe('find', () => {
 
   afterAll(() => mongod.stop());
 
+  beforeEach(() => {
+    paging.config.COLLATION = undefined;
+  });
+
   describe('basic usage', () => {
     describe('when using Mongo ObjectIds', () => {
       it('queries first few pages with next/previous', async () => {
@@ -1934,6 +1938,58 @@ describe('find', () => {
       });
 
       expect(res.results.length).toEqual(2);
+    });
+  });
+
+  describe('case-insensitive sorting without collation', () => {
+    let collection;
+    beforeAll(() => {
+      collection = t.db.collection('test_sorting');
+    });
+
+    describe('by default...', () => {
+      it('sorts capital letters first', async () => {
+        const { results: results } = await paging.find(collection, {
+          paginatedField: 'name',
+          sortAscending: true,
+          limit: 2,
+        });
+        expect(_.pluck(results, 'name')).toEqual(['Alpha', 'Beta']);
+      });
+    });
+
+    describe('with the `sortCaseInsensitive` parameter...', () => {
+      const options = {
+        paginatedField: 'name',
+        sortCaseInsensitive: true,
+        sortAscending: true,
+        limit: 2,
+      };
+
+      it('sorts case-insensitively', async () => {
+        const r = await paging.find(collection, { ...options });
+        expect(_.pluck(r.results, 'name')).toEqual(['aleph', 'Alpha']);
+        expect(r.hasNext).toBe(true);
+        expect(r.hasPrevious).toBe(false);
+      });
+
+      it('returns the paginated field but not the temporary __lc field', async () => {
+        const r = await paging.find(collection, { ...options });
+        expect('name' in r.results[0]).toBe(true);
+        expect('__lc' in r.results[0]).toBe(false);
+      });
+
+      it('pages correctly forward and backward', async () => {
+        const { next } = await paging.find(collection, { ...options });
+        const pg2 = await paging.find(collection, { ...options, next });
+        expect(_.pluck(pg2.results, 'name')).toEqual(['bet', 'Beta']);
+        expect(pg2.hasPrevious).toBe(true);
+        const pg1 = await paging.find(collection, { ...options, previous: pg2.previous });
+        expect(_.pluck(pg1.results, 'name')).toEqual(['aleph', 'Alpha']);
+        expect(pg1.hasNext).toBe(true);
+        expect(pg1.hasPrevious).toBe(false);
+        expect(pg1.next).toEqual(next);
+      });
     });
   });
 });

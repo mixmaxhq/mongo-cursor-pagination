@@ -118,6 +118,10 @@ describe('aggregate', () => {
 
   afterAll(() => mongod.stop());
 
+  beforeEach(() => {
+    paging.config.COLLATION = undefined;
+  });
+
   describe('test pagination', () => {
     it('queries the first few pages with next/previous', async () => {
       const collection = t.db.collection('test_paging');
@@ -625,12 +629,15 @@ describe('aggregate', () => {
               planets: { $push: '$itemDoc.name' },
             },
           },
+          { $unwind: '$planets' },
         ],
-        limit: 1,
+        limit: 3,
       });
 
-      expect(res.results.length).toEqual(1);
-      expect(res.results[0].planets).toEqual(['mars', 'jupiter', 'saturn']);
+      expect(res.results.length).toEqual(3);
+      expect(_.pluck(res.results, 'planets')).toEqual(
+        expect.arrayContaining(['jupiter', 'venus', 'mars'])
+      );
       expect(res.hasNext).toBe(true);
     });
   });
@@ -640,11 +647,8 @@ describe('aggregate', () => {
       const collection = t.db.collection('test_aggregation_sort');
 
       const res = await paging.aggregate(collection, {
-        aggregation: [
-          {
-            $sort: { name: 1 },
-          },
-        ],
+        paginatedField: 'name',
+        sortAscending: true,
       });
 
       expect(_.pluck(res.results, 'name')).toEqual([
@@ -657,11 +661,8 @@ describe('aggregate', () => {
       ]);
 
       const res_localized = await paging.aggregate(collection, {
-        aggregation: [
-          {
-            $sort: { name: 1 },
-          },
-        ],
+        paginatedField: 'name',
+        sortAscending: true,
         collation: { locale: 'en' },
       });
 
@@ -677,11 +678,8 @@ describe('aggregate', () => {
       paging.config.COLLATION = { locale: 'en' };
 
       const res_static_localized = await paging.aggregate(collection, {
-        aggregation: [
-          {
-            $sort: { name: 1 },
-          },
-        ],
+        paginatedField: 'name',
+        sortAscending: true,
       });
 
       expect(_.pluck(res_static_localized.results, 'name')).toEqual([
@@ -737,6 +735,58 @@ describe('aggregate', () => {
         expect.any(Object),
         expect.objectContaining({ hint: 'test_index' })
       );
+    });
+  });
+
+  describe('case-insensitive sorting without collation', () => {
+    let collection;
+    beforeAll(() => {
+      collection = t.db.collection('test_aggregation_sort');
+    });
+
+    describe('by default...', () => {
+      it('sorts capital letters first', async () => {
+        const { results: results } = await paging.aggregate(collection, {
+          paginatedField: 'name',
+          sortAscending: true,
+          limit: 2,
+        });
+        expect(_.pluck(results, 'name')).toEqual(['Alpha', 'Beta']);
+      });
+    });
+
+    describe('with the `sortCaseInsensitive` parameter...', () => {
+      const options = {
+        paginatedField: 'name',
+        sortCaseInsensitive: true,
+        sortAscending: true,
+        limit: 2,
+      };
+
+      it('sorts case-insensitively', async () => {
+        const r = await paging.aggregate(collection, { ...options });
+        expect(_.pluck(r.results, 'name')).toEqual(['aleph', 'Alpha']);
+        expect(r.hasNext).toBe(true);
+        expect(r.hasPrevious).toBe(false);
+      });
+
+      it('returns the paginated field but not the temporary __lc field', async () => {
+        const r = await paging.aggregate(collection, { ...options });
+        expect('name' in r.results[0]).toBe(true);
+        expect('__lc' in r.results[0]).toBe(false);
+      });
+
+      it('pages correctly forward and backward', async () => {
+        const { next } = await paging.aggregate(collection, { ...options });
+        const pg2 = await paging.aggregate(collection, { ...options, next });
+        expect(_.pluck(pg2.results, 'name')).toEqual(['bet', 'Beta']);
+        expect(pg2.hasPrevious).toBe(true);
+        const pg1 = await paging.aggregate(collection, { ...options, previous: pg2.previous });
+        expect(_.pluck(pg1.results, 'name')).toEqual(['aleph', 'Alpha']);
+        expect(pg1.hasNext).toBe(true);
+        expect(pg1.hasPrevious).toBe(false);
+        expect(pg1.next).toEqual(next);
+      });
     });
   });
 });
