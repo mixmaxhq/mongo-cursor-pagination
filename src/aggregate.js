@@ -47,24 +47,23 @@ module.exports = async function aggregate(collection, params) {
   const $sort = generateSort(params);
   const $limit = params.limit + 1;
 
-  let addFields = [];
-  let cleanUp = [];
+  let aggregation;
   if (params.sortCaseInsensitive) {
-    addFields = [{ $addFields: { __lc: { $toLower: '$' + params.paginatedField } } }];
-    cleanUp = [{ $project: { __lc: 0 } }];
+    aggregation = params.aggregation.concat([
+      { $addFields: { __lc: { $toLower: '$' + params.paginatedField } } },
+      { $match },
+      { $sort },
+      { $limit },
+      { $project: { __lc: 0 } },
+    ]);
+  } else {
+    aggregation = params.aggregation.concat([{ $match }, { $sort }, { $limit }]);
   }
-  const aggregation = params.aggregation.concat([
-    ...addFields,
-    { $match },
-    { $sort },
-    { $limit },
-    ...cleanUp,
-  ]);
 
   // Aggregation options:
   // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
   // https://mongodb.github.io/node-mongodb-native/4.0/interfaces/aggregateoptions.html
-  const options = { ...params.options };
+  const options = Object.assign({}, params.options);
   /**
    * IMPORTANT
    *

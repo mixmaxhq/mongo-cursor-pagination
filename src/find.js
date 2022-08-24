@@ -39,10 +39,12 @@ module.exports = async function(collection, params) {
   let response;
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
-    response = aggregate(collection, {
-      ...params,
-      aggregation: params.query ? [{ $match: params.query }] : [],
-    });
+    response = aggregate(
+      collection,
+      Object.assign({}, params, {
+        aggregation: params.query ? [{ $match: params.query }] : [],
+      })
+    );
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
     params = _.defaults(await sanitizeParams(collection, params), { query: {} });
