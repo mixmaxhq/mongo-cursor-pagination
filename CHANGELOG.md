@@ -1,3 +1,10 @@
+### [8.0.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.0.0...v8.0.1) (2022-08-24)
+
+
+### Bug Fixes
+
+* remove uses of the spread operator ([7e8a8c9](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/7e8a8c948a501e4a7aaff0896ac558ffe73971de))
+
 ## [8.0.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.8.0...v8.0.0) (2022-08-24)
 
 
