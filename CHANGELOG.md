@@ -1,3 +1,14 @@
+## [8.0.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.8.0...v8.0.0) (2022-08-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* functional fixes and possible performance changes in `aggregate`.
+
+### Features
+
+* force a major release ([9c73e07](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/9c73e07f71176433e0ca3279996b3b9d5e39a175))
+
 ## [7.8.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v7.7.0...v7.8.0) (2022-08-23)
 
 
