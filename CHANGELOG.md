@@ -1,3 +1,10 @@
+## [8.1.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.0.1...v8.1.0) (2022-08-25)
+
+
+### Features
+
+* update babel to v7 ([6a86084](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/6a86084253a5b950e2549df3cb537e8c5eaef7c5))
+
 ### [8.0.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.0.0...v8.0.1) (2022-08-24)
 
 
