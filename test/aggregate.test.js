@@ -113,6 +113,21 @@ describe('aggregate', () => {
           name: 'aleph',
         },
       ]),
+      t.db
+        .collection('test_null_values')
+        .insert(
+          [
+            undefined,
+            undefined,
+            undefined,
+            null,
+            null,
+            'Alice',
+            'Bob',
+            'alpha',
+            'bravo',
+          ].map((name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name }))
+        ),
     ]);
   });
 
@@ -738,20 +753,88 @@ describe('aggregate', () => {
     });
   });
 
-  describe('case-insensitive sorting without collation', () => {
+  describe('sorting without collation', () => {
     let collection;
     beforeAll(() => {
       collection = t.db.collection('test_aggregation_sort');
     });
 
-    describe('by default...', () => {
+    describe('without the `sortCaseInsensitive` parameter...', () => {
+      const options = {
+        paginatedField: 'name',
+        sortAscending: true,
+        limit: 2,
+      };
       it('sorts capital letters first', async () => {
-        const { results: results } = await paging.aggregate(collection, {
-          paginatedField: 'name',
-          sortAscending: true,
-          limit: 2,
-        });
+        const { results: results } = await paging.aggregate(collection, options);
         expect(_.pluck(results, 'name')).toEqual(['Alpha', 'Beta']);
+      });
+
+      it('sorts null and undefined values at the start', async () => {
+        const collection = t.db.collection('test_null_values');
+
+        const pg1 = await paging.aggregate(collection, { ...options });
+        expect(pg1.hasNext).toBe(true);
+        expect(pg1.hasPrevious).toBe(false);
+        expect(_.pluck(pg1.results, 'name')).toEqual([undefined, undefined]);
+        expect(_.pluck(pg1.results, '_id')).toEqual([1, 2]);
+
+        const pg2 = await paging.aggregate(collection, {
+          ...options,
+          next: pg1.next,
+        });
+        expect(pg2.hasNext).toBe(true);
+        expect(pg2.hasPrevious).toBe(true);
+        expect(_.pluck(pg2.results, 'name')).toEqual([undefined, null]);
+        expect(_.pluck(pg2.results, '_id')).toEqual([3, 4]);
+
+        const pg3 = await paging.aggregate(collection, {
+          ...options,
+          next: pg2.next,
+        });
+        expect(pg3.hasNext).toBe(true);
+        expect(pg3.hasPrevious).toBe(true);
+        expect(_.pluck(pg3.results, 'name')).toEqual([null, 'Alice']);
+        expect(_.pluck(pg3.results, '_id')).toEqual([5, 6]);
+
+        const pg4 = await paging.aggregate(collection, {
+          ...options,
+          next: pg3.next,
+        });
+        expect(pg4.hasNext).toBe(true);
+        expect(pg4.hasPrevious).toBe(true);
+        expect(_.pluck(pg4.results, 'name')).toEqual(['Bob', 'alpha']);
+        expect(_.pluck(pg4.results, '_id')).toEqual([7, 8]);
+
+        const pg3b = await paging.aggregate(collection, {
+          ...options,
+          previous: pg4.previous,
+        });
+        expect(pg3b.hasNext).toBe(true);
+        expect(pg3b.next).toEqual(pg3.next);
+        expect(pg3b.hasPrevious).toBe(true);
+        expect(pg3b.previous).toEqual(pg3.previous);
+        expect(pg3b.results).toEqual(pg3.results);
+
+        const pg2b = await paging.aggregate(collection, {
+          ...options,
+          previous: pg3.previous,
+        });
+        expect(pg2b.hasNext).toBe(true);
+        expect(pg2b.next).toEqual(pg2.next);
+        expect(pg2b.hasPrevious).toBe(true);
+        expect(pg2b.previous).toEqual(pg2.previous);
+        expect(pg2b.results).toEqual(pg2.results);
+
+        const pg1b = await paging.aggregate(collection, {
+          ...options,
+          previous: pg2.previous,
+        });
+        expect(pg1b.hasNext).toBe(true);
+        expect(pg1b.next).toEqual(pg1.next);
+        expect(pg1b.hasPrevious).toBe(false);
+        expect(pg1b.previous).toEqual(pg1.previous);
+        expect(pg1b.results).toEqual(pg1.results);
       });
     });
 
@@ -786,6 +869,73 @@ describe('aggregate', () => {
         expect(pg1.hasNext).toBe(true);
         expect(pg1.hasPrevious).toBe(false);
         expect(pg1.next).toEqual(next);
+      });
+
+      it('sorts null and undefined values at the start', async () => {
+        const collection = t.db.collection('test_null_values');
+
+        const pg1 = await paging.aggregate(collection, { ...options });
+        expect(pg1.hasNext).toBe(true);
+        expect(pg1.hasPrevious).toBe(false);
+        expect(_.pluck(pg1.results, 'name')).toEqual([undefined, undefined]);
+        expect(_.pluck(pg1.results, '_id')).toEqual([1, 2]);
+
+        const pg2 = await paging.aggregate(collection, {
+          ...options,
+          next: pg1.next,
+        });
+        expect(pg2.hasNext).toBe(true);
+        expect(pg2.hasPrevious).toBe(true);
+        expect(_.pluck(pg2.results, 'name')).toEqual([undefined, null]);
+        expect(_.pluck(pg2.results, '_id')).toEqual([3, 4]);
+
+        const pg3 = await paging.aggregate(collection, {
+          ...options,
+          next: pg2.next,
+        });
+        expect(pg3.hasNext).toBe(true);
+        expect(pg3.hasPrevious).toBe(true);
+        expect(_.pluck(pg3.results, 'name')).toEqual([null, 'Alice']);
+        expect(_.pluck(pg3.results, '_id')).toEqual([5, 6]);
+
+        const pg4 = await paging.aggregate(collection, {
+          ...options,
+          next: pg3.next,
+        });
+        expect(pg4.hasNext).toBe(true);
+        expect(pg4.hasPrevious).toBe(true);
+        expect(_.pluck(pg4.results, 'name')).toEqual(['alpha', 'Bob']);
+        expect(_.pluck(pg4.results, '_id')).toEqual([8, 7]);
+
+        const pg3b = await paging.aggregate(collection, {
+          ...options,
+          previous: pg4.previous,
+        });
+        expect(pg3b.hasNext).toBe(true);
+        expect(pg3b.next).toEqual(pg3.next);
+        expect(pg3b.hasPrevious).toBe(true);
+        expect(pg3b.previous).toEqual(pg3.previous);
+        expect(pg3b.results).toEqual(pg3.results);
+
+        const pg2b = await paging.aggregate(collection, {
+          ...options,
+          previous: pg3.previous,
+        });
+        expect(pg2b.hasNext).toBe(true);
+        expect(pg2b.next).toEqual(pg2.next);
+        expect(pg2b.hasPrevious).toBe(true);
+        expect(pg2b.previous).toEqual(pg2.previous);
+        expect(pg2b.results).toEqual(pg2.results);
+
+        const pg1b = await paging.aggregate(collection, {
+          ...options,
+          previous: pg2.previous,
+        });
+        expect(pg1b.hasNext).toBe(true);
+        expect(pg1b.next).toEqual(pg1.next);
+        expect(pg1b.hasPrevious).toBe(false);
+        expect(pg1b.previous).toEqual(pg1.previous);
+        expect(pg1b.results).toEqual(pg1.results);
       });
     });
   });

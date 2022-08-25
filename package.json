@@ -39,7 +39,7 @@
   "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
   "dependencies": {
     "base64-url": "^2.2.0",
-    "bson": "^4.1.0",
+    "bson": "^4.7.0",
     "object-path": "^0.11.5",
     "projection-utils": "^1.1.0",
     "semver": "^5.4.1",
@@ -61,7 +61,7 @@
     "mockgoose": "^8.0.4",
     "mongodb": "^2.2.11",
     "mongodb-memory-server": "^5.2.11",
-    "mongoist": "2.3.0",
+    "mongoist": "^2.5.5",
     "mongoose": "5.11.10",
     "prettier": "^1.19.1",
     "semantic-release": "^17.2.3"

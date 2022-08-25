@@ -20,6 +20,7 @@ const config = require('./config');
  *          exist, the results will be secondarily ordered by the _id.
  *        2. Indexed. For large collections, this should be indexed for query performance.
  *        3. Immutable. If the value changes between paged queries, it could appear twice.
+          4. Consistent. All values (except undefined and null values) must be of the same type.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
  *    -sortAscending {boolean} Whether to sort in ascending order by the `paginatedField`.
