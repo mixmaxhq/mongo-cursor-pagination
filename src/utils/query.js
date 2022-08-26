@@ -21,7 +21,9 @@ function encodePaginationTokens(params, response) {
 
   if (response.previous) {
     let previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
-    if (params.sortCaseInsensitive) previousPaginatedField = previousPaginatedField.toLowerCase();
+    if (params.sortCaseInsensitive) {
+      previousPaginatedField = previousPaginatedField?.toLowerCase?.() ?? '';
+    }
     if (shouldSecondarySortOnId) {
       response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
     } else {
@@ -30,7 +32,9 @@ function encodePaginationTokens(params, response) {
   }
   if (response.next) {
     let nextPaginatedField = objectPath.get(response.next, params.paginatedField);
-    if (params.sortCaseInsensitive) nextPaginatedField = nextPaginatedField.toLowerCase();
+    if (params.sortCaseInsensitive) {
+      nextPaginatedField = nextPaginatedField?.toLowerCase?.() ?? '';
+    }
     if (shouldSecondarySortOnId) {
       response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
     } else {
@@ -112,36 +116,90 @@ module.exports = {
 
     const sortAsc =
       (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
-    const comparisonOp = sortAsc ? '$gt' : '$lt';
 
     // a `next` cursor will have precedence over a `previous` cursor.
     const op = params.next || params.previous;
 
     if (params.paginatedField == '_id') {
-      return {
-        _id: {
-          [comparisonOp]: op,
-        },
-      };
+      if (sortAsc) {
+        return { _id: { $gt: op } };
+      } else {
+        return { _id: { $lt: op } };
+      }
     } else {
       const field = params.sortCaseInsensitive ? '__lc' : params.paginatedField;
-      return {
-        $or: [
-          {
-            [field]: {
-              [comparisonOp]: op[0],
-            },
-          },
-          {
-            [field]: {
-              $eq: op[0],
-            },
-            _id: {
-              [comparisonOp]: op[1],
-            },
-          },
-        ],
-      };
+
+      const notUndefined = { [field]: { $exists: true } };
+      const onlyUndefs = { [field]: { $exists: false } };
+      const notNullNorUndefined = { [field]: { $ne: null } };
+      const nullOrUndefined = { [field]: null };
+      const onlyNulls = { $and: [{ [field]: { $exists: true } }, { [field]: null }] };
+
+      const [paginatedFieldValue, idValue] = op;
+      switch (paginatedFieldValue) {
+        case null:
+          if (sortAsc) {
+            return {
+              $or: [
+                notNullNorUndefined,
+                {
+                  ...onlyNulls,
+                  _id: { $gt: idValue },
+                },
+              ],
+            };
+          } else {
+            return {
+              $or: [
+                onlyUndefs,
+                {
+                  ...onlyNulls,
+                  _id: { $lt: idValue },
+                },
+              ],
+            };
+          }
+        case undefined:
+          if (sortAsc) {
+            return {
+              $or: [
+                notUndefined,
+                {
+                  ...onlyUndefs,
+                  _id: { $gt: idValue },
+                },
+              ],
+            };
+          } else {
+            return {
+              ...onlyUndefs,
+              _id: { $lt: idValue },
+            };
+          }
+        default:
+          if (sortAsc) {
+            return {
+              $or: [
+                { [field]: { $gt: paginatedFieldValue } },
+                {
+                  [field]: { $eq: paginatedFieldValue },
+                  _id: { $gt: idValue },
+                },
+              ],
+            };
+          } else {
+            return {
+              $or: [
+                { [field]: { $lt: paginatedFieldValue } },
+                nullOrUndefined,
+                {
+                  [field]: { $eq: paginatedFieldValue },
+                  _id: { $lt: idValue },
+                },
+              ],
+            };
+          }
+      }
     }
   },
 };
