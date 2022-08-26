@@ -1,3 +1,10 @@
+### [8.1.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.0...v8.1.1) (2022-08-26)
+
+
+### Bug Fixes
+
+* properly page through undefs and nulls ([0eb28e7](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/0eb28e7f573511ef7fc8790e9c0fc84e5a997cef))
+
 ## [8.1.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.0.1...v8.1.0) (2022-08-25)
 
 
