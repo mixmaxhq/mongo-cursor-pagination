@@ -1,9 +1,9 @@
-// This file was created by running mixmax-runner/scripts/migrate-module.sh
-// See mixmax-runner/scripts/unmigrate-module.sh for resetting this project
 const semver = require('semver');
 
 let main;
-if (semver.lt(process.version, '7.6.0')) {
+// We use optional chaining (?.), so we need to use the transpiled versions
+// in node versions earlier than 14.0.0:
+if (semver.lt(process.version, '14.0.0')) {
   main = require('./dist/node/index.js');
 } else {
   main = require('./src/index.js');
