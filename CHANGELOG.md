@@ -1,3 +1,10 @@
+### [8.1.2](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.1...v8.1.2) (2022-08-26)
+
+
+### Bug Fixes
+
+* use the transpiled version in node 12 ([a705377](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/a705377f0a191dd2f27482a8cd09f46ce5825829))
+
 ### [8.1.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.0...v8.1.1) (2022-08-26)
 
 
