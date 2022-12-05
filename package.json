@@ -14,6 +14,7 @@
     "ci": "npm run lint && npm run test",
     "ci:commitlint": "commitlint-jenkins --pr-only",
     "lint": "eslint .",
+    "prepare": "tsc && npm run babelBuild",
     "pretest": "npm run babelBuild",
     "prepublishOnly": "npm run babelBuild && if [ \"$CI\" = '' ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
@@ -65,7 +66,9 @@
     "mongoist": "^2.5.6",
     "mongoose": "6.7.5",
     "prettier": "^2.8.0",
-    "semantic-release": "^19.0.5"
+    "semantic-release": "^19.0.5",
+    "ts-jest": "^29.0.3",
+    "typescript": "4.9"
   },
   "engines": {
     "node": ">= 12.0.0"
