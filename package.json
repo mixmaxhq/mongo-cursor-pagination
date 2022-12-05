@@ -14,9 +14,10 @@
     "ci": "npm run lint && npm run test",
     "ci:commitlint": "commitlint-jenkins --pr-only",
     "lint": "eslint .",
+    "pretest": "npm run babelBuild",
     "prepublishOnly": "npm run babelBuild && if [ \"$CI\" = '' ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
-    "test": "npm run babelBuild; DRIVER=mongoist jest && DRIVER=native jest"
+    "test": "DRIVER=mongoist jest --forceExit && DRIVER=native jest --forceExit"
   },
   "repository": {
     "type": "git",
@@ -49,7 +50,7 @@
     "@babel/cli": "^7.19.3",
     "@babel/core": "^7.20.5",
     "@babel/preset-env": "^7.20.2",
-    "@commitlint/config-conventional": "^8.3.4",
+    "@commitlint/config-conventional": "^17.3.0",
     "@mixmaxhq/commitlint-jenkins": "^1.6.0",
     "@mixmaxhq/prettier-config": "^1.1.0",
     "@mixmaxhq/semantic-release-config": "github:mixmaxhq/semantic-release-config",
@@ -57,7 +58,7 @@
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.29.0",
     "eslint-config-mixmax": "^5.0.1",
-    "jest": "^26.0.1",
+    "jest": "^29.3.1",
     "mockgoose": "^8.0.4",
     "mongodb": "^4.12.1",
     "mongodb-memory-server": "^8.10.1",
