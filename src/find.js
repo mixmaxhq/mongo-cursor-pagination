@@ -26,6 +26,7 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
  *    -sortAscending {boolean} Whether to sort in ascending order by the `paginatedField`.
  *    -sortCaseInsensitive {boolean} Whether to ignore case when sorting, in which case `paginatedField`
+ *    -getTotal {boolean} Whether to fetch the total count for the query results
  *      must be a string property.
  *    -next {String} The value to start querying the page.
  *    -previous {String} The value to start querying previous page.
@@ -75,6 +76,8 @@ module.exports = async function (collection, params) {
     const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
     if (params.hint) cursor.hint(params.hint);
     const results = await cursor.toArray();
+
+    if (params.getTotal) response.totalCount = await collection.countDocuments(params.query);
 
     response = prepareResponse(results, params);
   }
