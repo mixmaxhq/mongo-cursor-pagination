@@ -2,6 +2,18 @@ const objectPath = require('object-path');
 
 const bsonUrlEncoding = require('./bsonUrlEncoding');
 
+function buildCursor(doc, params, shouldSecondarySortOnId) {
+  let nextPaginatedField = objectPath.get(doc, params.paginatedField);
+
+  if (params.sortCaseInsensitive) {
+    nextPaginatedField = nextPaginatedField?.toLowerCase?.() ?? '';
+  }
+
+  const data = shouldSecondarySortOnId ? [nextPaginatedField, doc._id] : nextPaginatedField;
+
+  return bsonUrlEncoding.encode(data);
+}
+
 /**
  * Helper function to encode pagination tokens.
  *
@@ -21,26 +33,10 @@ function encodePaginationTokens(params, response) {
   const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   if (response.previous) {
-    let previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
-    if (params.sortCaseInsensitive) {
-      previousPaginatedField = previousPaginatedField?.toLowerCase?.() ?? '';
-    }
-    if (shouldSecondarySortOnId) {
-      response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
-    } else {
-      response.previous = bsonUrlEncoding.encode(previousPaginatedField);
-    }
+    response.previous = buildCursor(response.previous, params, shouldSecondarySortOnId);
   }
   if (response.next) {
-    let nextPaginatedField = objectPath.get(response.next, params.paginatedField);
-    if (params.sortCaseInsensitive) {
-      nextPaginatedField = nextPaginatedField?.toLowerCase?.() ?? '';
-    }
-    if (shouldSecondarySortOnId) {
-      response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
-    } else {
-      response.next = bsonUrlEncoding.encode(nextPaginatedField);
-    }
+    response.next = buildCursor(response.next, params, shouldSecondarySortOnId);
   }
 }
 
@@ -56,11 +52,18 @@ module.exports = {
    */
   prepareResponse(results, params) {
     const hasMore = results.length > params.limit;
+    const shouldSecondarySortOnId = params.paginatedField !== '_id';
+
     // Remove the extra element that we added to 'peek' to see if there were more entries.
     if (hasMore) results.pop();
 
     const hasPrevious = !!params.next || !!(params.previous && hasMore);
     const hasNext = !!params.previous || hasMore;
+
+    results = results.map((result) => ({
+      ...result,
+      _cursor: buildCursor(result, params, shouldSecondarySortOnId),
+    }));
 
     // If we sorted reverse to get the previous page, correct the sort order.
     if (params.previous) results = results.reverse();
