@@ -1,7 +1,8 @@
 const _ = require('underscore');
-const sanitizeParams = require('./utils/sanitizeParams');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+
 const config = require('./config');
+const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+const sanitizeParams = require('./utils/sanitizeParams');
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-const dbUtils = require('./support/db');
+
 const mongooseCursorPaginate = require('../src/mongoose.plugin');
+const dbUtils = require('./support/db');
 
 const AuthorSchema = new mongoose.Schema({ name: String });
 AuthorSchema.index({ name: 'text' });

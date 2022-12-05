@@ -1,7 +1,8 @@
+const { ObjectId } = require('mongoist');
+const _ = require('underscore');
+
 const paging = require('../');
 const dbUtils = require('./support/db');
-const _ = require('underscore');
-const { ObjectId } = require('mongoist');
 const driver = process.env.DRIVER;
 
 let mongod;
@@ -180,17 +181,9 @@ describe('find', () => {
         },
       ]),
       t.db.collection('test_null_values').insert(
-        [
-          undefined,
-          undefined,
-          undefined,
-          null,
-          null,
-          'Alice',
-          'Bob',
-          'alpha',
-          'bravo',
-        ].map((name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name }))
+        [undefined, undefined, undefined, null, null, 'Alice', 'Bob', 'alpha', 'bravo'].map(
+          (name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name })
+        )
         // Ids start with 1 because Mongoist driver doesn't support _id as 0
       ),
     ]);

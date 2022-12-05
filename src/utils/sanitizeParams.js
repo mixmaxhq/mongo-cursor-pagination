@@ -1,7 +1,8 @@
 const _ = require('underscore');
+
+const config = require('../config');
 const bsonUrlEncoding = require('./bsonUrlEncoding');
 const getPropertyViaDotNotation = require('./getPropertyViaDotNotation');
-const config = require('../config');
 
 module.exports = async function sanitizeParams(collection, params) {
   if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);

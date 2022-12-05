@@ -1,6 +1,7 @@
+const _ = require('underscore');
+
 const paging = require('../');
 const dbUtils = require('./support/db');
-const _ = require('underscore');
 
 const driver = process.env.DRIVER;
 
@@ -116,17 +117,9 @@ describe('aggregate', () => {
       t.db
         .collection('test_null_values')
         .insert(
-          [
-            undefined,
-            undefined,
-            undefined,
-            null,
-            null,
-            'Alice',
-            'Bob',
-            'alpha',
-            'bravo',
-          ].map((name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name }))
+          [undefined, undefined, undefined, null, null, 'Alice', 'Bob', 'alpha', 'bravo'].map(
+            (name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name })
+          )
         ),
     ]);
   });

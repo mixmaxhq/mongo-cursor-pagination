@@ -1,4 +1,5 @@
 const _ = require('underscore');
+
 const paging = require('../');
 const dbUtils = require('./support/db');
 

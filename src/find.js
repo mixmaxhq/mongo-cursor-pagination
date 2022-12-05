@@ -1,8 +1,9 @@
 const _ = require('underscore');
-const sanitizeParams = require('./utils/sanitizeParams');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+
 const aggregate = require('./aggregate');
 const config = require('./config');
+const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+const sanitizeParams = require('./utils/sanitizeParams');
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -33,7 +34,7 @@ const config = require('./config');
  *    -hint {String} An optional index hint to provide to the mongo query
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function(collection, params) {
+module.exports = async function (collection, params) {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
