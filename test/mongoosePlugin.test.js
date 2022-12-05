@@ -39,7 +39,7 @@ describe('mongoose plugin', () => {
     for (let i = 1; i <= 100; i++) {
       const post = new Post({
         title: 'Post #' + i,
-        date: new Date(date.getTime() + i),
+        date: new Date(new Date().setHours(date.getHours() - i)),
         author: author._id,
         body: 'Post Body #' + i,
       });
@@ -72,6 +72,25 @@ describe('mongoose plugin', () => {
     expect(hasOwnProperty.call(data, 'hasPrevious')).toBe(true);
     expect(hasOwnProperty.call(data, 'next')).toBe(true);
     expect(hasOwnProperty.call(data, 'hasNext')).toBe(true);
+  });
+
+  it('filters data according to the query (and casts it)', async () => {
+    const author = await Author.findOne({ name: 'Pawan Pandey' });
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const data = await Post.paginate({
+      query: {
+        author: author._id.toString(),
+        date: { $gt: yesterday },
+      },
+    });
+    expect(hasOwnProperty.call(data, 'results')).toBe(true);
+    expect(hasOwnProperty.call(data, 'previous')).toBe(true);
+    expect(hasOwnProperty.call(data, 'hasPrevious')).toBe(true);
+    expect(hasOwnProperty.call(data, 'next')).toBe(true);
+    expect(hasOwnProperty.call(data, 'hasNext')).toBe(true);
+    expect(data.results).toHaveLength(23);
   });
 
   //#region search

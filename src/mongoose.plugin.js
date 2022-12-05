@@ -1,3 +1,4 @@
+const { Query } = require('mongoose');
 const _ = require('underscore');
 
 const find = require('./find');
@@ -22,6 +23,12 @@ module.exports = function (schema, options) {
     }
 
     params = _.extend({}, params);
+
+    if (params.query) {
+      const model = this.collection.conn.models[this.collection.modelName];
+
+      params.query = new Query().cast(model, params.query);
+    }
 
     return find(this.collection, params);
   };
