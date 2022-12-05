@@ -1,19 +1,22 @@
-const MongoClient = require('mongodb');
+const { MongoClient } = require('mongodb');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoist = require('mongoist');
 
-function start() {
-  return new MongoMemoryServer({
-    binary: { version: '4.0.12' },
+async function start() {
+  return MongoMemoryServer.create({
+    binary: { version: '5.0.11' },
   });
 }
 
 async function db(mongod, driver = null) {
-  const uri = await mongod.getConnectionString();
+  const uri = mongod.getUri();
   if (driver === 'mongoist') {
     return mongoist(uri);
   }
-  return MongoClient.connect(uri);
+  const client = new MongoClient(uri);
+  await client.connect();
+  const database = client.db('test');
+  return database;
 }
 
 module.exports = {

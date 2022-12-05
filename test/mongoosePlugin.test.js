@@ -29,7 +29,7 @@ let mongod;
 describe('mongoose plugin', () => {
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    await mongoose.connect(await mongod.getConnectionString());
+    await mongoose.connect(mongod.getUri());
     await mongoose.connection.db.dropDatabase();
     const author = await Author.create({ name: 'Pawan Pandey' });
 
@@ -47,8 +47,8 @@ describe('mongoose plugin', () => {
     }
 
     await Post.create(posts);
-    await Author.ensureIndexes();
-    await Post.ensureIndexes();
+    await Author.createIndexes();
+    await Post.createIndexes();
   });
 
   afterAll(async () => {

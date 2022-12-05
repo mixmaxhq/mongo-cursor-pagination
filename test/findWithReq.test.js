@@ -9,11 +9,11 @@ describe('findWithReq', () => {
   let mongod;
   const t = {};
   beforeAll(async () => {
-    mongod = dbUtils.start();
+    mongod = await dbUtils.start();
     t.db = await dbUtils.db(mongod, driver);
 
     await Promise.all([
-      t.db.collection('test_paging').insert([
+      t.db.collection('test_paging').insertMany([
         {
           counter: 1,
           myfield1: 'a',
@@ -35,7 +35,7 @@ describe('findWithReq', () => {
           myfield2: 'b',
         },
       ]),
-      t.db.collection('test_paging_fields').insert({
+      t.db.collection('test_paging_fields').insertOne({
         obj: {
           one: 1,
           two: {

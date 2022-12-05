@@ -10,12 +10,12 @@ let mongod;
 describe('find', () => {
   const t = {};
   beforeAll(async () => {
-    mongod = dbUtils.start();
+    mongod = await dbUtils.start();
     t.db = await dbUtils.db(mongod, driver);
 
     // Set up collections once for testing later.
     await Promise.all([
-      t.db.collection('test_paging').insert([
+      t.db.collection('test_paging').insertMany([
         {
           counter: 1,
         },
@@ -46,7 +46,7 @@ describe('find', () => {
           color: 'blue',
         },
       ]),
-      t.db.collection('test_duplicate_custom_fields').insert([
+      t.db.collection('test_duplicate_custom_fields').insertMany([
         {
           _id: 6,
           counter: 6,
@@ -78,7 +78,7 @@ describe('find', () => {
           timestamp: 1477347772077,
         },
       ]),
-      t.db.collection('test_paging_custom_fields').insert([
+      t.db.collection('test_paging_custom_fields').insertMany([
         {
           counter: 6,
           timestamp: 1477347800603,
@@ -104,7 +104,7 @@ describe('find', () => {
           timestamp: 1477347755654,
         },
       ]),
-      t.db.collection('test_paging_date').insert([
+      t.db.collection('test_paging_date').insertMany([
         {
           counter: 2,
           date: new Date(1477347763813),
@@ -122,7 +122,7 @@ describe('find', () => {
           date: new Date(1477347755654),
         },
       ]),
-      t.db.collection('test_paging_date_in_object').insert([
+      t.db.collection('test_paging_date_in_object').insertMany([
         {
           counter: 2,
           start: { date: new Date(1477347763813) },
@@ -140,7 +140,7 @@ describe('find', () => {
           start: { date: new Date(1477347755654) },
         },
       ]),
-      t.db.collection('test_paging_limits').insert([
+      t.db.collection('test_paging_limits').insertMany([
         {
           counter: 6,
         },
@@ -160,7 +160,7 @@ describe('find', () => {
           counter: 1,
         },
       ]),
-      t.db.collection('test_sorting').insert([
+      t.db.collection('test_sorting').insertMany([
         {
           name: 'Alpha',
         },
@@ -180,7 +180,7 @@ describe('find', () => {
           name: 'aleph',
         },
       ]),
-      t.db.collection('test_null_values').insert(
+      t.db.collection('test_null_values').insertMany(
         [undefined, undefined, undefined, null, null, 'Alice', 'Bob', 'alpha', 'bravo'].map(
           (name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name })
         )
@@ -512,7 +512,7 @@ describe('find', () => {
 
       it('uses the hint parameter', async () => {
         const collection = t.db.collection('test_paging');
-        await t.db.collection('test_paging').ensureIndex({ color: 1 }, { name: 'color_1' });
+        await t.db.collection('test_paging').createIndex({ color: 1 }, { name: 'color_1' });
         // First page.
         const res = await paging.find(collection, {
           query: {
@@ -703,7 +703,7 @@ describe('find', () => {
 
     describe('when using strings as _ids', () => {
       beforeEach(async () => {
-        await t.db.collection('test_paging_string_ids').insert([
+        await t.db.collection('test_paging_string_ids').insertMany([
           {
             _id: new ObjectId().toString(),
             counter: 1,
@@ -745,7 +745,7 @@ describe('find', () => {
       });
 
       afterEach(async () => {
-        await t.db.collection('test_paging_string_ids').remove({});
+        await t.db.collection('test_paging_string_ids').remove();
       });
 
       it('queries first few pages with next/previous', async () => {
@@ -1065,7 +1065,7 @@ describe('find', () => {
         const collection = t.db.collection('test_paging_string_ids');
         await t.db
           .collection('test_paging_string_ids')
-          .ensureIndex({ color: 1 }, { name: 'color_1' });
+          .createIndex({ color: 1 }, { name: 'color_1' });
         // First page.
         const res = await paging.find(collection, {
           query: {
