@@ -39,7 +39,7 @@ module.exports = async function (collection, params) {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
-  let response;
+  let response = {};
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
     response = aggregate(
@@ -77,9 +77,8 @@ module.exports = async function (collection, params) {
     if (params.hint) cursor.hint(params.hint);
     const results = await cursor.toArray();
 
-    if (params.getTotal) response.totalCount = await collection.countDocuments(params.query);
-
     response = prepareResponse(results, params);
+    if (params.getTotal) response.totalCount = await collection.countDocuments(params.query);
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
