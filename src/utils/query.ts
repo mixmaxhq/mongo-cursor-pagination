@@ -2,7 +2,7 @@ const objectPath = require('object-path');
 
 const bsonUrlEncoding = require('./bsonUrlEncoding');
 
-function buildCursor(doc, params, shouldSecondarySortOnId) {
+function buildCursor(doc: { _id: any; }, params: PaginationParams, shouldSecondarySortOnId: boolean) {
   let nextPaginatedField = objectPath.get(doc, params.paginatedField);
 
   if (params.sortCaseInsensitive) {
@@ -19,7 +19,7 @@ function buildCursor(doc, params, shouldSecondarySortOnId) {
  *
  * NOTE: this function modifies the passed-in `response` argument directly.
  *
- * @param      {Object}  params
+ * @param      {PaginationParams}  params
  *   @param      {String}  paginatedField
  *   @param      {boolean} sortCaseInsensitive
  *
@@ -29,7 +29,7 @@ function buildCursor(doc, params, shouldSecondarySortOnId) {
  *
  * @returns void
  */
-function encodePaginationTokens(params, response) {
+function encodePaginationTokens(params: PaginationParams, response: { results?: any; previous: any; hasPrevious?: boolean; next: any; hasNext?: boolean; }) {
   const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   if (response.previous) {
@@ -46,11 +46,11 @@ module.exports = {
    * contain the various pagination properties
    *
    * @param {Object[]} results the results from a query
-   * @param {Object} params The params originally passed to `find` or `aggregate`
+   * @param {PaginationParams} params The params originally passed to `find` or `aggregate`
    *
    * @return {Object} The object containing pagination properties
    */
-  prepareResponse(results, params) {
+  prepareResponse(results: any[], params: PaginationParams) {
     const hasMore = results.length > params.limit;
     const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
@@ -60,7 +60,7 @@ module.exports = {
     const hasPrevious = !!params.next || !!(params.previous && hasMore);
     const hasNext = !!params.previous || hasMore;
 
-    results = results.map((result) => ({
+    results = results.map((result: any) => ({
       ...result,
       _cursor: buildCursor(result, params, shouldSecondarySortOnId),
     }));
@@ -90,7 +90,7 @@ module.exports = {
    *
    * @return {Object} a sort object
    */
-  generateSort(params) {
+  generateSort(params: { sortAscending: any; previous: any; paginatedField: string; sortCaseInsensitive: any; }) {
     const sortAsc =
       (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
     const sortDir = sortAsc ? 1 : -1;
@@ -115,7 +115,7 @@ module.exports = {
    *
    * @return {Object} a cursor offset query
    */
-  generateCursorQuery(params) {
+  generateCursorQuery(params: PaginationParams) {
     if (!params.next && !params.previous) return {};
 
     const sortAsc =

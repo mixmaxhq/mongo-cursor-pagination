@@ -1,6 +1,6 @@
-const _ = require('underscore');
+import _ = require('underscore');
 
-const config = require('./config');
+import config = require('./config');
 const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
 
 /**
@@ -14,7 +14,7 @@ const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    $text index on it.
  *    See https://docs.mongodb.com/manual/core/index-text/.
  * @param {String} searchString String to search on.
- * @param {Object} params
+ * @param {PaginationParams} params
  *    -query {Object} The find query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {title :1}.
@@ -22,7 +22,7 @@ const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    -next {String} The value to start querying the page. Defaults to start at the beginning of
  *      the results.
  */
-module.exports = async function (collection, searchString, params) {
+module.exports = async function (collection: any, searchString: string, params: PaginationParams) {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 
@@ -36,7 +36,7 @@ module.exports = async function (collection, searchString, params) {
 
   // We must perform an aggregate query since Mongo can't query a range when using $text search.
 
-  const aggregate = [
+  const aggregate: Array<object> = [
     {
       $match: _.extend({}, params.query, {
         $text: {
@@ -88,7 +88,7 @@ module.exports = async function (collection, searchString, params) {
     $limit: params.limit,
   });
 
-  let response;
+  let response: { results: any; next?: any; };
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations

@@ -11,7 +11,7 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
  *    or the mongoist package's `db.collection(<collectionName>)` method.
- * @param {Object} params
+ * @param {PaginationParams} params
  *    -query {Object} The find query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
@@ -35,7 +35,7 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *    -hint {String} An optional index hint to provide to the mongo query
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function (collection, params) {
+module.exports = async function (collection: any, params: PaginationParams) {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 

@@ -1,7 +1,7 @@
-const { Query } = require('mongoose');
-const _ = require('underscore');
+import { Query, Schema } from 'mongoose';
+import _ = require('underscore');
 
-const find = require('./find');
+import find = require('./find');
 const search = require('./search');
 
 /**
@@ -12,12 +12,12 @@ const search = require('./search');
  * @param {string} options.searchFnName name of the function.
  */
 
-module.exports = function (schema, options) {
+module.exports = function (schema: Schema, options: Options) {
   /**
    * paginate function
-   * @param {Object} params required parameter
+   * @param {PaginationParams} params required parameter
    */
-  const findFn = function (params) {
+  const findFn = function (params: PaginationParams) {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
@@ -38,7 +38,7 @@ module.exports = function (schema, options) {
    * @param {String} searchString String to search on. Required parameter
    * @param {Object} params
    */
-  const searchFn = function (searchString, params) {
+  const searchFn = function (searchString: string, params: object) {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
