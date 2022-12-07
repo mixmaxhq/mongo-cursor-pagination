@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   /**
    * {Number} The maximum limit (page size).
    */

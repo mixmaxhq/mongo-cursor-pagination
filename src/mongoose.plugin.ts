@@ -1,8 +1,8 @@
 import { Query, Schema } from 'mongoose';
-import _ = require('underscore');
+import _ from 'underscore';
 
-import find = require('./find');
-const search = require('./search');
+import find from './find';
+import search from './search';
 
 /**
  * Mongoose plugin
@@ -12,7 +12,7 @@ const search = require('./search');
  * @param {string} options.searchFnName name of the function.
  */
 
-module.exports = function (schema: Schema, options: Options) {
+export default (schema: Schema, options: Options) => {
   /**
    * paginate function
    * @param {QueryParams} params required parameter

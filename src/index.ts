@@ -1,13 +1,13 @@
-const aggregate = require('./aggregate');
-const config = require('./config');
-const find = require('./find');
-const findWithReq = require('./findWithReq.ts');
-const mongoosePlugin = require('./mongoose.plugin');
-const search = require('./search');
-const { encodePaginationTokens } = require('./utils/query');
-const sanitizeQuery = require('./utils/sanitizeQuery');
+import aggregate from './aggregate';
+import config from './config';
+import find from './find';
+import findWithReq from './findWithReq';
+import mongoosePlugin from './mongoose.plugin';
+import search from './search';
+import { encodePaginationTokens } from './utils/query';
+import sanitizeQuery from './utils/sanitizeQuery';
 
-module.exports = {
+export default {
   config,
   find,
   findWithReq,

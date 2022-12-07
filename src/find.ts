@@ -1,9 +1,9 @@
-import _ = require('underscore');
+import _ from 'underscore';
 
-const aggregate = require('./aggregate');
-const config = require('./config');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
-const sanitizeParams = require('./utils/sanitizeParams');
+import aggregate from './aggregate';
+import config from './config';
+import { prepareResponse, generateSort, generateCursorQuery } from './utils/query';
+import sanitizeParams from './utils/sanitizeParams';
 import { Collection } from 'mongodb';
 
 /**
@@ -36,7 +36,10 @@ import { Collection } from 'mongodb';
  *    -hint {String} An optional index hint to provide to the mongo query
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function (collection: Collection | any, params: QueryParams): Promise<PaginationResponse> {
+export default async (
+  collection: Collection | any,
+  params: QueryParams
+): Promise<PaginationResponse> => {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 

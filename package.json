@@ -1,6 +1,6 @@
 {
-  "name": "mongo-cursor-pagination",
-  "version": "8.1.2",
+  "name": "@conpago/mongo-cursor-pagination",
+  "version": "8.5.6",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "index.js",
   "files": [
@@ -9,14 +9,10 @@
     "src"
   ],
   "scripts": {
-    "babelBuild": "babel src -d dist/node",
-    "babelWatch": "babel --watch src -d dist/node",
     "ci": "npm run lint && npm run test",
     "ci:commitlint": "commitlint-jenkins --pr-only",
     "lint": "eslint .",
-    "prepare": "tsc && npm run babelBuild",
-    "pretest": "npm run babelBuild",
-    "prepublishOnly": "npm run babelBuild && if [ \"$CI\" = '' ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
+    "prepare": "tsc",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
     "test": "DRIVER=mongoist jest --forceExit && DRIVER=native jest --forceExit"
   },
@@ -55,7 +51,9 @@
     "@mixmaxhq/commitlint-jenkins": "^1.6.0",
     "@mixmaxhq/prettier-config": "^1.1.0",
     "@mixmaxhq/semantic-release-config": "github:mixmaxhq/semantic-release-config",
+    "@types/base64-url": "^2.2.0",
     "@types/node": "^18.11.11",
+    "@types/object-path": "^0.11.1",
     "@types/underscore": "^1.11.4",
     "babel-jest": "^29.3.1",
     "cz-conventional-changelog": "^3.3.0",
@@ -74,20 +72,6 @@
   },
   "engines": {
     "node": ">= 12.0.0"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    },
-    "manualPublishMessage": "This repository is configured to use semantic-release for its releases. Please do not release manually.\n"
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "release": {
-    "extends": "@mixmaxhq/semantic-release-config"
   },
   "publishConfig": {
     "access": "public"

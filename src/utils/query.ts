@@ -1,10 +1,13 @@
-import { AggregateParams } from "../types/AggregateParams";
+import { AggregateParams } from '../types/AggregateParams';
 
-const objectPath = require('object-path');
+import objectPath from 'object-path';
+import { encode, decode } from './bsonUrlEncoding';
 
-const bsonUrlEncoding = require('./bsonUrlEncoding');
-
-function buildCursor(doc: { _id: any; }, params: QueryParams | AggregateParams, shouldSecondarySortOnId: boolean): string {
+function buildCursor(
+  doc: { _id: any },
+  params: QueryParams | AggregateParams,
+  shouldSecondarySortOnId: boolean
+): string {
   let nextPaginatedField = objectPath.get(doc, params.paginatedField);
 
   if (params.sortCaseInsensitive) {
@@ -13,7 +16,7 @@ function buildCursor(doc: { _id: any; }, params: QueryParams | AggregateParams, 
 
   const data = shouldSecondarySortOnId ? [nextPaginatedField, doc._id] : nextPaginatedField;
 
-  return bsonUrlEncoding.encode(data);
+  return encode(data);
 }
 
 /**
@@ -31,7 +34,10 @@ function buildCursor(doc: { _id: any; }, params: QueryParams | AggregateParams, 
  *
  * @returns void
  */
-function encodePaginationTokens(params: QueryParams | AggregateParams, response: PaginationResponse): void {
+function encodePaginationTokens(
+  params: QueryParams | AggregateParams,
+  response: PaginationResponse
+): void {
   const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   if (response.previous) {
@@ -42,7 +48,7 @@ function encodePaginationTokens(params: QueryParams | AggregateParams, response:
   }
 }
 
-module.exports = {
+export default {
   /**
    * Parses the raw results from a find or aggregate query and generates a response object that
    * contain the various pagination properties

@@ -1,14 +1,17 @@
 import { Collection } from 'mongodb';
-import _ = require('underscore');
+import _ from 'underscore';
 import { AggregateParams } from '../types/AggregateParams';
 
-const config = require('../config');
-const bsonUrlEncoding = require('./bsonUrlEncoding');
-const getPropertyViaDotNotation = require('./getPropertyViaDotNotation');
+import config from '../config';
+import { decode } from './bsonUrlEncoding';
+import getPropertyViaDotNotation from './getPropertyViaDotNotation';
 
-module.exports = async function sanitizeParams(collection: Collection | any, params: QueryParams | AggregateParams): Promise<QueryParams | AggregateParams> {
-  if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
-  if (params.next) params.next = bsonUrlEncoding.decode(params.next);
+export default async (
+  collection: Collection | any,
+  params: QueryParams | AggregateParams
+): Promise<QueryParams | AggregateParams> => {
+  if (params.previous) params.previous = decode(params.previous);
+  if (params.next) params.next = decode(params.next);
 
   params = _.defaults(params, {
     limit: config.DEFAULT_LIMIT,

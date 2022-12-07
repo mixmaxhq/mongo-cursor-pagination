@@ -1,7 +1,7 @@
 import { Query } from 'mongoose';
-import _ = require('underscore');
+import _ from 'underscore';
 
-const resolveFields = require('./resolveFields');
+import resolveFields from './resolveFields';
 
 /**
  * Normalize the given query parameter to an array, so we support both param=a,b and
@@ -50,7 +50,10 @@ function normalizeQueryArray(query: object, param: string): string[] {
  *      {_id: 0} or {internalField: 1}. We only support field exclusion for _id, as we expect whitelists
  *      for fields from both params.fields and params.overrideFields.
  */
-module.exports = function sanitizeQuery(query: {limit?: string, next?: string | any, previous?: string | any}, params: QueryParams) {
+export default (
+  query: { limit?: string; next?: string | any; previous?: string | any },
+  params: QueryParams
+) => {
   params = params || {};
 
   if (!_.isEmpty(query.limit)) {

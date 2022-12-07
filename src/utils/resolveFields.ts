@@ -1,5 +1,5 @@
 import { ProjectionFieldSet } from 'projection-utils';
-import _ = require('underscore');
+import _ from 'underscore';
 
 /**
  * Produce a ProjectionFieldSet from the given mongo projection, after validating it to ensure it
@@ -9,7 +9,10 @@ import _ = require('underscore');
  * @param {Boolean=} includeIdDefault Whether to include _id by default (mongo's default behavior).
  * @returns {ProjectionFieldSet} The synthesized field set.
  */
-function fieldsFromMongo(projection: object = {}, includeIdDefault: boolean = false): ProjectionFieldSet {
+function fieldsFromMongo(
+  projection: object = {},
+  includeIdDefault: boolean = false
+): ProjectionFieldSet {
   const fields = _.reduce(
     projection,
     (memo, value, key) => {
@@ -39,7 +42,11 @@ function fieldsFromMongo(projection: object = {}, includeIdDefault: boolean = fa
  *   always be configured as specified.
  * @returns {?Object<String, *>=} The resolved fields declaration.
  */
-function resolveFields(desiredFields: string[], allowedFields: object | null, overrideFields: {_id?: string}): (object | null) | undefined {
+function resolveFields(
+  desiredFields: string[],
+  allowedFields: object | null,
+  overrideFields: { _id?: string }
+): (object | null) | undefined {
   if (desiredFields != null && !Array.isArray(desiredFields)) {
     throw new TypeError('expected nullable array for desiredFields');
   }
@@ -91,4 +98,4 @@ function resolveFields(desiredFields: string[], allowedFields: object | null, ov
   return projection;
 }
 
-module.exports = resolveFields;
+export default resolveFields;

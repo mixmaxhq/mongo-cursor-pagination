@@ -1,7 +1,7 @@
-import _ = require('underscore');
+import _ from 'underscore';
 
-import config = require('./config');
-const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
+import config from './config';
+import { encode, decode } from './utils/bsonUrlEncoding';
 
 import { Collection } from 'mongodb';
 
@@ -24,9 +24,13 @@ import { Collection } from 'mongodb';
  *    -next {String} The value to start querying the page. Defaults to start at the beginning of
  *      the results.
  */
-module.exports = async function (collection: Collection | any, searchString: string, params: QueryParams): Promise<PaginationResponse> {
+export default async (
+  collection: Collection | any,
+  searchString: string,
+  params: QueryParams
+): Promise<PaginationResponse> => {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
-  if (params.next) params.next = bsonUrlEncoding.decode(params.next);
+  if (params.next) params.next = decode(params.next);
 
   params = _.defaults(params, {
     query: {},
@@ -90,7 +94,7 @@ module.exports = async function (collection: Collection | any, searchString: str
     $limit: params.limit,
   });
 
-  let response: { results: any; next?: any; };
+  let response: { results: any; next?: any };
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
@@ -102,7 +106,7 @@ module.exports = async function (collection: Collection | any, searchString: str
   if (fullPageOfResults) {
     response = {
       results,
-      next: bsonUrlEncoding.encode([_.last(results).score, _.last(results)._id]),
+      next: encode([_.last(results).score, _.last(results)._id]),
     };
   } else {
     response = {
