@@ -1,10 +1,12 @@
-const _ = require('underscore');
+import { Collection } from 'mongodb';
+import _ = require('underscore');
+import { AggregateParams } from '../types/AggregateParams';
 
 const config = require('../config');
 const bsonUrlEncoding = require('./bsonUrlEncoding');
 const getPropertyViaDotNotation = require('./getPropertyViaDotNotation');
 
-module.exports = async function sanitizeParams(collection, params) {
+module.exports = async function sanitizeParams(collection: Collection | any, params: QueryParams | AggregateParams): Promise<QueryParams | AggregateParams> {
   if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 

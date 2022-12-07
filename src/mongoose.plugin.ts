@@ -15,9 +15,9 @@ const search = require('./search');
 module.exports = function (schema: Schema, options: Options) {
   /**
    * paginate function
-   * @param {PaginationParams} params required parameter
+   * @param {QueryParams} params required parameter
    */
-  const findFn = function (params: PaginationParams) {
+  const findFn = function (params: QueryParams) {
     if (!this.collection) {
       throw new Error('collection property not found');
     }

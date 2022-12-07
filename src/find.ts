@@ -1,9 +1,10 @@
-const _ = require('underscore');
+import _ = require('underscore');
 
 const aggregate = require('./aggregate');
 const config = require('./config');
 const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
 const sanitizeParams = require('./utils/sanitizeParams');
+import { Collection } from 'mongodb';
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -11,7 +12,7 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
  *    or the mongoist package's `db.collection(<collectionName>)` method.
- * @param {PaginationParams} params
+ * @param {QueryParams} params
  *    -query {Object} The find query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
@@ -35,11 +36,11 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *    -hint {String} An optional index hint to provide to the mongo query
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function (collection: any, params: PaginationParams) {
+module.exports = async function (collection: Collection | any, params: QueryParams): Promise<PaginationResponse> {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
-  let response = {};
+  let response = {} as PaginationResponse;
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
     response = aggregate(

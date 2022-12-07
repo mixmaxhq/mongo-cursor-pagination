@@ -1,8 +1,10 @@
+import { AggregateParams } from "../types/AggregateParams";
+
 const objectPath = require('object-path');
 
 const bsonUrlEncoding = require('./bsonUrlEncoding');
 
-function buildCursor(doc: { _id: any; }, params: PaginationParams, shouldSecondarySortOnId: boolean) {
+function buildCursor(doc: { _id: any; }, params: QueryParams | AggregateParams, shouldSecondarySortOnId: boolean): string {
   let nextPaginatedField = objectPath.get(doc, params.paginatedField);
 
   if (params.sortCaseInsensitive) {
@@ -19,7 +21,7 @@ function buildCursor(doc: { _id: any; }, params: PaginationParams, shouldSeconda
  *
  * NOTE: this function modifies the passed-in `response` argument directly.
  *
- * @param      {PaginationParams}  params
+ * @param      {QueryParams | AggregateParams}  params
  *   @param      {String}  paginatedField
  *   @param      {boolean} sortCaseInsensitive
  *
@@ -29,7 +31,7 @@ function buildCursor(doc: { _id: any; }, params: PaginationParams, shouldSeconda
  *
  * @returns void
  */
-function encodePaginationTokens(params: PaginationParams, response: { results?: any; previous: any; hasPrevious?: boolean; next: any; hasNext?: boolean; }) {
+function encodePaginationTokens(params: QueryParams | AggregateParams, response: PaginationResponse): void {
   const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
   if (response.previous) {
@@ -46,11 +48,11 @@ module.exports = {
    * contain the various pagination properties
    *
    * @param {Object[]} results the results from a query
-   * @param {PaginationParams} params The params originally passed to `find` or `aggregate`
+   * @param {QueryParams | AggregateParams} params The params originally passed to `find` or `aggregate`
    *
    * @return {Object} The object containing pagination properties
    */
-  prepareResponse(results: any[], params: PaginationParams) {
+  prepareResponse(results: any[], params: QueryParams | AggregateParams): PaginationResponse {
     const hasMore = results.length > params.limit;
     const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
@@ -86,11 +88,11 @@ module.exports = {
   /**
    * Generates a `$sort` object given the parameters
    *
-   * @param {Object} params The params originally passed to `find` or `aggregate`
+   * @param {QueryParams | AggregateParams} params The params originally passed to `find` or `aggregate`
    *
    * @return {Object} a sort object
    */
-  generateSort(params: { sortAscending: any; previous: any; paginatedField: string; sortCaseInsensitive: any; }) {
+  generateSort(params: QueryParams | AggregateParams): object {
     const sortAsc =
       (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
     const sortDir = sortAsc ? 1 : -1;
@@ -115,7 +117,7 @@ module.exports = {
    *
    * @return {Object} a cursor offset query
    */
-  generateCursorQuery(params: PaginationParams) {
+  generateCursorQuery(params: QueryParams | AggregateParams): object {
     if (!params.next && !params.previous) return {};
 
     const sortAsc =

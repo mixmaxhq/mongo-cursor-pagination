@@ -1,4 +1,4 @@
-module.exports = function getPropertyViaDotNotation(propertyName: string, object: object) {
+module.exports = function getPropertyViaDotNotation(propertyName: string, object: object): object {
   const parts = propertyName.split('.');
 
   let prop = object;

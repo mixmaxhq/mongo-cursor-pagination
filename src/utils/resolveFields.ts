@@ -1,5 +1,5 @@
-const { ProjectionFieldSet } = require('projection-utils');
-const _ = require('underscore');
+import { ProjectionFieldSet } from 'projection-utils';
+import _ = require('underscore');
 
 /**
  * Produce a ProjectionFieldSet from the given mongo projection, after validating it to ensure it
@@ -9,7 +9,7 @@ const _ = require('underscore');
  * @param {Boolean=} includeIdDefault Whether to include _id by default (mongo's default behavior).
  * @returns {ProjectionFieldSet} The synthesized field set.
  */
-function fieldsFromMongo(projection = {}, includeIdDefault = false) {
+function fieldsFromMongo(projection: object = {}, includeIdDefault: boolean = false): ProjectionFieldSet {
   const fields = _.reduce(
     projection,
     (memo, value, key) => {
@@ -39,7 +39,7 @@ function fieldsFromMongo(projection = {}, includeIdDefault = false) {
  *   always be configured as specified.
  * @returns {?Object<String, *>=} The resolved fields declaration.
  */
-function resolveFields(desiredFields, allowedFields, overrideFields) {
+function resolveFields(desiredFields: string[], allowedFields: object | null, overrideFields: object | any): (object | null) | undefined {
   if (desiredFields != null && !Array.isArray(desiredFields)) {
     throw new TypeError('expected nullable array for desiredFields');
   }

@@ -3,6 +3,8 @@ import _ = require('underscore');
 import config = require('./config');
 const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
 
+import { Collection } from 'mongodb';
+
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from
  * find() in that the results are ordered by their relevancy, and as such, it does not take
@@ -14,7 +16,7 @@ const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    $text index on it.
  *    See https://docs.mongodb.com/manual/core/index-text/.
  * @param {String} searchString String to search on.
- * @param {PaginationParams} params
+ * @param {QueryParams} params
  *    -query {Object} The find query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {title :1}.
@@ -22,7 +24,7 @@ const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    -next {String} The value to start querying the page. Defaults to start at the beginning of
  *      the results.
  */
-module.exports = async function (collection: any, searchString: string, params: PaginationParams) {
+module.exports = async function (collection: Collection | any, searchString: string, params: QueryParams): Promise<PaginationResponse> {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = bsonUrlEncoding.decode(params.next);
 

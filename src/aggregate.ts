@@ -1,4 +1,6 @@
-const _ = require('underscore');
+import _ = require('underscore');
+import { Collection } from 'mongodb';
+import { AggregateParams } from './types/AggregateParams';
 
 const config = require('./config');
 const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
@@ -20,7 +22,7 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's
  *    or the mongoist package's `db.collection(<collectionName>)` method.
- * @param {Object} params
+ * @param {AggregateParams} params
  *    -aggregation {Object[]} The aggregation query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
  *    -paginatedField {String} The field name to query the range for. The field must be:
@@ -42,7 +44,7 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *    -options {Object} Aggregation options
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function aggregate(collection, params) {
+module.exports = async function aggregate(collection: Collection | any, params: AggregateParams): Promise<PaginationResponse> {
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
 
   const $match = generateCursorQuery(params);
