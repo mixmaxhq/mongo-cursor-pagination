@@ -7,7 +7,7 @@ import search from './search';
 import { encodePaginationTokens } from './utils/query';
 import sanitizeQuery from './utils/sanitizeQuery';
 
-export default {
+export {
   config,
   find,
   findWithReq,

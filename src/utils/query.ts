@@ -1,5 +1,5 @@
 import objectPath from 'object-path';
-import { Document } from 'bson';
+
 import { AggregateParams, QueryParams, PaginationResponse } from '../types';
 
 import { encode } from './bsonUrlEncoding';
