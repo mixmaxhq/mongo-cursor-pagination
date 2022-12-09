@@ -1,5 +1,5 @@
 import base64url from 'base64-url';
-import { EJSON } from 'bson';
+import { EJSON, Document } from 'bson';
 
 // BSON can't encode undefined values, so we will use this value instead:
 const BSON_UNDEFINED = '__mixmax__undefined__';
@@ -14,8 +14,8 @@ export const encode = (obj: object): string => {
   return base64url.encode(EJSON.stringify(obj));
 };
 
-export const decode = (str: string): object | undefined => {
-  const obj = EJSON.parse(base64url.decode(str));
+export const decode = (str: string): Document | string | undefined => {
+  const obj = EJSON.parse(base64url.decode(str), { relaxed: true });
   if (Array.isArray(obj) && obj[0] === BSON_UNDEFINED) obj[0] = undefined;
-  return obj;
+  return obj as Document;
 };

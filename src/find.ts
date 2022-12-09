@@ -4,6 +4,7 @@ import aggregate from './aggregate';
 import config from './config';
 import { prepareResponse, generateSort, generateCursorQuery } from './utils/query';
 import sanitizeParams from './utils/sanitizeParams';
+import { QueryParams, PaginationResponse } from './types';
 import { Collection } from 'mongodb';
 
 /**
@@ -46,7 +47,7 @@ export default async (
   let response = {} as PaginationResponse;
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
-    response = aggregate(
+    response = await aggregate(
       collection,
       Object.assign({}, params, {
         aggregation: params.query ? [{ $match: params.query }] : [],

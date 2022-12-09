@@ -1,6 +1,5 @@
-import { Query } from 'mongoose';
 import _ from 'underscore';
-
+import { QueryParams } from '../types';
 import resolveFields from './resolveFields';
 
 /**

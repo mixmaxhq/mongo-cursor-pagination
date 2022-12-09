@@ -1,4 +1,4 @@
-type Options = {
-  name: string,
-  searchFnName: string
-}
+export type Options = {
+  name: string;
+  searchFnName: string;
+};

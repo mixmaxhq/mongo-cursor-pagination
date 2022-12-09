@@ -1,6 +1,6 @@
 import { Collection } from 'mongodb';
 import _ from 'underscore';
-import { AggregateParams } from '../types/AggregateParams';
+import { AggregateInputParams, AggregateParams, QueryInputParams, QueryParams } from '../types';
 
 import config from '../config';
 import { decode } from './bsonUrlEncoding';
@@ -8,10 +8,10 @@ import getPropertyViaDotNotation from './getPropertyViaDotNotation';
 
 export default async (
   collection: Collection | any,
-  params: QueryParams | AggregateParams
+  params: QueryInputParams | AggregateInputParams
 ): Promise<QueryParams | AggregateParams> => {
-  if (params.previous) params.previous = decode(params.previous);
-  if (params.next) params.next = decode(params.next);
+  if (params.previous) params.previous = decode(params.previous as string);
+  if (params.next) params.next = decode(params.next as string);
 
   params = _.defaults(params, {
     limit: config.DEFAULT_LIMIT,

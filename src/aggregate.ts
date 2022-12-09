@@ -1,10 +1,10 @@
 import _ from 'underscore';
 import { Collection } from 'mongodb';
-import { AggregateParams } from './types/AggregateParams';
 
 import config from './config';
 import { prepareResponse, generateSort, generateCursorQuery } from './utils/query';
 import sanitizeParams from './utils/sanitizeParams';
+import { AggregateParams, PaginationResponse } from './types';
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.

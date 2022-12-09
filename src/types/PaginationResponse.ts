@@ -1,4 +1,4 @@
-type PaginationResponse = {
+export type PaginationResponse = {
   results?: any,
   previous?: any,
   hasPrevious?: boolean,

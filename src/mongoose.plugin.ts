@@ -1,6 +1,7 @@
 import { Query, Schema } from 'mongoose';
 import _ from 'underscore';
 
+import { QueryParams, Options } from './types';
 import find from './find';
 import search from './search';
 
