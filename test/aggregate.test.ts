@@ -1,21 +1,22 @@
-const _ = require('underscore');
-
-const paging = require('../');
-const dbUtils = require('./support/db');
+import _ from 'underscore';
+import { Collection, Db, Document } from 'mongodb';
+import { aggregate, config } from '../src';
+import dbUtils from './support/db';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const driver = process.env.DRIVER;
 
-let mongod;
+let mongod: MongoMemoryServer;
 
 describe('aggregate', () => {
-  const t = {};
+  let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod, driver);
 
     // Set up collections once for testing later.
     await Promise.all([
-      t.db.collection('test_paging').insertMany([
+      db.collection('test_paging').insertMany([
         {
           counter: 1,
         },
@@ -46,7 +47,7 @@ describe('aggregate', () => {
           color: 'blue',
         },
       ]),
-      t.db.collection('test_aggregation').insertMany([
+      db.collection('test_aggregation').insertMany([
         {
           items: [1, 2, 3],
         },
@@ -60,7 +61,7 @@ describe('aggregate', () => {
           items: [2, 4, 5],
         },
       ]),
-      t.db.collection('test_aggregation_lookup').insertMany([
+      db.collection('test_aggregation_lookup').insertMany([
         {
           _id: 1,
           name: 'mercury',
@@ -86,7 +87,7 @@ describe('aggregate', () => {
           name: 'saturn',
         },
       ]),
-      t.db.collection('test_aggregation_lookup').createIndex(
+      db.collection('test_aggregation_lookup').createIndex(
         {
           name: 'text',
         },
@@ -94,7 +95,7 @@ describe('aggregate', () => {
           name: 'test_index',
         }
       ),
-      t.db.collection('test_aggregation_sort').insertMany([
+      db.collection('test_aggregation_sort').insertMany([
         {
           name: 'Alpha',
         },
@@ -114,7 +115,7 @@ describe('aggregate', () => {
           name: 'aleph',
         },
       ]),
-      t.db
+      db
         .collection('test_null_values')
         .insertMany(
           [undefined, undefined, undefined, null, null, 'Alice', 'Bob', 'alpha', 'bravo'].map(
@@ -127,14 +128,14 @@ describe('aggregate', () => {
   afterAll(() => mongod.stop());
 
   beforeEach(() => {
-    paging.config.COLLATION = undefined;
+    config.COLLATION = undefined;
   });
 
   describe('test pagination', () => {
     it('queries the first few pages with next/previous', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 3
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 3,
       });
 
@@ -146,7 +147,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         next: res.next,
       });
@@ -159,7 +160,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward another 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         next: res.next,
       });
@@ -171,7 +172,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(false);
 
       // Now back up 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         previous: res.previous,
       });
@@ -184,7 +185,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         previous: res.previous,
       });
@@ -198,9 +199,9 @@ describe('aggregate', () => {
     });
 
     it('queries the first few pages with after/before', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 3
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 3,
       });
 
@@ -212,7 +213,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         after: res.results[res.results.length - 1]._id,
       });
@@ -225,7 +226,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward another 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         after: res.results[res.results.length - 1]._id,
       });
@@ -237,7 +238,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(false);
 
       // Now back up 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         before: res.results[0]._id,
       });
@@ -250,7 +251,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         before: res.results[0]._id,
       });
@@ -264,9 +265,9 @@ describe('aggregate', () => {
     });
 
     it('handles hitting the end with next/previous', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 2
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 4,
       });
 
@@ -279,7 +280,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 2
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         next: res.next,
       });
@@ -292,7 +293,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward another 1, results be empty.
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 2,
         next: res.next,
       });
@@ -304,9 +305,9 @@ describe('aggregate', () => {
     });
 
     it('handles hitting the end with after/before', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 2
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 4,
       });
 
@@ -319,7 +320,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 2
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         after: res.results[res.results.length - 1]._id,
       });
@@ -332,7 +333,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward another 1, results be empty.
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 2,
         after: res.results[res.results.length - 1]._id,
       });
@@ -344,9 +345,9 @@ describe('aggregate', () => {
     });
 
     it('handles hitting the beginning with next/previous', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 2
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 4,
       });
 
@@ -359,7 +360,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 2
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         next: res.next,
       });
@@ -372,7 +373,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go back to beginning.
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 100,
         previous: res.previous,
       });
@@ -387,9 +388,9 @@ describe('aggregate', () => {
     });
 
     it('handles hitting the beginning with after/before', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 2
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 4,
       });
 
@@ -402,7 +403,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 2
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         after: res.results[res.results.length - 1]._id,
       });
@@ -415,7 +416,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go back to beginning.
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 100,
         before: res.results[0]._id,
       });
@@ -430,9 +431,9 @@ describe('aggregate', () => {
     });
 
     it('uses passed-in simple aggregation', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page.
-      const res = await paging.aggregate(collection, {
+      const res = await aggregate(collection, {
         aggregation: [
           {
             $match: { color: 'blue' },
@@ -447,9 +448,9 @@ describe('aggregate', () => {
     });
 
     it('does not return "next" or "previous" if there are no results', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page.
-      const res = await paging.aggregate(collection, {
+      const res = await aggregate(collection, {
         limit: 3,
         aggregation: [
           {
@@ -464,9 +465,9 @@ describe('aggregate', () => {
     });
 
     it('respects sortAscending option with next/previous', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 3
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 3,
         sortAscending: true,
       });
@@ -479,7 +480,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         next: res.next,
         sortAscending: true,
@@ -493,7 +494,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward another 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         next: res.next,
         sortAscending: true,
@@ -506,7 +507,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(false);
 
       // // Now back up 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         previous: res.previous,
         sortAscending: true,
@@ -520,7 +521,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         previous: res.previous,
         sortAscending: true,
@@ -535,9 +536,9 @@ describe('aggregate', () => {
     });
 
     it('respects sortAscending option with after/before', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       // First page of 3
-      let res = await paging.aggregate(collection, {
+      let res = await aggregate(collection, {
         limit: 3,
         sortAscending: true,
       });
@@ -550,7 +551,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         after: res.results[res.results.length - 1]._id,
         sortAscending: true,
@@ -564,7 +565,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Go forward another 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         after: res.results[res.results.length - 1]._id,
         sortAscending: true,
@@ -577,7 +578,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(false);
 
       // // Now back up 3
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         before: res.results[0]._id,
         sortAscending: true,
@@ -591,7 +592,7 @@ describe('aggregate', () => {
       expect(res.hasNext).toBe(true);
 
       // Now back up 3 more
-      res = await paging.aggregate(collection, {
+      res = await aggregate(collection, {
         limit: 3,
         before: res.results[0]._id,
         sortAscending: true,
@@ -608,9 +609,9 @@ describe('aggregate', () => {
 
   describe('lookup aggregations', () => {
     it('returns results from the aggregation', async () => {
-      const collection = t.db.collection('test_aggregation');
+      const collection = db.collection('test_aggregation');
 
-      const res = await paging.aggregate(collection, {
+      const res = await aggregate(collection, {
         aggregation: [
           {
             $match: {
@@ -652,9 +653,9 @@ describe('aggregate', () => {
 
   describe('sort aggregations', () => {
     it('sorts alphabetically, uppercase first', async () => {
-      const collection = t.db.collection('test_aggregation_sort');
+      const collection = db.collection('test_aggregation_sort');
 
-      const res = await paging.aggregate(collection, {
+      const res = await aggregate(collection, {
         paginatedField: 'name',
         sortAscending: true,
       });
@@ -668,7 +669,7 @@ describe('aggregate', () => {
         'gimel',
       ]);
 
-      const res_localized = await paging.aggregate(collection, {
+      const res_localized = await aggregate(collection, {
         paginatedField: 'name',
         sortAscending: true,
         collation: { locale: 'en' },
@@ -685,7 +686,7 @@ describe('aggregate', () => {
 
       paging.config.COLLATION = { locale: 'en' };
 
-      const res_static_localized = await paging.aggregate(collection, {
+      const res_static_localized = await aggregate(collection, {
         paginatedField: 'name',
         sortAscending: true,
       });
@@ -699,7 +700,7 @@ describe('aggregate', () => {
         'gimel',
       ]);
 
-      const res_excluding_collation = await paging.aggregate(collection, {
+      const res_excluding_collation = await aggregate(collection, {
         paginatedField: 'name',
         sortAscending: true,
         limit: 10,
@@ -718,7 +719,7 @@ describe('aggregate', () => {
   });
 
   describe('aggregation options', () => {
-    let spy;
+    let spy: jest.SpyInstance<any, unknown[]>;
     beforeEach(() => {
       spy = jest.spyOn(paging, 'aggregate');
     });
@@ -728,9 +729,9 @@ describe('aggregate', () => {
     });
 
     it('invokes aggregate with a `hint` if one is passed in via params object', async () => {
-      const collection = t.db.collection('test_aggregation_lookup');
+      const collection = db.collection('test_aggregation_lookup');
 
-      await paging.aggregate(collection, {
+      await aggregate(collection, {
         aggregation: [
           {
             $sort: { name: 1 },
@@ -747,9 +748,9 @@ describe('aggregate', () => {
   });
 
   describe('sorting without collation', () => {
-    let collection;
+    let collection: Collection<Document>;
     beforeAll(() => {
-      collection = t.db.collection('test_aggregation_sort');
+      collection = db.collection('test_aggregation_sort');
     });
 
     describe('without the `sortCaseInsensitive` parameter...', () => {
@@ -759,20 +760,20 @@ describe('aggregate', () => {
         limit: 2,
       };
       it('sorts capital letters first', async () => {
-        const { results: results } = await paging.aggregate(collection, options);
+        const { results: results } = await aggregate(collection, options);
         expect(_.pluck(results, 'name')).toEqual(['Alpha', 'Beta']);
       });
 
       it('sorts null and undefined values at the start', async () => {
-        const collection = t.db.collection('test_null_values');
+        const collection = db.collection('test_null_values');
 
-        const pg1 = await paging.aggregate(collection, { ...options });
+        const pg1 = await aggregate(collection, { ...options });
         expect(pg1.hasNext).toBe(true);
         expect(pg1.hasPrevious).toBe(false);
         expect(_.pluck(pg1.results, 'name')).toEqual([undefined, undefined]);
         expect(_.pluck(pg1.results, '_id')).toEqual([1, 2]);
 
-        const pg2 = await paging.aggregate(collection, {
+        const pg2 = await aggregate(collection, {
           ...options,
           next: pg1.next,
         });
@@ -781,7 +782,7 @@ describe('aggregate', () => {
         expect(_.pluck(pg2.results, 'name')).toEqual([undefined, null]);
         expect(_.pluck(pg2.results, '_id')).toEqual([3, 4]);
 
-        const pg3 = await paging.aggregate(collection, {
+        const pg3 = await aggregate(collection, {
           ...options,
           next: pg2.next,
         });
@@ -790,7 +791,7 @@ describe('aggregate', () => {
         expect(_.pluck(pg3.results, 'name')).toEqual([null, 'Alice']);
         expect(_.pluck(pg3.results, '_id')).toEqual([5, 6]);
 
-        const pg4 = await paging.aggregate(collection, {
+        const pg4 = await aggregate(collection, {
           ...options,
           next: pg3.next,
         });
@@ -799,7 +800,7 @@ describe('aggregate', () => {
         expect(_.pluck(pg4.results, 'name')).toEqual(['Bob', 'alpha']);
         expect(_.pluck(pg4.results, '_id')).toEqual([7, 8]);
 
-        const pg3b = await paging.aggregate(collection, {
+        const pg3b = await aggregate(collection, {
           ...options,
           previous: pg4.previous,
         });
@@ -809,7 +810,7 @@ describe('aggregate', () => {
         expect(pg3b.previous).toEqual(pg3.previous);
         expect(pg3b.results).toEqual(pg3.results);
 
-        const pg2b = await paging.aggregate(collection, {
+        const pg2b = await aggregate(collection, {
           ...options,
           previous: pg3.previous,
         });
@@ -819,7 +820,7 @@ describe('aggregate', () => {
         expect(pg2b.previous).toEqual(pg2.previous);
         expect(pg2b.results).toEqual(pg2.results);
 
-        const pg1b = await paging.aggregate(collection, {
+        const pg1b = await aggregate(collection, {
           ...options,
           previous: pg2.previous,
         });
@@ -840,24 +841,24 @@ describe('aggregate', () => {
       };
 
       it('sorts case-insensitively', async () => {
-        const r = await paging.aggregate(collection, { ...options });
+        const r = await aggregate(collection, { ...options });
         expect(_.pluck(r.results, 'name')).toEqual(['aleph', 'Alpha']);
         expect(r.hasNext).toBe(true);
         expect(r.hasPrevious).toBe(false);
       });
 
       it('returns the paginated field but not the temporary __lc field', async () => {
-        const r = await paging.aggregate(collection, { ...options });
+        const r = await aggregate(collection, { ...options });
         expect('name' in r.results[0]).toBe(true);
         expect('__lc' in r.results[0]).toBe(false);
       });
 
       it('pages correctly forward and backward', async () => {
-        const { next } = await paging.aggregate(collection, { ...options });
-        const pg2 = await paging.aggregate(collection, { ...options, next });
+        const { next } = await aggregate(collection, { ...options });
+        const pg2 = await aggregate(collection, { ...options, next });
         expect(_.pluck(pg2.results, 'name')).toEqual(['bet', 'Beta']);
         expect(pg2.hasPrevious).toBe(true);
-        const pg1 = await paging.aggregate(collection, { ...options, previous: pg2.previous });
+        const pg1 = await aggregate(collection, { ...options, previous: pg2.previous });
         expect(_.pluck(pg1.results, 'name')).toEqual(['aleph', 'Alpha']);
         expect(pg1.hasNext).toBe(true);
         expect(pg1.hasPrevious).toBe(false);
@@ -865,15 +866,15 @@ describe('aggregate', () => {
       });
 
       it('sorts null and undefined values at the start', async () => {
-        const collection = t.db.collection('test_null_values');
+        const collection = db.collection('test_null_values');
 
-        const pg1 = await paging.aggregate(collection, { ...options });
+        const pg1 = await aggregate(collection, { ...options });
         expect(pg1.hasNext).toBe(true);
         expect(pg1.hasPrevious).toBe(false);
         expect(_.pluck(pg1.results, 'name')).toEqual([undefined, undefined]);
         expect(_.pluck(pg1.results, '_id')).toEqual([1, 2]);
 
-        const pg2 = await paging.aggregate(collection, {
+        const pg2 = await aggregate(collection, {
           ...options,
           next: pg1.next,
         });
@@ -882,7 +883,7 @@ describe('aggregate', () => {
         expect(_.pluck(pg2.results, 'name')).toEqual([undefined, null]);
         expect(_.pluck(pg2.results, '_id')).toEqual([3, 4]);
 
-        const pg3 = await paging.aggregate(collection, {
+        const pg3 = await aggregate(collection, {
           ...options,
           next: pg2.next,
         });
@@ -891,7 +892,7 @@ describe('aggregate', () => {
         expect(_.pluck(pg3.results, 'name')).toEqual([null, 'Alice']);
         expect(_.pluck(pg3.results, '_id')).toEqual([5, 6]);
 
-        const pg4 = await paging.aggregate(collection, {
+        const pg4 = await aggregate(collection, {
           ...options,
           next: pg3.next,
         });
@@ -900,7 +901,7 @@ describe('aggregate', () => {
         expect(_.pluck(pg4.results, 'name')).toEqual(['alpha', 'Bob']);
         expect(_.pluck(pg4.results, '_id')).toEqual([8, 7]);
 
-        const pg3b = await paging.aggregate(collection, {
+        const pg3b = await aggregate(collection, {
           ...options,
           previous: pg4.previous,
         });
@@ -910,7 +911,7 @@ describe('aggregate', () => {
         expect(pg3b.previous).toEqual(pg3.previous);
         expect(pg3b.results).toEqual(pg3.results);
 
-        const pg2b = await paging.aggregate(collection, {
+        const pg2b = await aggregate(collection, {
           ...options,
           previous: pg3.previous,
         });
@@ -920,7 +921,7 @@ describe('aggregate', () => {
         expect(pg2b.previous).toEqual(pg2.previous);
         expect(pg2b.results).toEqual(pg2.results);
 
-        const pg1b = await paging.aggregate(collection, {
+        const pg1b = await aggregate(collection, {
           ...options,
           previous: pg2.previous,
         });

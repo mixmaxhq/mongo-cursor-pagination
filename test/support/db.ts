@@ -1,14 +1,14 @@
-const { MongoClient } = require('mongodb');
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const mongoist = require('mongoist');
+import { MongoClient, Db } from 'mongodb';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoist from 'mongoist';
 
-async function start() {
+async function start(): Promise<MongoMemoryServer> {
   return MongoMemoryServer.create({
     binary: { version: '5.0.11' },
   });
 }
 
-async function db(mongod, driver = null) {
+async function db(mongod: { getUri: () => any }, driver: string = ''): Promise<Db> {
   const uri = mongod.getUri();
   if (driver === 'mongoist') {
     return mongoist(uri);
@@ -19,7 +19,7 @@ async function db(mongod, driver = null) {
   return database;
 }
 
-module.exports = {
+export default {
   db,
   start,
 };

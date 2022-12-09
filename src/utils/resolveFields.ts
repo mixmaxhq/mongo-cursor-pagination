@@ -43,9 +43,9 @@ function fieldsFromMongo(
  * @returns {?Object<String, *>=} The resolved fields declaration.
  */
 function resolveFields(
-  desiredFields: string[],
-  allowedFields: object | null,
-  overrideFields: { _id?: string }
+  desiredFields?: string[],
+  allowedFields?: object | null,
+  overrideFields?: { [key: string]: string | number }
 ): (object | null) | undefined {
   if (desiredFields != null && !Array.isArray(desiredFields)) {
     throw new TypeError('expected nullable array for desiredFields');

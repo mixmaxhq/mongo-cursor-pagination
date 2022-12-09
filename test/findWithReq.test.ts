@@ -1,19 +1,20 @@
-const _ = require('underscore');
-
-const paging = require('../');
-const dbUtils = require('./support/db');
+import _ from 'underscore';
+import { Db } from 'mongodb';
+import { findWithReq } from '../src';
+import dbUtils from './support/db';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const driver = process.env.DRIVER;
 
 describe('findWithReq', () => {
-  let mongod;
-  const t = {};
+  let mongod: MongoMemoryServer;
+  let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod, driver);
 
     await Promise.all([
-      t.db.collection('test_paging').insertMany([
+      db.collection('test_paging').insertMany([
         {
           counter: 1,
           myfield1: 'a',
@@ -35,7 +36,7 @@ describe('findWithReq', () => {
           myfield2: 'b',
         },
       ]),
-      t.db.collection('test_paging_fields').insertOne({
+      db.collection('test_paging_fields').insertOne({
         obj: {
           one: 1,
           two: {
@@ -56,7 +57,7 @@ describe('findWithReq', () => {
 
   describe('basic usage', () => {
     it('queries first few pages', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       const fields = {
         counter: 1,
         myfield1: 1,
@@ -64,7 +65,7 @@ describe('findWithReq', () => {
       };
 
       // First page of 2
-      let res = await paging.findWithReq(
+      let res = await findWithReq(
         {
           query: {
             limit: '2',
@@ -90,7 +91,7 @@ describe('findWithReq', () => {
       expect(res.hasNext).toEqual(true);
 
       // Go forward 1
-      res = await paging.findWithReq(
+      res = await findWithReq(
         {
           query: {
             limit: '1',
@@ -112,7 +113,7 @@ describe('findWithReq', () => {
       expect(res.hasNext).toEqual(true);
 
       // Now back up 1
-      res = await paging.findWithReq(
+      res = await findWithReq(
         {
           query: {
             previous: res.previous,
@@ -136,8 +137,8 @@ describe('findWithReq', () => {
     });
 
     it('does not query more fields than allowed', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '1',
@@ -160,8 +161,8 @@ describe('findWithReq', () => {
     });
 
     it('allows a request to specify fields if not otherwise specified', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '1',
@@ -180,8 +181,8 @@ describe('findWithReq', () => {
     });
 
     it('does not allow a limit to be specified that is higher than params.limit', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '2',
@@ -197,8 +198,8 @@ describe('findWithReq', () => {
     });
 
     it('handles empty values', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '',
@@ -221,8 +222,8 @@ describe('findWithReq', () => {
     });
 
     it('handles bad value for limit', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: 'aaa',
@@ -245,8 +246,8 @@ describe('findWithReq', () => {
 
   describe('fields', () => {
     it('picks fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one,obj.four.five',
@@ -274,8 +275,8 @@ describe('findWithReq', () => {
     });
 
     it('works without fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one,obj.four.five',
@@ -298,8 +299,8 @@ describe('findWithReq', () => {
     });
 
     it('picks fields when nested', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.four.five',
@@ -326,8 +327,8 @@ describe('findWithReq', () => {
     });
 
     it('disallows properties that are not defined', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.four.five,obj2',
@@ -353,8 +354,8 @@ describe('findWithReq', () => {
     });
 
     it('picks exact fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj',
@@ -385,8 +386,8 @@ describe('findWithReq', () => {
     });
 
     it('picks exact subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one,obj.four.five',
@@ -414,8 +415,8 @@ describe('findWithReq', () => {
     });
 
     it('does not allow a broader scoping of fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj',
@@ -437,8 +438,8 @@ describe('findWithReq', () => {
     });
 
     it('does not allow a broader scoping of subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.two,obj.four,obj2',
@@ -470,8 +471,8 @@ describe('findWithReq', () => {
     });
 
     it('picks exact subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one',

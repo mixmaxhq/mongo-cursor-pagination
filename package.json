@@ -53,6 +53,7 @@
     "@mixmaxhq/prettier-config": "^1.1.0",
     "@mixmaxhq/semantic-release-config": "github:mixmaxhq/semantic-release-config",
     "@types/base64-url": "^2.2.0",
+    "@types/jest": "^29.2.4",
     "@types/node": "^18.11.12",
     "@types/object-path": "^0.11.1",
     "@types/underscore": "^1.11.4",

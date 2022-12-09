@@ -1,7 +1,7 @@
 import find from './find';
 import sanitizeQuery from './utils/sanitizeQuery';
 import { Collection } from 'mongodb';
-import { QueryParams } from './types';
+import { QueryParams, PaginationResponse } from './types';
 
 /**
  * A wrapper around `find()` that make it easy to implement a basic HTTP API using Express. So your
@@ -23,7 +23,11 @@ import { QueryParams } from './types';
  *      {_id: 0} or {internalField: 1}. We only support field exclusion for _id, as we expect whitelists
  *      for fields from both params.fields and params.overrideFields.
  */
-export default (req: { query: any }, collection: Collection | any, params: QueryParams) => {
+export default (
+  req: { query: any },
+  collection: Collection | any,
+  params: QueryParams
+): Promise<PaginationResponse> => {
   params = sanitizeQuery(req.query, params);
 
   return find(collection, params);
