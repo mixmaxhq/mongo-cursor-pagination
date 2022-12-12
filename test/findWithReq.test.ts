@@ -79,14 +79,18 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(2);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-        myfield1: 'a',
-      });
-      expect(res.results[1]).toEqual({
-        counter: 3,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+          myfield1: 'a',
+        })
+      );
+      expect(res.results[1]).toEqual(
+        expect.objectContaining({
+          counter: 3,
+          myfield1: 'a',
+        })
+      );
       expect(res.hasPrevious).toEqual(false);
       expect(res.hasNext).toEqual(true);
 
@@ -105,10 +109,12 @@ describe('findWithReq', () => {
         }
       );
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 2,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 2,
+          myfield1: 'a',
+        })
+      );
       expect(res.hasPrevious).toEqual(true);
       expect(res.hasNext).toEqual(true);
 
@@ -128,10 +134,12 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 3,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 3,
+          myfield1: 'a',
+        })
+      );
       expect(res.hasPrevious).toEqual(true);
       expect(res.hasNext).toEqual(true);
     });
@@ -155,9 +163,11 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+        })
+      );
     });
 
     it('allows a request to specify fields if not otherwise specified', async () => {
@@ -174,10 +184,12 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+          myfield1: 'a',
+        })
+      );
     });
 
     it('does not allow a limit to be specified that is higher than params.limit', async () => {
@@ -214,11 +226,13 @@ describe('findWithReq', () => {
 
       expect(res.results.length).toEqual(4);
       expect(res.results[0]._id).toBeTruthy();
-      expect(_.omit(res.results[0], '_id')).toEqual({
-        counter: 4,
-        myfield1: 'a',
-        myfield2: 'b',
-      });
+      expect(_.omit(res.results[0], '_id')).toEqual(
+        expect.objectContaining({
+          counter: 4,
+          myfield1: 'a',
+          myfield2: 'b',
+        })
+      );
     });
 
     it('handles bad value for limit', async () => {
@@ -238,9 +252,11 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(4);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+        })
+      );
     });
   });
 
@@ -262,16 +278,18 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('works without fields', async () => {
@@ -286,16 +304,18 @@ describe('findWithReq', () => {
         {}
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('picks fields when nested', async () => {
@@ -315,15 +335,17 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('disallows properties that are not defined', async () => {
@@ -342,15 +364,17 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('picks exact fields', async () => {
@@ -369,20 +393,22 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          two: {
-            three: 3,
-          },
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            two: {
+              three: 3,
             },
-            seven: 7,
+            four: {
+              five: {
+                six: 6,
+              },
+              seven: 7,
+            },
           },
-        },
-      });
+        })
+      );
     });
 
     it('picks exact subfields', async () => {
@@ -402,16 +428,18 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('does not allow a broader scoping of fields', async () => {
@@ -430,11 +458,13 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-        },
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+          },
+        })
+      );
     });
 
     it('does not allow a broader scoping of subfields', async () => {
@@ -455,19 +485,21 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          two: {
-            three: 3,
-          },
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            two: {
+              three: 3,
+            },
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-        obj2: 1,
-      });
+          obj2: 1,
+        })
+      );
     });
 
     it('picks exact subfields', async () => {
@@ -486,11 +518,13 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-        },
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+          },
+        })
+      );
     });
   });
 });

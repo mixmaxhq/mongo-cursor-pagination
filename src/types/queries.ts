@@ -47,3 +47,10 @@ export type QueryParams = BaseParams & Query;
 
 export type AggregateInputParams = BaseParams & AggregateInput;
 export type AggregateParams = BaseParams & Aggregate;
+
+export type SearchParams {
+  query?: object;
+  limit?: number;
+  fields?: object;
+  next?: string | Document;
+}

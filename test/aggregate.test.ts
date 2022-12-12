@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { Collection, Db, Document } from 'mongodb';
+import { Collection, Db, Document, ObjectId } from 'mongodb';
 import { aggregate, config } from '../src';
 import dbUtils from './support/db';
 import { MongoMemoryServer } from 'mongodb-memory-server';
@@ -63,27 +63,27 @@ describe('aggregate', () => {
       ]),
       db.collection('test_aggregation_lookup').insertMany([
         {
-          _id: 1,
+          _id: new ObjectId(),
           name: 'mercury',
         },
         {
-          _id: 2,
+          _id: new ObjectId(),
           name: 'venus',
         },
         {
-          _id: 3,
+          _id: new ObjectId(),
           name: 'earth',
         },
         {
-          _id: 4,
+          _id: new ObjectId(),
           name: 'mars',
         },
         {
-          _id: 5,
+          _id: new ObjectId(),
           name: 'jupiter',
         },
         {
-          _id: 6,
+          _id: new ObjectId(),
           name: 'saturn',
         },
       ]),
@@ -684,7 +684,7 @@ describe('aggregate', () => {
         'gimel',
       ]);
 
-      paging.config.COLLATION = { locale: 'en' };
+      config.COLLATION = { locale: 'en' };
 
       const res_static_localized = await aggregate(collection, {
         paginatedField: 'name',

@@ -2,7 +2,7 @@ import _ from 'underscore';
 
 import config from './config';
 import { encode, decode } from './utils/bsonUrlEncoding';
-import { QueryParams, PaginationResponse } from './types';
+import { SearchParams, PaginationResponse } from './types';
 import { Collection } from 'mongodb';
 
 /**
@@ -27,7 +27,7 @@ import { Collection } from 'mongodb';
 export default async (
   collection: Collection | any,
   searchString: string,
-  params: QueryParams
+  params: SearchParams
 ): Promise<PaginationResponse> => {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = decode(params.next as string);

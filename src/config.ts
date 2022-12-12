@@ -11,5 +11,5 @@ export default {
    */
   DEFAULT_LIMIT: 50,
 
-  COLLATION: { locale: 'en' } as CollationOptions,
+  COLLATION: { locale: 'en' } as CollationOptions | undefined,
 };

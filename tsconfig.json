@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
     "module": "commonjs",
     "lib": ["es2015", "es2016", "es2017"],
     "moduleResolution": "node",
-    "skipLibCheck": true,
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "resolveJsonModule": true,
@@ -19,5 +19,5 @@
     "esModuleInterop": true
   },
   "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "src/**/*.test.js"]
+  "exclude": ["node_modules", "dist", "src/**/*.test.js"]
 }

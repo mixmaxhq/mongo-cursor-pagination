@@ -1,4 +1,4 @@
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { search } from '../src';
 import dbUtils from './support/db';
@@ -64,32 +64,32 @@ describe('search', () => {
       ]),
       db.collection('test_duplicate_search').insertMany([
         {
-          _id: 6,
+          _id: new ObjectId(),
           mytext: 'one',
           counter: 1,
         },
         {
-          _id: 5,
+          _id: new ObjectId(),
           mytext: 'one',
           counter: 2,
         },
         {
-          _id: 4,
+          _id: new ObjectId(),
           mytext: 'one',
           counter: 3,
         },
         {
-          _id: 3,
+          _id: new ObjectId(),
           mytext: 'one two',
           counter: 4,
         },
         {
-          _id: 2,
+          _id: new ObjectId(),
           mytext: 'one two',
           counter: 5,
         },
         {
-          _id: 1,
+          _id: new ObjectId(),
           mytext: 'one two',
           counter: 6,
         },

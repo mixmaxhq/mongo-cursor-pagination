@@ -1,9 +1,21 @@
 import { Query, Schema } from 'mongoose';
 import _ from 'underscore';
 
-import { QueryParams, Options } from './types';
+import { QueryParams, SearchParams, Options, PaginationResponse } from './types';
 import find from './find';
 import search from './search';
+
+declare module 'mongoose' {
+  interface Model<
+    T /* eslint-disable-line */,
+    TQueryHelpers = {} /* eslint-disable-line */,
+    TMethodsAndOverrides = {} /* eslint-disable-line */,
+    TVirtuals = {} /* eslint-disable-line */
+  > {
+    paginate(params: QueryParams): Promise<PaginationResponse>;
+    search(searchString: string, params: SearchParams): Promise<PaginationResponse>;
+  }
+}
 
 /**
  * Mongoose plugin
@@ -18,7 +30,7 @@ export default (schema: Schema, options: Options) => {
    * paginate function
    * @param {QueryParams} params required parameter
    */
-  const findFn = function (params: QueryParams) {
+  const findFn = async function (params: QueryParams): Promise<PaginationResponse> {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
@@ -39,7 +51,10 @@ export default (schema: Schema, options: Options) => {
    * @param {String} searchString String to search on. Required parameter
    * @param {Object} params
    */
-  const searchFn = function (searchString: string, params: object) {
+  const searchFn = async function (
+    searchString: string,
+    params: SearchParams
+  ): Promise<PaginationResponse> {
     if (!this.collection) {
       throw new Error('collection property not found');
     }

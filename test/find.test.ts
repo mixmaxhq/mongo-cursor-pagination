@@ -50,32 +50,32 @@ describe('find', () => {
       ]),
       db.collection('test_duplicate_custom_fields').insertMany([
         {
-          _id: 6,
+          _id: new ObjectId(),
           counter: 6,
           timestamp: 1477347800603,
         },
         {
-          _id: 5,
+          _id: new ObjectId(),
           counter: 5,
           timestamp: 1477347800603,
         },
         {
-          _id: 4,
+          _id: new ObjectId(),
           counter: 4,
           timestamp: 1477347800603,
         },
         {
-          _id: 3,
+          _id: new ObjectId(),
           counter: 3,
           timestamp: 1477347772077,
         },
         {
-          _id: 2,
+          _id: new ObjectId(),
           counter: 2,
           timestamp: 1477347772077,
         },
         {
-          _id: 1,
+          _id: new ObjectId(),
           counter: 1,
           timestamp: 1477347772077,
         },
