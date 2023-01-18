@@ -2,10 +2,12 @@ import { ObjectId } from 'mongoist';
 import { Collection, Db, Document } from 'mongodb';
 import _ from 'underscore';
 
-import { find, aggregate, config } from '../src';
+import { find, config } from '../src';
 import dbUtils from './support/db';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 const driver = process.env.DRIVER;
+
+import { decode } from '../src/utils/bsonUrlEncoding';
 
 let mongod: MongoMemoryServer;
 
@@ -48,38 +50,41 @@ describe('find', () => {
           color: 'blue',
         },
       ]),
-      db.collection('test_duplicate_custom_fields').insertMany([
-        {
-          _id: new ObjectId(),
-          counter: 6,
-          timestamp: 1477347800603,
-        },
-        {
-          _id: new ObjectId(),
-          counter: 5,
-          timestamp: 1477347800603,
-        },
-        {
-          _id: new ObjectId(),
-          counter: 4,
-          timestamp: 1477347800603,
-        },
-        {
-          _id: new ObjectId(),
-          counter: 3,
-          timestamp: 1477347772077,
-        },
-        {
-          _id: new ObjectId(),
-          counter: 2,
-          timestamp: 1477347772077,
-        },
-        {
-          _id: new ObjectId(),
-          counter: 1,
-          timestamp: 1477347772077,
-        },
-      ]),
+
+      db.collection('test_duplicate_custom_fields').insertMany(
+        [
+          {
+            counter: 6,
+            timestamp: 1477347800603,
+          },
+          {
+            counter: 5,
+            timestamp: 1477347800603,
+          },
+          {
+            counter: 4,
+            timestamp: 1477347800603,
+          },
+          {
+            counter: 3,
+            timestamp: 1477347772077,
+          },
+          {
+            counter: 2,
+            timestamp: 1477347772077,
+          },
+          {
+            counter: 1,
+            timestamp: 1477347772077,
+          },
+        ]
+          .reverse()
+          // the returnable order when queried on duplicate values is as above. Prior adding the
+          // objectId, reverse the fields, which means that the counter: 6 will have the latest
+          // objectId (as secondarily sorting by objectId will return the latest document)
+          .map((fields) => ({ ...fields, _id: new ObjectId() }))
+      ),
+
       db.collection('test_paging_custom_fields').insertMany([
         {
           counter: 6,
@@ -106,6 +111,7 @@ describe('find', () => {
           timestamp: 1477347755654,
         },
       ]),
+
       db.collection('test_paging_date').insertMany([
         {
           counter: 2,
@@ -142,6 +148,7 @@ describe('find', () => {
           start: { date: new Date(1477347755654) },
         },
       ]),
+
       db.collection('test_paging_limits').insertMany([
         {
           counter: 6,
@@ -162,31 +169,20 @@ describe('find', () => {
           counter: 1,
         },
       ]),
-      db.collection('test_sorting').insertMany([
-        {
-          name: 'Alpha',
-        },
-        {
-          name: 'gimel',
-        },
-        {
-          name: 'Beta',
-        },
-        {
-          name: 'bet',
-        },
-        {
-          name: 'Gamma',
-        },
-        {
-          name: 'aleph',
-        },
-      ]),
+
+      db
+        .collection('test_sorting')
+        .insertMany(['Alpha', 'gimel', 'Beta', 'bet', 'Gamma', 'aleph'].map((name) => ({ name }))),
+
       db.collection('test_null_values').insertMany(
-        [undefined, undefined, undefined, null, null, 'Alice', 'Bob', 'alpha', 'bravo'].map(
-          (name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name })
-        )
-        // Ids start with 1 because Mongoist driver doesn't support _id as 0
+        [undefined, null, 'Bravo', null, 'Alice', undefined, null, 'alpha']
+          // expectation is for an incrementing set of id values, so reverse the order
+          // prior adding an objectId (as objectIds will order by latest to oldest)
+          .reverse()
+          .map((name) => ({
+            _id: new ObjectId(),
+            ...(name !== undefined && { name }),
+          }))
       ),
     ]);
   });
@@ -704,7 +700,7 @@ describe('find', () => {
     });
 
     describe('when using strings as _ids', () => {
-      beforeEach(async () => {
+      beforeAll(async () => {
         await db.collection('test_paging_string_ids').insertMany([
           {
             _id: new ObjectId().toString(),
@@ -747,7 +743,10 @@ describe('find', () => {
       });
 
       afterEach(async () => {
-        await db.collection('test_paging_string_ids').remove();
+        // need to remove the mongodb@^3.3.2:version "3.7.3" package (installed as part of a
+        // dependency of mongoist) so that can replace the deprecated .remove() with deleteAll
+        // await db.collection('test_paging_string_ids').remove()
+        // beforeEach changed to beforeAll to handle
       });
 
       it('queries first few pages with next/previous', async () => {
@@ -1315,56 +1314,82 @@ describe('find', () => {
 
     it('queries the first few pages with after/before', async () => {
       const collection = db.collection('test_paging_custom_fields');
+
+      ///////////// PAGE EXPECTATIONS //////////////
+
+      const expectPageOne = (response) => {
+        const { results, hasPrevious, hasNext } = response;
+
+        expect(results.length).toEqual(2);
+        expect(results[0].counter).toEqual(6);
+        expect(results[1].counter).toEqual(5);
+        expect(hasPrevious).toBe(false);
+        expect(hasNext).toBe(true);
+      };
+
+      const expectPageTwo = (response) => {
+        const { results, hasPrevious, hasNext } = response;
+        expect(results.length).toEqual(2);
+        expect(results[0].counter).toEqual(4);
+        expect(results[1].counter).toEqual(3);
+        expect(hasPrevious).toBe(true);
+        expect(hasNext).toBe(true);
+      };
+
+      const expectPageThree = (response) => {
+        const { results, hasPrevious, hasNext } = response;
+        expect(results.length).toEqual(2);
+        expect(results[0].counter).toEqual(2);
+        expect(results[1].counter).toEqual(1);
+        expect(hasPrevious).toBe(true);
+        expect(hasNext).toBe(false);
+      };
+
+      ///////////// PAGINATION //////////////////
+
       // First page of 2
       let res = await find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
       });
-
-      expect(res.results.length).toEqual(2);
-      expect(res.results[0].counter).toEqual(6);
-      expect(res.results[1].counter).toEqual(5);
-      expect(res.hasPrevious).toBe(false);
-      expect(res.hasNext).toBe(true);
+      expectPageOne(res);
+      const page1LastResultId = res.results[res.results.length - 1]._id;
 
       // Go forward 2
       res = await find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length - 1]._id,
+        after: page1LastResultId,
       });
-
-      expect(res.results.length).toEqual(2);
-      expect(res.results[0].counter).toEqual(4);
-      expect(res.results[1].counter).toEqual(3);
-      expect(res.hasPrevious).toBe(true);
-      expect(res.hasNext).toBe(true);
+      expectPageTwo(res);
+      const page2LastResultId = res.results[res.results.length - 1]._id;
 
       // Go forward another 2
       res = await find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        after: res.results[res.results.length - 1]._id,
+        after: page2LastResultId,
       });
-
-      expect(res.results.length).toEqual(2);
-      expect(res.results[0].counter).toEqual(2);
-      expect(res.results[1].counter).toEqual(1);
-      expect(res.hasPrevious).toBe(true);
-      expect(res.hasNext).toBe(false);
+      expectPageThree(res);
+      const page3FirstResultId = res.results[0]._id;
 
       // Now back up 2
       res = await find(collection, {
         limit: 2,
         paginatedField: 'timestamp',
-        before: res.results[0]._id,
+        before: page3FirstResultId,
       });
 
-      expect(res.results.length).toEqual(2);
-      expect(res.results[0].counter).toEqual(4);
-      expect(res.results[1].counter).toEqual(3);
-      expect(res.hasPrevious).toBe(true);
-      expect(res.hasNext).toBe(true);
+      expectPageTwo(res);
+      const page2FirstResultId = res.results[0]._id;
+
+      // Now back up a final x2 to the original first page
+      res = await find(collection, {
+        limit: 2,
+        paginatedField: 'timestamp',
+        before: page2FirstResultId,
+      });
+      expectPageOne(res);
     });
 
     it('does not include the paginatedField in the results if not desired', async () => {
@@ -1790,46 +1815,52 @@ describe('find', () => {
       const paginatedField = 'start.date'; // Use dot notation in paginated field.
       const limit = 2;
 
+      /////////////////// PAGE EXPECTATIONS ///////////////////////
+      const expectPageOne = (response) => {
+        const { results, hasPrevious, hasNext } = response;
+        expect(results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
+        expect(results.length).toEqual(2);
+        expect(results[0].counter).toEqual(4);
+        expect(results[1].counter).toEqual(3);
+        expect(hasPrevious).toBe(false);
+        expect(hasNext).toBe(true);
+      };
+
+      const expectPageTwo = (response) => {
+        const { results, hasPrevious, hasNext } = response;
+        expect(results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
+        expect(results.length).toEqual(2);
+        expect(results[0].counter).toEqual(2);
+        expect(results[1].counter).toEqual(1);
+        expect(hasPrevious).toBe(true);
+        expect(hasNext).toBe(false);
+      };
+
+      /////////////////// QUERY PAGINATION ///////////////////////
       // First page.
       let res = await find(collection, {
         limit,
         paginatedField,
       });
+      expectPageOne(res);
+      const page1LastResultId = res.results[res.results.length - 1]._id.toString();
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
-      expect(res.results.length).toEqual(2);
-      expect(res.results[0].counter).toEqual(4);
-      expect(res.results[1].counter).toEqual(3);
-      expect(res.hasPrevious).toBe(false);
-      expect(res.hasNext).toBe(true);
-
-      // Go forward.
+      // Go forward to page two
       res = await find(collection, {
         limit,
         paginatedField,
-        after: res.results[res.results.length - 1]._id,
+        after: page1LastResultId,
       });
+      expectPageTwo(res);
+      const page2FirstResultId = res.results[0]._id;
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
-      expect(res.results.length).toEqual(2);
-      expect(res.results[0].counter).toEqual(2);
-      expect(res.results[1].counter).toEqual(1);
-      expect(res.hasPrevious).toBe(true);
-      expect(res.hasNext).toBe(false);
-
-      // Go backward
+      // Go backward to page one again
       res = await find(collection, {
         limit,
         paginatedField,
-        before: res.results[0]._id,
+        before: page2FirstResultId,
       });
-
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
-      expect(res.results.length).toEqual(2);
-      expect(res.results[0].counter).toEqual(4);
-      expect(res.results[1].counter).toEqual(3);
-      expect(res.hasPrevious).toBe(false);
-      expect(res.hasNext).toBe(true);
+      expectPageOne(res);
     });
   });
 
@@ -1901,6 +1932,126 @@ describe('find', () => {
         'gimel',
       ]);
     });
+
+    describe('when collection contains null and undefined values', () => {
+      it('returns null and undefined as same primary sort value, and returns before alphabetical values', async () => {
+        const collection = db.collection('test_null_values');
+        // DOCUMENTS in oldest to latest order =>
+        // [undefined, null, 'Bravo', null, 'Alice' undefined, null, 'alpha']
+
+        ////////////////////// PAGE EXPECTATIONS /////////////////////////////////
+        // expect that the undefined + null values are considered the same for sorting, so
+        // the most recently created will be returned first
+
+        // expect PageOne => null, undefined, null
+        // expect PageTwo => null, undefined, 'Alice'
+        // expect PageThree -> 'Bravo', 'alpha'
+
+        const expectPageOne = (response) => {
+          const { results, hasNext, hasPrevious } = response;
+
+          expect(hasNext).toBe(true);
+          expect(hasPrevious).toBe(false);
+          expect(results).toHaveLength(3);
+
+          expect(results[0].name).toEqual(null);
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual(null);
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
+
+          expect(results[1].name).toBeUndefined();
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual(undefined);
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+
+          expect(results[2].name).toEqual(null);
+          const thirdResultDecodedCursor = decode(results[2]._cursor);
+          expect(thirdResultDecodedCursor).toHaveLength(2);
+          expect(thirdResultDecodedCursor?.[0]).toEqual(null);
+          expect(thirdResultDecodedCursor?.[1].toString()).toEqual(results[2]._id.toString());
+        };
+
+        const expectPageTwo = (response) => {
+          const { results, hasNext, hasPrevious } = response;
+
+          expect(hasNext).toBe(true);
+          expect(hasPrevious).toBe(true);
+          expect(results).toHaveLength(3);
+
+          expect(results[0].name).toEqual(null);
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual(null);
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
+
+          expect(results[1].name).toBeUndefined();
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual(undefined);
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+
+          expect(results[2].name).toEqual('Alice');
+          const thirdResultDecodedCursor = decode(results[2]._cursor);
+          expect(thirdResultDecodedCursor).toHaveLength(2);
+          expect(thirdResultDecodedCursor?.[0]).toEqual('Alice');
+          expect(thirdResultDecodedCursor?.[1].toString()).toEqual(results[2]._id.toString());
+        };
+
+        const expectPageThree = (response) => {
+          const { results, hasNext, hasPrevious } = response;
+
+          expect(hasNext).toBe(false);
+          expect(hasPrevious).toBe(true);
+          expect(results).toHaveLength(2);
+
+          expect(results[0].name).toEqual('Bravo');
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual('Bravo');
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
+
+          expect(results[1].name).toEqual('alpha'); // as case senitivity sorted, expect 'alpha' after 'Bravo'
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual('alpha');
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+        };
+
+        ///////////// TEST PAGE EXPECTATIONS /////////////////////
+
+        const options = {
+          paginatedField: 'name',
+          sortAscending: true,
+          limit: 3,
+        };
+
+        // Initial page
+        let response = await find(collection, { ...options });
+        expectPageOne(response);
+        const page1NextCursor = response.results[response.results.length - 1]._cursor;
+
+        // Get second Page via forward pagination
+        response = await find(collection, { ...options, next: page1NextCursor });
+        expectPageTwo(response);
+        const page2NextCursor = response.results[response.results.length - 1]._cursor;
+
+        // Get third Page via forward pagination
+        response = await find(collection, { ...options, next: page2NextCursor });
+        expectPageThree(response);
+        const page3StartCursor = response.results[0]._cursor;
+
+        // Get second page via backward pagination
+        response = await find(collection, { ...options, previous: page3StartCursor });
+        expectPageTwo(response);
+        const page2StartCursor = response.results[0]._cursor;
+
+        // Get first page via backward pagination
+        response = await find(collection, { ...options, previous: page2StartCursor });
+        expectPageOne(response);
+      });
+    });
   });
 
   describe('when default limits are hit', () => {
@@ -1964,73 +2115,6 @@ describe('find', () => {
       it('sorts capital letters first', async () => {
         const { results: results } = await find(collection, options);
         expect(_.pluck(results, 'name')).toEqual(['Alpha', 'Beta']);
-      });
-
-      it('sorts null and undefined values at the start', async () => {
-        const collection = db.collection('test_null_values');
-
-        const pg1 = await aggregate(collection, { ...options });
-        expect(pg1.hasNext).toBe(true);
-        expect(pg1.hasPrevious).toBe(false);
-        expect(_.pluck(pg1.results, 'name')).toEqual([undefined, undefined]);
-        expect(_.pluck(pg1.results, '_id')).toEqual([1, 2]);
-
-        const pg2 = await aggregate(collection, {
-          ...options,
-          next: pg1.next,
-        });
-        expect(pg2.hasNext).toBe(true);
-        expect(pg2.hasPrevious).toBe(true);
-        expect(_.pluck(pg2.results, 'name')).toEqual([undefined, null]);
-        expect(_.pluck(pg2.results, '_id')).toEqual([3, 4]);
-
-        const pg3 = await aggregate(collection, {
-          ...options,
-          next: pg2.next,
-        });
-        expect(pg3.hasNext).toBe(true);
-        expect(pg3.hasPrevious).toBe(true);
-        expect(_.pluck(pg3.results, 'name')).toEqual([null, 'Alice']);
-        expect(_.pluck(pg3.results, '_id')).toEqual([5, 6]);
-
-        const pg4 = await aggregate(collection, {
-          ...options,
-          next: pg3.next,
-        });
-        expect(pg4.hasNext).toBe(true);
-        expect(pg4.hasPrevious).toBe(true);
-        expect(_.pluck(pg4.results, 'name')).toEqual(['Bob', 'alpha']);
-        expect(_.pluck(pg4.results, '_id')).toEqual([7, 8]);
-
-        const pg3b = await aggregate(collection, {
-          ...options,
-          previous: pg4.previous,
-        });
-        expect(pg3b.hasNext).toBe(true);
-        expect(pg3b.next).toEqual(pg3.next);
-        expect(pg3b.hasPrevious).toBe(true);
-        expect(pg3b.previous).toEqual(pg3.previous);
-        expect(pg3b.results).toEqual(pg3.results);
-
-        const pg2b = await aggregate(collection, {
-          ...options,
-          previous: pg3.previous,
-        });
-        expect(pg2b.hasNext).toBe(true);
-        expect(pg2b.next).toEqual(pg2.next);
-        expect(pg2b.hasPrevious).toBe(true);
-        expect(pg2b.previous).toEqual(pg2.previous);
-        expect(pg2b.results).toEqual(pg2.results);
-
-        const pg1b = await aggregate(collection, {
-          ...options,
-          previous: pg2.previous,
-        });
-        expect(pg1b.hasNext).toBe(true);
-        expect(pg1b.next).toEqual(pg1.next);
-        expect(pg1b.hasPrevious).toBe(false);
-        expect(pg1b.previous).toEqual(pg1.previous);
-        expect(pg1b.results).toEqual(pg1.results);
       });
     });
 
