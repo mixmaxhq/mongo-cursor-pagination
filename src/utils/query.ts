@@ -1,4 +1,5 @@
 import objectPath from 'object-path';
+import { omit, pick, uniq } from 'lodash';
 
 import { AggregateParams, QueryParams, PaginationResponse } from '../types';
 
@@ -9,15 +10,17 @@ function buildCursor(
   params: QueryParams | AggregateParams,
   shouldSecondarySortOnId: boolean
 ): string {
-  let nextPaginatedField = objectPath.get(doc, params.paginatedField);
+  const pagiginatedFieldValue = (() => {
+    const { paginatedField, sortCaseInsensitive } = params;
+    const value = objectPath.get(doc, paginatedField);
+    return sortCaseInsensitive && value?.toLowerCase ? value.toLowerCase() : value;
+  })();
 
-  if (params.sortCaseInsensitive) {
-    nextPaginatedField = nextPaginatedField?.toLowerCase?.() ?? '';
-  }
+  const rawCursor = shouldSecondarySortOnId
+    ? [pagiginatedFieldValue, doc._id]
+    : pagiginatedFieldValue; // which may actually be the document_id anyways
 
-  const data = shouldSecondarySortOnId ? [nextPaginatedField, doc._id] : nextPaginatedField;
-
-  return encode(data);
+  return encode(rawCursor);
 }
 
 /**
@@ -97,17 +100,10 @@ export function generateSort(params: QueryParams | AggregateParams): object {
     (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
   const sortDir = sortAsc ? 1 : -1;
 
-  if (params.paginatedField == '_id') {
-    return {
-      _id: sortDir,
-    };
-  } else {
-    const field = params.sortCaseInsensitive ? '__lc' : params.paginatedField;
-    return {
-      [field]: sortDir,
-      _id: sortDir,
-    };
-  }
+  if (params.paginatedField == '_id') return { _id: sortDir };
+
+  const field = params.sortCaseInsensitive ? '__lower_case_value' : params.paginatedField;
+  return { [field]: sortDir, _id: sortDir };
 }
 
 /**
@@ -124,87 +120,64 @@ export function generateCursorQuery(params: QueryParams | AggregateParams): obje
     (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
 
   // a `next` cursor will have precedence over a `previous` cursor.
-  const op = (params.next || params.previous) as any;
+  const cursor = (params.next || params.previous) as any;
 
-  if (params.paginatedField == '_id') {
-    if (sortAsc) {
-      return { _id: { $gt: op } };
-    } else {
-      return { _id: { $lt: op } };
-    }
-  } else {
-    const field = params.sortCaseInsensitive ? '__lc' : params.paginatedField;
+  if (params.paginatedField == '_id') return { _id: sortAsc ? { $gt: cursor } : { $lt: cursor } };
 
-    const notUndefined = { [field]: { $exists: true } };
-    const onlyUndefs = { [field]: { $exists: false } };
-    const notNullNorUndefined = { [field]: { $ne: null } };
-    const nullOrUndefined = { [field]: null };
-    const onlyNulls = { $and: [{ [field]: { $exists: true } }, { [field]: null }] };
+  const field = params.sortCaseInsensitive
+    ? '__lower_case_value' // lc value of the paginatedField (via $addFields + $toLower)
+    : params.paginatedField;
 
-    const [paginatedFieldValue, idValue] = op;
-    switch (paginatedFieldValue) {
-      case null:
-        if (sortAsc) {
-          return {
-            $or: [
-              notNullNorUndefined,
-              {
-                ...onlyNulls,
-                _id: { $gt: idValue },
-              },
-            ],
-          };
-        } else {
-          return {
-            $or: [
-              onlyUndefs,
-              {
-                ...onlyNulls,
-                _id: { $lt: idValue },
-              },
-            ],
-          };
+  const notNullNorUndefined = { [field]: { $ne: null } };
+  const nullOrUndefined = { [field]: null };
+  const [paginatedFieldValue, idValue] = cursor;
+
+  // mongo does not distinguish a sort order difference between null or undefined
+  // for sorting purposes, and thus secondarily sorts by _id
+  if (paginatedFieldValue === null || paginatedFieldValue === undefined) {
+    return sortAsc
+      ? {
+          $or: [
+            notNullNorUndefined, // still have all the non-null, non-undefined values
+            { ...nullOrUndefined, _id: { $gt: idValue } },
+          ], // & sort remaining using the _id as secondary field
         }
-      case undefined:
-        if (sortAsc) {
-          return {
-            $or: [
-              notUndefined,
-              {
-                ...onlyUndefs,
-                _id: { $gt: idValue },
-              },
-            ],
-          };
-        } else {
-          return {
-            ...onlyUndefs,
-            _id: { $lt: idValue },
-          };
-        }
-      default:
-        if (sortAsc) {
-          return {
-            $or: [
-              { [field]: { $gt: paginatedFieldValue } },
-              {
-                [field]: { $eq: paginatedFieldValue },
-                _id: { $gt: idValue },
-              },
-            ],
-          };
-        } else {
-          return {
-            $or: [
-              { [field]: { $lt: paginatedFieldValue } },
-              nullOrUndefined,
-              {
-                [field]: { $eq: paginatedFieldValue },
-                _id: { $lt: idValue },
-              },
-            ],
-          };
-        }
-    }
+      : // if sorting descending value, then all other values must be null || undefined
+        { $or: [{ ...nullOrUndefined, _id: { $lt: idValue } }] };
   }
+
+  // else if value is not null | undefined
+  return sortAsc
+    ? {
+        $or: [
+          { [field]: { $gt: paginatedFieldValue } },
+          { [field]: { $eq: paginatedFieldValue }, _id: { $gt: idValue } },
+        ],
+      }
+    : {
+        $or: [
+          nullOrUndefined, // in descending order, will still have null && undefined values remaining
+          { [field]: { $lt: paginatedFieldValue } },
+          { [field]: { $eq: paginatedFieldValue }, _id: { $lt: idValue } },
+        ],
+      };
+}
+
+/**
+ * response results can have additional fields that were not requested by user (for example, the
+ * fields required to sort and paginate). If projected fields are nominated, return only these.
+ */
+export function filterProjectedFields({ projectedFields, results, sortCaseInsensitive }) {
+  //
+  if (sortCaseInsensitive) results = results.map((result) => omit(result, '__lower_case_value'));
+
+  const requestedFields = projectedFields
+    ? Object.keys(projectedFields).filter(
+        (key) => projectedFields[key] === 1 || projectedFields[key] === true
+      )
+    : [];
+
+  return requestedFields?.length
+    ? results.map((result) => pick(result, uniq([...requestedFields])))
+    : results; // else if no projection, return full results
 }

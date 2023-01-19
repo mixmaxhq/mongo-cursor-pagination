@@ -1396,9 +1396,7 @@ describe('find', () => {
       const collection = db.collection('test_paging_custom_fields');
       const res = await find(collection, {
         limit: 1,
-        fields: {
-          counter: 1,
-        },
+        fields: { counter: 1 },
         paginatedField: 'timestamp',
       });
       expect(res.results[0].timestamp).toBe(undefined);
@@ -2133,10 +2131,10 @@ describe('find', () => {
         expect(r.hasPrevious).toBe(false);
       });
 
-      it('returns the paginated field but not the temporary __lc field', async () => {
+      it('returns the paginated field but not the temporary __lower_case_value field', async () => {
         const r = await find(collection, { ...options });
         expect('name' in r.results[0]).toBe(true);
-        expect('__lc' in r.results[0]).toBe(false);
+        expect('__lower_case_value' in r.results[0]).toBe(false);
       });
 
       it('pages correctly forward and backward', async () => {

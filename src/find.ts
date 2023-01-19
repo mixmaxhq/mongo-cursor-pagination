@@ -2,7 +2,12 @@ import _ from 'underscore';
 
 import aggregate from './aggregate';
 import config from './config';
-import { prepareResponse, generateSort, generateCursorQuery } from './utils/query';
+import {
+  prepareResponse,
+  generateSort,
+  generateCursorQuery,
+  filterProjectedFields,
+} from './utils/query';
 import sanitizeParams from './utils/sanitizeParams';
 import { QueryParams, PaginationResponse } from './types';
 import { Collection } from 'mongodb';
@@ -41,8 +46,7 @@ export default async (
   collection: Collection | any,
   params: QueryParams
 ): Promise<PaginationResponse> => {
-  const removePaginatedFieldInResponse =
-    params.fields && !params.fields[params.paginatedField || '_id'];
+  const projectedFields = params.fields;
 
   let response = {} as PaginationResponse;
   if (params.sortCaseInsensitive) {
@@ -87,9 +91,11 @@ export default async (
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
-  if (removePaginatedFieldInResponse) {
-    response.results = _.map(response.results, (result) => _.omit(result, params.paginatedField));
-  }
+  const projectedResults = filterProjectedFields({
+    projectedFields,
+    results: response.results,
+    sortCaseInsensitive: params.sortCaseInsensitive,
+  });
 
-  return response;
+  return { ...response, results: projectedResults };
 };
