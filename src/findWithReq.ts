@@ -1,5 +1,7 @@
-const find = require('./find');
-const sanitizeQuery = require('./utils/sanitizeQuery');
+import find from './find';
+import sanitizeQuery from './utils/sanitizeQuery';
+import { Collection } from 'mongodb';
+import { QueryParams, PaginationResponse } from './types';
 
 /**
  * A wrapper around `find()` that make it easy to implement a basic HTTP API using Express. So your
@@ -21,7 +23,11 @@ const sanitizeQuery = require('./utils/sanitizeQuery');
  *      {_id: 0} or {internalField: 1}. We only support field exclusion for _id, as we expect whitelists
  *      for fields from both params.fields and params.overrideFields.
  */
-module.exports = async function findWithReq(req, collection, params) {
+export default (
+  req: { query: any },
+  collection: Collection | any,
+  params: QueryParams
+): Promise<PaginationResponse> => {
   params = sanitizeQuery(req.query, params);
 
   return find(collection, params);

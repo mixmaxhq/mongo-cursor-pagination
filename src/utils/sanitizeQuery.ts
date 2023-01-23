@@ -1,6 +1,6 @@
-const _ = require('underscore');
-
-const resolveFields = require('./resolveFields');
+import _ from 'underscore';
+import { QueryParams } from '../types';
+import resolveFields from './resolveFields';
 
 /**
  * Normalize the given query parameter to an array, so we support both param=a,b and
@@ -12,7 +12,7 @@ const resolveFields = require('./resolveFields');
  * @throws {TypeError} When the query parameter isn't a string, an empty value, or an array of
  *   strings.
  */
-function normalizeQueryArray(query, param) {
+function normalizeQueryArray(query: object, param: string): string[] {
   const value = query[param];
   if (Array.isArray(value)) {
     for (let i = 0; i < value.length; ++i) {
@@ -49,7 +49,10 @@ function normalizeQueryArray(query, param) {
  *      {_id: 0} or {internalField: 1}. We only support field exclusion for _id, as we expect whitelists
  *      for fields from both params.fields and params.overrideFields.
  */
-module.exports = function sanitizeQuery(query, params) {
+export default (
+  query: { limit?: string; next?: string | any; previous?: string | any },
+  params: QueryParams
+) => {
   params = params || {};
 
   if (!_.isEmpty(query.limit)) {

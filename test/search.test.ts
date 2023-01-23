@@ -1,17 +1,19 @@
-const paging = require('../');
-const dbUtils = require('./support/db');
+import { Db, ObjectId } from 'mongodb';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { search } from '../src';
+import dbUtils from './support/db';
 
 const driver = process.env.DRIVER;
 
 describe('search', () => {
-  let mongod;
-  const t = {};
+  let mongod: MongoMemoryServer;
+  let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod, driver);
 
     await Promise.all([
-      t.db.collection('test_paging_search').createIndex(
+      db.collection('test_paging_search').createIndex(
         {
           mytext: 'text',
         },
@@ -19,7 +21,7 @@ describe('search', () => {
           name: 'test_index',
         }
       ),
-      t.db.collection('test_duplicate_search').createIndex(
+      db.collection('test_duplicate_search').createIndex(
         {
           mytext: 'text',
         },
@@ -30,7 +32,7 @@ describe('search', () => {
     ]);
 
     await Promise.all([
-      t.db.collection('test_paging_search').insertMany([
+      db.collection('test_paging_search').insertMany([
         {
           mytext: 'one',
         },
@@ -60,34 +62,34 @@ describe('search', () => {
           group: 'one',
         },
       ]),
-      t.db.collection('test_duplicate_search').insertMany([
+      db.collection('test_duplicate_search').insertMany([
         {
-          _id: 6,
+          _id: new ObjectId(),
           mytext: 'one',
           counter: 1,
         },
         {
-          _id: 5,
+          _id: new ObjectId(),
           mytext: 'one',
           counter: 2,
         },
         {
-          _id: 4,
+          _id: new ObjectId(),
           mytext: 'one',
           counter: 3,
         },
         {
-          _id: 3,
+          _id: new ObjectId(),
           mytext: 'one two',
           counter: 4,
         },
         {
-          _id: 2,
+          _id: new ObjectId(),
           mytext: 'one two',
           counter: 5,
         },
         {
-          _id: 1,
+          _id: new ObjectId(),
           mytext: 'one two',
           counter: 6,
         },
@@ -99,9 +101,9 @@ describe('search', () => {
 
   describe('basic usage', () => {
     it('queries the first few pages', async () => {
-      const collection = t.db.collection('test_paging_search');
+      const collection = db.collection('test_paging_search');
       // First page of 2
-      let res = await paging.search(collection, 'one', {
+      let res = await search(collection, 'one', {
         fields: {
           mytext: 1,
         },
@@ -117,7 +119,7 @@ describe('search', () => {
       expect(typeof res.next).toEqual('string');
 
       // Go forward 2
-      res = await paging.search(collection, 'one', {
+      res = await search(collection, 'one', {
         fields: {
           mytext: 1,
         },
@@ -135,7 +137,7 @@ describe('search', () => {
       expect(typeof res.next).toEqual('string');
 
       // Go forward another 2
-      res = await paging.search(collection, 'one', {
+      res = await search(collection, 'one', {
         fields: {
           mytext: 1,
         },
@@ -156,9 +158,9 @@ describe('search', () => {
 
   describe('when there are duplicate scores', () => {
     it('queries the first few pages', async () => {
-      const collection = t.db.collection('test_duplicate_search');
+      const collection = db.collection('test_duplicate_search');
       // First page of 2.
-      let res = await paging.search(collection, 'one', {
+      let res = await search(collection, 'one', {
         fields: {
           mytext: 1,
           counter: 1,
@@ -173,7 +175,7 @@ describe('search', () => {
       expect(typeof res.next).toEqual('string');
 
       // Go forward 2
-      res = await paging.search(collection, 'one', {
+      res = await search(collection, 'one', {
         fields: {
           mytext: 1,
           counter: 1,
@@ -188,7 +190,7 @@ describe('search', () => {
       expect(typeof res.next).toEqual('string');
 
       // Go forward another 2
-      res = await paging.search(collection, 'one', {
+      res = await search(collection, 'one', {
         fields: {
           mytext: 1,
           counter: 1,

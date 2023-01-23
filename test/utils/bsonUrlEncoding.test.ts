@@ -1,16 +1,18 @@
-const mongo = require('mongoist');
+import mongo from 'mongoist';
+import { Db } from 'mongodb';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import { encode, decode } from '../../src/utils/bsonUrlEncoding';
 
-const bsonUrlEncoding = require('../../src/utils/bsonUrlEncoding');
-const dbUtils = require('../support/db');
+import dbUtils from '../support/db';
 
 const driver = process.env.DRIVER;
 
 describe('bson url encoding', () => {
-  let mongod;
-  const t = {};
+  let mongod: MongoMemoryServer;
+  let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod, driver);
   });
 
   afterAll(() => mongod.stop());
@@ -22,15 +24,15 @@ describe('bson url encoding', () => {
       number: 1,
       string: 'complex String &$##$-/?',
     };
-    await t.db.collection('test_objects').insertOne(obj);
-    const bsonObject = await t.db.collection('test_objects').findOne({});
-    const str = bsonUrlEncoding.encode(bsonObject);
+    await db.collection('test_objects').insertOne(obj);
+    const bsonObject = await db.collection('test_objects').findOne({});
+    const str = encode(bsonObject);
 
     expect(str).toEqual(
       'eyJfaWQiOnsiJG9pZCI6IjU4MTY0ZDg2ZjY5YWI0NTk0MmM2ZmYzOCJ9LCJkYXRlIjp7IiRkYXRlIjoiMjAxNi0xMC0zMFQxOTozMjozNVoifSwibnVtYmVyIjoxLCJzdHJpbmciOiJjb21wbGV4IFN0cmluZyAmJCMjJC0vPyJ9'
     );
 
-    const decoded = bsonUrlEncoding.decode(str);
+    const decoded = decode(str);
     // Check types
     expect(typeof decoded.date).toEqual('object');
     expect(typeof decoded.number).toEqual('number');
@@ -38,11 +40,11 @@ describe('bson url encoding', () => {
   });
 
   it('encodes and decodes strings', async () => {
-    const str = bsonUrlEncoding.encode('string _id');
+    const str = encode('string _id');
 
     expect(str).toEqual('InN0cmluZyBfaWQi');
 
-    const decoded = bsonUrlEncoding.decode(str);
+    const decoded = decode(str);
     expect(decoded).toEqual('string _id');
     expect(typeof decoded).toEqual('string');
   });

@@ -39,4 +39,4 @@ jspm_packages
 *.sublime-workspace
 
 # Node 6 transpiled code.
-dist/node
+dist/

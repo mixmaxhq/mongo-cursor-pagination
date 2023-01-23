@@ -1,7 +1,9 @@
-const _ = require('underscore');
+import _ from 'underscore';
 
-const config = require('./config');
-const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
+import config from './config';
+import { encode, decode } from './utils/bsonUrlEncoding';
+import { SearchParams, PaginationResponse } from './types';
+import { Collection } from 'mongodb';
 
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from
@@ -14,7 +16,7 @@ const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    $text index on it.
  *    See https://docs.mongodb.com/manual/core/index-text/.
  * @param {String} searchString String to search on.
- * @param {Object} params
+ * @param {QueryParams} params
  *    -query {Object} The find query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
  *    -fields {Object} Fields to query in the Mongo object format, e.g. {title :1}.
@@ -22,9 +24,13 @@ const bsonUrlEncoding = require('./utils/bsonUrlEncoding');
  *    -next {String} The value to start querying the page. Defaults to start at the beginning of
  *      the results.
  */
-module.exports = async function (collection, searchString, params) {
+export default async (
+  collection: Collection | any,
+  searchString: string,
+  params: SearchParams
+): Promise<PaginationResponse> => {
   if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
-  if (params.next) params.next = bsonUrlEncoding.decode(params.next);
+  if (params.next) params.next = decode(params.next as string);
 
   params = _.defaults(params, {
     query: {},
@@ -36,7 +42,7 @@ module.exports = async function (collection, searchString, params) {
 
   // We must perform an aggregate query since Mongo can't query a range when using $text search.
 
-  const aggregate = [
+  const aggregate: Array<object> = [
     {
       $match: _.extend({}, params.query, {
         $text: {
@@ -88,7 +94,7 @@ module.exports = async function (collection, searchString, params) {
     $limit: params.limit,
   });
 
-  let response;
+  let response: { results: any; next?: any };
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
@@ -100,7 +106,7 @@ module.exports = async function (collection, searchString, params) {
   if (fullPageOfResults) {
     response = {
       results,
-      next: bsonUrlEncoding.encode([_.last(results).score, _.last(results)._id]),
+      next: encode([_.last(results).score, _.last(results)._id]),
     };
   } else {
     response = {

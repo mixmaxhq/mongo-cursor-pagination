@@ -1,8 +1,21 @@
-const { Query } = require('mongoose');
-const _ = require('underscore');
+import { Query, Schema } from 'mongoose';
+import _ from 'underscore';
 
-const find = require('./find');
-const search = require('./search');
+import { QueryParams, SearchParams, Options, PaginationResponse } from './types';
+import find from './find';
+import search from './search';
+
+declare module 'mongoose' {
+  interface Model<
+    T /* eslint-disable-line */,
+    TQueryHelpers = {} /* eslint-disable-line */,
+    TMethodsAndOverrides = {} /* eslint-disable-line */,
+    TVirtuals = {} /* eslint-disable-line */
+  > {
+    paginate(params: QueryParams): Promise<PaginationResponse>;
+    search(searchString: string, params: SearchParams): Promise<PaginationResponse>;
+  }
+}
 
 /**
  * Mongoose plugin
@@ -12,12 +25,12 @@ const search = require('./search');
  * @param {string} options.searchFnName name of the function.
  */
 
-module.exports = function (schema, options) {
+export default (schema: Schema, options: Options) => {
   /**
    * paginate function
-   * @param {Object} params required parameter
+   * @param {QueryParams} params required parameter
    */
-  const findFn = function (params) {
+  const findFn = async function (params: QueryParams): Promise<PaginationResponse> {
     if (!this.collection) {
       throw new Error('collection property not found');
     }
@@ -38,7 +51,10 @@ module.exports = function (schema, options) {
    * @param {String} searchString String to search on. Required parameter
    * @param {Object} params
    */
-  const searchFn = function (searchString, params) {
+  const searchFn = async function (
+    searchString: string,
+    params: SearchParams
+  ): Promise<PaginationResponse> {
     if (!this.collection) {
       throw new Error('collection property not found');
     }

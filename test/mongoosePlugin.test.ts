@@ -1,7 +1,8 @@
-const mongoose = require('mongoose');
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
 
-const mongooseCursorPaginate = require('../src/mongoose.plugin');
-const dbUtils = require('./support/db');
+import mongooseCursorPaginate from '../src/mongoose.plugin';
+import dbUtils from './support/db';
 
 const AuthorSchema = new mongoose.Schema({ name: String });
 AuthorSchema.index({ name: 'text' });
@@ -25,7 +26,7 @@ PostSchema.index({ title: 'text' });
 
 const Post = mongoose.model('Post', PostSchema);
 
-let mongod;
+let mongod: MongoMemoryServer;
 describe('mongoose plugin', () => {
   beforeAll(async () => {
     mongod = await dbUtils.start();

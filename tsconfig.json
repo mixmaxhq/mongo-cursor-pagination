@@ -1,22 +1,23 @@
 {
-  // Change this to match your project
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "src/**/*.test.js"],
   "compilerOptions": {
-    // Tells TypeScript to read JS files, as
-    // normally they are ignored as source files
-    "allowJs": true,
-    // Generate d.ts files
+    "target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
+    "module": "commonjs",
+    "lib": ["es2015", "es2016", "es2017"],
+    "moduleResolution": "node",
+    "skipLibCheck": true /* Skip type checking all .d.ts files. */,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "resolveJsonModule": true,
+    "importHelpers": false,
     "declaration": true,
-    // This compiler run should
-    // only output d.ts files
-    "emitDeclarationOnly": true,
-    // Types should go into this directory.
-    // Removing this would place the .d.ts files
-    // next to the .js files
+    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "outDir": "dist/node",
-    // go to js file when using IDE functions like
-    // "Go to Definition" in VSCode
-    "declarationMap": true
-  }
+    "declarationDir": "dist/types",
+    "esModuleInterop": true
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/**/*.test.js"]
 }

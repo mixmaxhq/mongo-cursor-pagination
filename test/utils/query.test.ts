@@ -1,5 +1,5 @@
-const bsonUrlEncoding = require('../../src/utils/bsonUrlEncoding');
-const { encodePaginationTokens } = require('../../src/utils/query');
+import { encode } from '../../src/utils/bsonUrlEncoding';
+import { encodePaginationTokens } from '../../src/utils/query';
 
 describe('encodePaginationTokens', () => {
   it('encodes the pagination tokens on the passed-in response object', () => {
@@ -13,8 +13,8 @@ describe('encodePaginationTokens', () => {
 
     encodePaginationTokens(params, response);
 
-    expect(response.next).toEqual(bsonUrlEncoding.encode('789'));
-    expect(response.previous).toEqual(bsonUrlEncoding.encode('456'));
+    expect(response.next).toEqual(encode('789'));
+    expect(response.previous).toEqual(encode('456'));
   });
 
   it("constructs pagination tokens using both the _id and the paginatedField if the latter isn't the former", () => {
@@ -28,7 +28,7 @@ describe('encodePaginationTokens', () => {
 
     encodePaginationTokens(params, response);
 
-    expect(response.next).toEqual(bsonUrlEncoding.encode(['Test 2', '789']));
-    expect(response.previous).toEqual(bsonUrlEncoding.encode(['Test', '456']));
+    expect(response.next).toEqual(encode(['Test 2', '789']));
+    expect(response.previous).toEqual(encode(['Test', '456']));
   });
 });

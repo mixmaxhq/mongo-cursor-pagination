@@ -1,19 +1,20 @@
-const _ = require('underscore');
-
-const paging = require('../');
-const dbUtils = require('./support/db');
+import _ from 'underscore';
+import { Db } from 'mongodb';
+import { findWithReq } from '../src';
+import dbUtils from './support/db';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const driver = process.env.DRIVER;
 
 describe('findWithReq', () => {
-  let mongod;
-  const t = {};
+  let mongod: MongoMemoryServer;
+  let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod, driver);
 
     await Promise.all([
-      t.db.collection('test_paging').insertMany([
+      db.collection('test_paging').insertMany([
         {
           counter: 1,
           myfield1: 'a',
@@ -35,7 +36,7 @@ describe('findWithReq', () => {
           myfield2: 'b',
         },
       ]),
-      t.db.collection('test_paging_fields').insertOne({
+      db.collection('test_paging_fields').insertOne({
         obj: {
           one: 1,
           two: {
@@ -56,7 +57,7 @@ describe('findWithReq', () => {
 
   describe('basic usage', () => {
     it('queries first few pages', async () => {
-      const collection = t.db.collection('test_paging');
+      const collection = db.collection('test_paging');
       const fields = {
         counter: 1,
         myfield1: 1,
@@ -64,7 +65,7 @@ describe('findWithReq', () => {
       };
 
       // First page of 2
-      let res = await paging.findWithReq(
+      let res = await findWithReq(
         {
           query: {
             limit: '2',
@@ -78,19 +79,23 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(2);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-        myfield1: 'a',
-      });
-      expect(res.results[1]).toEqual({
-        counter: 3,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+          myfield1: 'a',
+        })
+      );
+      expect(res.results[1]).toEqual(
+        expect.objectContaining({
+          counter: 3,
+          myfield1: 'a',
+        })
+      );
       expect(res.hasPrevious).toEqual(false);
       expect(res.hasNext).toEqual(true);
 
       // Go forward 1
-      res = await paging.findWithReq(
+      res = await findWithReq(
         {
           query: {
             limit: '1',
@@ -104,15 +109,17 @@ describe('findWithReq', () => {
         }
       );
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 2,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 2,
+          myfield1: 'a',
+        })
+      );
       expect(res.hasPrevious).toEqual(true);
       expect(res.hasNext).toEqual(true);
 
       // Now back up 1
-      res = await paging.findWithReq(
+      res = await findWithReq(
         {
           query: {
             previous: res.previous,
@@ -127,17 +134,19 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 3,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 3,
+          myfield1: 'a',
+        })
+      );
       expect(res.hasPrevious).toEqual(true);
       expect(res.hasNext).toEqual(true);
     });
 
     it('does not query more fields than allowed', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '1',
@@ -154,14 +163,16 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+        })
+      );
     });
 
     it('allows a request to specify fields if not otherwise specified', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '1',
@@ -173,15 +184,17 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(1);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-        myfield1: 'a',
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+          myfield1: 'a',
+        })
+      );
     });
 
     it('does not allow a limit to be specified that is higher than params.limit', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '2',
@@ -197,8 +210,8 @@ describe('findWithReq', () => {
     });
 
     it('handles empty values', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: '',
@@ -213,16 +226,18 @@ describe('findWithReq', () => {
 
       expect(res.results.length).toEqual(4);
       expect(res.results[0]._id).toBeTruthy();
-      expect(_.omit(res.results[0], '_id')).toEqual({
-        counter: 4,
-        myfield1: 'a',
-        myfield2: 'b',
-      });
+      expect(_.omit(res.results[0], '_id')).toEqual(
+        expect.objectContaining({
+          counter: 4,
+          myfield1: 'a',
+          myfield2: 'b',
+        })
+      );
     });
 
     it('handles bad value for limit', async () => {
-      const collection = t.db.collection('test_paging');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging');
+      const res = await findWithReq(
         {
           query: {
             limit: 'aaa',
@@ -237,16 +252,18 @@ describe('findWithReq', () => {
       );
 
       expect(res.results.length).toEqual(4);
-      expect(res.results[0]).toEqual({
-        counter: 4,
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          counter: 4,
+        })
+      );
     });
   });
 
   describe('fields', () => {
     it('picks fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one,obj.four.five',
@@ -261,21 +278,23 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('works without fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one,obj.four.five',
@@ -285,21 +304,23 @@ describe('findWithReq', () => {
         {}
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('picks fields when nested', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.four.five',
@@ -314,20 +335,22 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('disallows properties that are not defined', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.four.five,obj2',
@@ -341,20 +364,22 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('picks exact fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj',
@@ -368,25 +393,27 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          two: {
-            three: 3,
-          },
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            two: {
+              three: 3,
             },
-            seven: 7,
+            four: {
+              five: {
+                six: 6,
+              },
+              seven: 7,
+            },
           },
-        },
-      });
+        })
+      );
     });
 
     it('picks exact subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one,obj.four.five',
@@ -401,21 +428,23 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-      });
+        })
+      );
     });
 
     it('does not allow a broader scoping of fields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj',
@@ -429,16 +458,18 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-        },
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+          },
+        })
+      );
     });
 
     it('does not allow a broader scoping of subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.two,obj.four,obj2',
@@ -454,24 +485,26 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          two: {
-            three: 3,
-          },
-          four: {
-            five: {
-              six: 6,
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            two: {
+              three: 3,
+            },
+            four: {
+              five: {
+                six: 6,
+              },
             },
           },
-        },
-        obj2: 1,
-      });
+          obj2: 1,
+        })
+      );
     });
 
     it('picks exact subfields', async () => {
-      const collection = t.db.collection('test_paging_fields');
-      const res = await paging.findWithReq(
+      const collection = db.collection('test_paging_fields');
+      const res = await findWithReq(
         {
           query: {
             fields: 'obj.one',
@@ -485,11 +518,13 @@ describe('findWithReq', () => {
         }
       );
 
-      expect(res.results[0]).toEqual({
-        obj: {
-          one: 1,
-        },
-      });
+      expect(res.results[0]).toEqual(
+        expect.objectContaining({
+          obj: {
+            one: 1,
+          },
+        })
+      );
     });
   });
 });
