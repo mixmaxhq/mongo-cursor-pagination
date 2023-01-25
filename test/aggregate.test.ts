@@ -5,8 +5,8 @@ import { decode } from '../src/utils/bsonUrlEncoding';
 import dbUtils from './support/db';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
-const paging = require('../');
 const driver = process.env.DRIVER;
+const aggregateDirectory = require('../src');
 
 let mongod: MongoMemoryServer;
 
@@ -733,15 +733,16 @@ describe('aggregate', () => {
 
   describe('aggregation options', () => {
     let spy: jest.SpyInstance<any, unknown[]>;
+
     beforeEach(() => {
-      spy = jest.spyOn(paging, 'aggregate');
+      spy = jest.spyOn(aggregateDirectory, 'aggregate');
     });
 
     afterEach(() => {
       spy.mockRestore();
     });
 
-    it.skip('invokes aggregate with a `hint` if one is passed in via params object', async () => {
+    it('invokes aggregate with a `hint` if one is passed in via params object', async () => {
       const treesCollection = db.collection('test_aggregation_trees');
 
       await db.collection('test_aggregation_trees').createIndex(
@@ -767,11 +768,11 @@ describe('aggregate', () => {
       expect(hasPrevious).toBe(false);
 
       // TODO UPDATE REQUIRED TO RUN THIS TEST
-      //   expect(spy).toHaveBeenCalled();
-      //   expect(spy).toHaveBeenCalledWith(
-      //     expect.any(Object),
-      //     expect.objectContaining({ hint: 'test_index' })
-      //   );
+      expect(spy).toHaveBeenCalled();
+      expect(spy).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({ hint: 'test_index' })
+      );
     });
   });
 
