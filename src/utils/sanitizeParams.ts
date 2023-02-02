@@ -21,12 +21,10 @@ export default async (
   })();
 
   // set params.previous || params.next
-  await (async () => {
-    if (params.previous) params.previous = decode(params.previous as string);
-    if (params.next) params.next = decode(params.next as string);
-    // if after || before in params, overwrite an existing previous || next value
-    if (params.after || params.before) await applyAfterOrBeforeToParams({ collection, params });
-  })();
+  if (params.previous) params.previous = decode(params.previous as string);
+  if (params.next) params.next = decode(params.next as string);
+  // if after || before in params, overwrite an existing previous || next value
+  if (params.after || params.before) await applyAfterOrBeforeToParams({ collection, params });
 
   // set the params.fields, which are the requested projected fields PLUS the paginated field
   // (the latter required for sorting and constucting the cursor)
