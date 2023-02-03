@@ -1,8 +1,9 @@
 {
   "name": "@conpago/mongo-cursor-pagination",
-  "version": "8.7.0",
+  "version": "8.7.1",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "index.js",
+  "types": "./dist/types/index.d.ts",
   "files": [
     "index.js",
     "dist",
@@ -20,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mixmaxhq/mongo-cursor-pagination.git"
+    "url": "git+https://github.com/conpagoaus/mongo-cursor-pagination.git"
   },
   "keywords": [
     "mongo",
@@ -34,9 +35,9 @@
   "author": "Brad Vogel <brad@mixmax.com> (https://mixmax.com/)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mixmaxhq/mongo-cursor-pagination/issues"
+    "url": "https://github.com/conpagoaus/mongo-cursor-pagination/issues"
   },
-  "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
+  "homepage": "https://github.com/conpagoaus/mongo-cursor-pagination#readme",
   "dependencies": {
     "base64-url": "^2.3.3",
     "bson": "^4.7.2",
