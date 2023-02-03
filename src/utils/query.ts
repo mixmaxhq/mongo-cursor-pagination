@@ -178,6 +178,6 @@ export function filterProjectedFields({ projectedFields, results, sortCaseInsens
     : [];
 
   return requestedFields?.length
-    ? results.map((result) => pick(result, uniq([...requestedFields])))
+    ? results.map((result) => pick(result, uniq([...requestedFields, '_cursor'])))
     : results; // else if no projection, return full results
 }
