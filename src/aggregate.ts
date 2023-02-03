@@ -2,7 +2,12 @@ import _ from 'underscore';
 import { Collection } from 'mongodb';
 
 import config from './config';
-import { prepareResponse, generateSort, generateCursorQuery } from './utils/query';
+import {
+  prepareResponse,
+  generateSort,
+  generateCursorQuery,
+  filterProjectedFields,
+} from './utils/query';
 import sanitizeParams from './utils/sanitizeParams';
 import { AggregateParams, PaginationResponse } from './types';
 
@@ -48,29 +53,48 @@ export default async (
   collection: Collection | any,
   params: AggregateParams
 ): Promise<PaginationResponse> => {
+  const projectedFields = params.fields;
+
   params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
 
   const $match = generateCursorQuery(params);
   const $sort = generateSort(params);
   const $limit = params.limit + 1;
 
-  let aggregation;
-  if (params.sortCaseInsensitive) {
-    aggregation = params.aggregation.concat([
-      { $addFields: { __lc: { $toLower: '$' + params.paginatedField } } },
-      { $match },
-      { $sort },
-      { $limit },
-      { $project: { __lc: 0 } },
-    ]);
-  } else {
-    aggregation = params.aggregation.concat([{ $match }, { $sort }, { $limit }]);
-  }
+  const aggregationQuery = (() => {
+    const { paginatedField, sortCaseInsensitive, aggregation } = params;
+
+    if (!sortCaseInsensitive) return [...aggregation, { $match }, { $sort }, { $limit }];
+
+    // else if required to be sorted by lower case, then add a field via the aggregation
+    // pipeline that stores the lowercase value of the paginated field. Use this to sort
+    // and add to cursors, but return the original paginated field value to client.
+    const addLowerCaseFieldSearch = {
+      $addFields: {
+        __lower_case_value: {
+          $switch: {
+            branches: [
+              { case: { $eq: [{ $type: `$${paginatedField}` }, 'null'] }, then: null },
+              { case: { $eq: [{ $type: `$${paginatedField}` }, 'missing'] }, then: null },
+              {
+                case: { $eq: [{ $type: `$${paginatedField}` }, 'string'] },
+                then: { $toLower: `$${paginatedField}` },
+              },
+            ],
+            default: `$${paginatedField}`,
+          },
+        },
+      },
+    };
+
+    return [...aggregation, addLowerCaseFieldSearch, { $match }, { $sort }, { $limit }];
+  })();
 
   // Aggregation options:
   // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
   // https://mongodb.github.io/node-mongodb-native/4.0/interfaces/aggregateoptions.html
   const options = Object.assign({}, params.options);
+
   /**
    * IMPORTANT
    *
@@ -81,11 +105,21 @@ export default async (
   const collation = params.collation || config.COLLATION;
   if (collation && !isCollationNull) options.collation = collation;
 
+  if (params.hint) options.hint = params.hint;
+
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
   const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
 
-  const results = await collection[aggregateMethod](aggregation, options).toArray();
+  const results = await collection[aggregateMethod](aggregationQuery, options).toArray();
 
-  return prepareResponse(results, params);
+  const response = prepareResponse(results, params);
+
+  const projectedResults = filterProjectedFields({
+    projectedFields,
+    results: response.results,
+    sortCaseInsensitive: params.sortCaseInsensitive,
+  });
+
+  return { ...response, results: projectedResults };
 };

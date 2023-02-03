@@ -7,7 +7,7 @@ interface BaseParams {
   paginatedField?: string;
   sortAscending?: boolean;
   sortCaseInsensitive?: boolean;
-  collation?: CollationOptions;
+  collation?: CollationOptions | null;
   getTotal?: boolean;
   after?: string;
   before?: string;

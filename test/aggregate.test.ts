@@ -1,10 +1,12 @@
 import _ from 'underscore';
 import { Collection, Db, Document, ObjectId } from 'mongodb';
 import { aggregate, config } from '../src';
+import { decode } from '../src/utils/bsonUrlEncoding';
 import dbUtils from './support/db';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 const driver = process.env.DRIVER;
+const aggregateDirectory = require('../src');
 
 let mongod: MongoMemoryServer;
 
@@ -47,54 +49,20 @@ describe('aggregate', () => {
           color: 'blue',
         },
       ]),
-      db.collection('test_aggregation').insertMany([
-        {
-          items: [1, 2, 3],
-        },
-        {
-          items: [4, 5, 6],
-        },
-        {
-          items: [1, 3, 6],
-        },
-        {
-          items: [2, 4, 5],
-        },
-      ]),
-      db.collection('test_aggregation_lookup').insertMany([
-        {
-          _id: new ObjectId(),
-          name: 'mercury',
-        },
-        {
-          _id: new ObjectId(),
-          name: 'venus',
-        },
-        {
-          _id: new ObjectId(),
-          name: 'earth',
-        },
-        {
-          _id: new ObjectId(),
-          name: 'mars',
-        },
-        {
-          _id: new ObjectId(),
-          name: 'jupiter',
-        },
-        {
-          _id: new ObjectId(),
-          name: 'saturn',
-        },
-      ]),
-      db.collection('test_aggregation_lookup').createIndex(
-        {
-          name: 'text',
-        },
-        {
-          name: 'test_index',
-        }
-      ),
+
+      db
+        .collection('test_aggregation_trees')
+        .insertMany(
+          [
+            { name: 'pine' },
+            { name: 'oak' },
+            { name: 'palm' },
+            { name: 'birch' },
+            { name: 'maple' },
+            { name: 'willow' },
+          ].map((planet) => ({ name: planet.name, _id: new ObjectId() }))
+        ),
+
       db.collection('test_aggregation_sort').insertMany([
         {
           name: 'Alpha',
@@ -115,13 +83,17 @@ describe('aggregate', () => {
           name: 'aleph',
         },
       ]),
-      db
-        .collection('test_null_values')
-        .insertMany(
-          [undefined, undefined, undefined, null, null, 'Alice', 'Bob', 'alpha', 'bravo'].map(
-            (name, i) => (name === undefined ? { _id: i + 1 } : { _id: i + 1, name })
-          )
-        ),
+
+      db.collection('test_null_values').insertMany(
+        [undefined, null, 'Bravo', null, 'Alice', undefined, null, 'alpha']
+          // expectation is for an incrementing set of id values, so reverse the order
+          // prior adding an objectId (as objectIds will order by latest to oldest)
+          .reverse()
+          .map((name) => ({
+            _id: new ObjectId(),
+            ...(name !== undefined && { name }),
+          }))
+      ),
     ]);
   });
 
@@ -608,34 +580,75 @@ describe('aggregate', () => {
   });
 
   describe('lookup aggregations', () => {
-    it('returns results from the aggregation', async () => {
-      const collection = db.collection('test_aggregation');
+    let astronomistCollection;
 
-      const res = await aggregate(collection, {
-        aggregation: [
+    const [mercuryId, venusId, earthId, marsId, jupiterId, saturnId] = [...Array(6)]
+      .reverse() // reverse order prior objectIds so that mercuryId is the most recently created
+      .map((planetId) => new ObjectId());
+
+    beforeAll(async () => {
+      [astronomistCollection] = await Promise.all([
+        db.collection('test_aggregation_astronomistCollection').insertMany([
           {
-            $match: {
-              items: 5,
-            },
+            name: 'Amy',
+            favouritePlanetIds: [mercuryId, venusId, earthId],
           },
           {
-            $unwind: '$items',
+            name: 'Bill',
+            favouritePlanetIds: [marsId, jupiterId, saturnId],
+          },
+          {
+            name: 'Caitlin',
+            favouritePlanetIds: [mercuryId, earthId, saturnId],
+          },
+          {
+            name: 'Dazza',
+            favouritePlanetIds: [venusId, marsId, jupiterId],
+          },
+        ]),
+
+        db.collection('test_aggregation_lookup_of_planetCollection').insertMany([
+          { _id: mercuryId, name: 'mercury' },
+          { _id: venusId, name: 'venus' },
+          { _id: earthId, name: 'earth' },
+          { _id: marsId, name: 'mars' },
+          { _id: jupiterId, name: 'jupiter' },
+          { _id: saturnId, name: 'saturn' },
+        ]),
+
+        // create the index of the planetCollection
+        // db
+        //   .collection('test_aggregation_lookup_of_planetCollection')
+        //   .createIndex({ name: 'text5' }, { name: 'test_index5' }),
+      ]);
+    });
+
+    it('returns results from the aggregation', async () => {
+      const AstronomistCollection = db.collection('test_aggregation_astronomistCollection');
+
+      const res = await aggregate(AstronomistCollection, {
+        aggregation: [
+          {
+            $match: { favouritePlanetIds: jupiterId },
+          },
+          {
+            $unwind: '$favouritePlanetIds',
           },
           {
             $lookup: {
-              from: 'test_aggregation_lookup',
-              localField: 'items',
+              from: 'test_aggregation_lookup_of_planetCollection',
+              localField: 'favouritePlanetIds',
               foreignField: '_id',
-              as: 'itemDoc',
+              as: 'planetDocument',
             },
           },
           {
-            $unwind: '$itemDoc',
+            $unwind: '$planetDocument',
           },
           {
             $group: {
               _id: '$_id',
-              planets: { $push: '$itemDoc.name' },
+              planets: { $push: '$planetDocument.name' },
             },
           },
           { $unwind: '$planets' },
@@ -720,8 +733,9 @@ describe('aggregate', () => {
 
   describe('aggregation options', () => {
     let spy: jest.SpyInstance<any, unknown[]>;
+
     beforeEach(() => {
-      spy = jest.spyOn(paging, 'aggregate');
+      spy = jest.spyOn(aggregateDirectory, 'aggregate');
     });
 
     afterEach(() => {
@@ -729,9 +743,18 @@ describe('aggregate', () => {
     });
 
     it('invokes aggregate with a `hint` if one is passed in via params object', async () => {
-      const collection = db.collection('test_aggregation_lookup');
+      const treesCollection = db.collection('test_aggregation_trees');
 
-      await aggregate(collection, {
+      await db.collection('test_aggregation_trees').createIndex(
+        {
+          name: 'text',
+        },
+        {
+          name: 'test_index',
+        }
+      );
+
+      const { results, hasPrevious, hasNext } = await aggregate(treesCollection, {
         aggregation: [
           {
             $sort: { name: 1 },
@@ -740,6 +763,12 @@ describe('aggregate', () => {
         hint: 'test_index',
       });
 
+      expect(results).toHaveLength(6);
+      expect(hasNext).toBe(false);
+      expect(hasPrevious).toBe(false);
+
+      // TODO UPDATE REQUIRED TO RUN THIS TEST
+      expect(spy).toHaveBeenCalled();
       expect(spy).toHaveBeenCalledWith(
         expect.any(Object),
         expect.objectContaining({ hint: 'test_index' })
@@ -764,71 +793,123 @@ describe('aggregate', () => {
         expect(_.pluck(results, 'name')).toEqual(['Alpha', 'Beta']);
       });
 
-      it('sorts null and undefined values at the start', async () => {
+      it('sorts null and undefined values at the start when paginating by name', async () => {
         const collection = db.collection('test_null_values');
 
-        const pg1 = await aggregate(collection, { ...options });
-        expect(pg1.hasNext).toBe(true);
-        expect(pg1.hasPrevious).toBe(false);
-        expect(_.pluck(pg1.results, 'name')).toEqual([undefined, undefined]);
-        expect(_.pluck(pg1.results, '_id')).toEqual([1, 2]);
+        // DOCUMENTS in oldest to latest order =>
+        // [undefined, null, 'Bravo', null, 'Alice' undefined, null, 'alpha']
 
-        const pg2 = await aggregate(collection, {
-          ...options,
-          next: pg1.next,
-        });
-        expect(pg2.hasNext).toBe(true);
-        expect(pg2.hasPrevious).toBe(true);
-        expect(_.pluck(pg2.results, 'name')).toEqual([undefined, null]);
-        expect(_.pluck(pg2.results, '_id')).toEqual([3, 4]);
+        ////////////////////// PAGE EXPECTATIONS /////////////////////////////////
+        // expect that the undefined + null values are considered the same for sorting, so
+        // the most recently created will be returned first
 
-        const pg3 = await aggregate(collection, {
-          ...options,
-          next: pg2.next,
-        });
-        expect(pg3.hasNext).toBe(true);
-        expect(pg3.hasPrevious).toBe(true);
-        expect(_.pluck(pg3.results, 'name')).toEqual([null, 'Alice']);
-        expect(_.pluck(pg3.results, '_id')).toEqual([5, 6]);
+        // expect PageOne => null, undefined, null
+        // expect PageTwo => null, undefined, 'Alice'
+        // expect PageThree -> 'Bravo', 'alpha'
 
-        const pg4 = await aggregate(collection, {
-          ...options,
-          next: pg3.next,
-        });
-        expect(pg4.hasNext).toBe(true);
-        expect(pg4.hasPrevious).toBe(true);
-        expect(_.pluck(pg4.results, 'name')).toEqual(['Bob', 'alpha']);
-        expect(_.pluck(pg4.results, '_id')).toEqual([7, 8]);
+        const expectPageOne = (response) => {
+          const { results, hasNext, hasPrevious } = response;
 
-        const pg3b = await aggregate(collection, {
-          ...options,
-          previous: pg4.previous,
-        });
-        expect(pg3b.hasNext).toBe(true);
-        expect(pg3b.next).toEqual(pg3.next);
-        expect(pg3b.hasPrevious).toBe(true);
-        expect(pg3b.previous).toEqual(pg3.previous);
-        expect(pg3b.results).toEqual(pg3.results);
+          expect(hasNext).toBe(true);
+          expect(hasPrevious).toBe(false);
+          expect(results).toHaveLength(3);
 
-        const pg2b = await aggregate(collection, {
-          ...options,
-          previous: pg3.previous,
-        });
-        expect(pg2b.hasNext).toBe(true);
-        expect(pg2b.next).toEqual(pg2.next);
-        expect(pg2b.hasPrevious).toBe(true);
-        expect(pg2b.previous).toEqual(pg2.previous);
-        expect(pg2b.results).toEqual(pg2.results);
+          expect(results[0].name).toEqual(null);
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual(null);
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
 
-        const pg1b = await aggregate(collection, {
-          ...options,
-          previous: pg2.previous,
-        });
-        expect(pg1b.hasNext).toBe(true);
-        expect(pg1b.next).toEqual(pg1.next);
-        expect(pg1b.hasPrevious).toBe(false);
-        expect(pg1b.previous).toEqual(pg1.previous);
-        expect(pg1b.results).toEqual(pg1.results);
+          expect(results[1].name).toBeUndefined();
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual(undefined);
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+
+          expect(results[2].name).toEqual(null);
+          const thirdResultDecodedCursor = decode(results[2]._cursor);
+          expect(thirdResultDecodedCursor).toHaveLength(2);
+          expect(thirdResultDecodedCursor?.[0]).toEqual(null);
+          expect(thirdResultDecodedCursor?.[1].toString()).toEqual(results[2]._id.toString());
+        };
+
+        const expectPageTwo = (response) => {
+          const { results, hasNext, hasPrevious } = response;
+
+          expect(hasNext).toBe(true);
+          expect(hasPrevious).toBe(true);
+          expect(results).toHaveLength(3);
+
+          expect(results[0].name).toEqual(null);
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual(null);
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
+
+          expect(results[1].name).toBeUndefined();
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual(undefined);
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+
+          expect(results[2].name).toEqual('Alice');
+          const thirdResultDecodedCursor = decode(results[2]._cursor);
+          expect(thirdResultDecodedCursor).toHaveLength(2);
+          expect(thirdResultDecodedCursor?.[0]).toEqual('Alice');
+          expect(thirdResultDecodedCursor?.[1].toString()).toEqual(results[2]._id.toString());
+        };
+
+        const expectPageThree = (response) => {
+          const { results, hasNext, hasPrevious } = response;
+
+          expect(hasNext).toBe(false);
+          expect(hasPrevious).toBe(true);
+          expect(results).toHaveLength(2);
+
+          expect(results[0].name).toEqual('Bravo');
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual('Bravo');
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
+
+          expect(results[1].name).toEqual('alpha'); // as case senitivity sorted, expect 'alpha' after 'Bravo'
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual('alpha');
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+        };
+
+        ///////////// TEST PAGE EXPECTATIONS /////////////////////
+
+        const options = {
+          paginatedField: 'name',
+          sortAscending: true,
+          limit: 3,
+        };
+
+        // Initial page
+        let response = await aggregate(collection, { ...options });
+        expectPageOne(response);
+        const page1NextCursor = response.results[response.results.length - 1]._cursor;
+
+        // Get second Page via forward pagination
+        response = await aggregate(collection, { ...options, next: page1NextCursor });
+        expectPageTwo(response);
+        const page2NextCursor = response.results[response.results.length - 1]._cursor;
+
+        // Get third Page via forward pagination
+        response = await aggregate(collection, { ...options, next: page2NextCursor });
+        expectPageThree(response);
+        const page3StartCursor = response.results[0]._cursor;
+
+        // Get second page via backward pagination
+        response = await aggregate(collection, { ...options, previous: page3StartCursor });
+        expectPageTwo(response);
+        const page2StartCursor = response.results[0]._cursor;
+
+        // Get first page via backward pagination
+        response = await aggregate(collection, { ...options, previous: page2StartCursor });
+        expectPageOne(response);
       });
     });
 
@@ -847,10 +928,10 @@ describe('aggregate', () => {
         expect(r.hasPrevious).toBe(false);
       });
 
-      it('returns the paginated field but not the temporary __lc field', async () => {
+      it('returns the paginated field but not the temporary __lower_case_value field', async () => {
         const r = await aggregate(collection, { ...options });
         expect('name' in r.results[0]).toBe(true);
-        expect('__lc' in r.results[0]).toBe(false);
+        expect('__lower_case_value' in r.results[0]).toBe(false);
       });
 
       it('pages correctly forward and backward', async () => {
@@ -865,71 +946,125 @@ describe('aggregate', () => {
         expect(pg1.next).toEqual(next);
       });
 
-      it('sorts null and undefined values at the start', async () => {
+      it('sorts null and undefined values at the start with ascending pagination, case insensitive', async () => {
         const collection = db.collection('test_null_values');
 
-        const pg1 = await aggregate(collection, { ...options });
-        expect(pg1.hasNext).toBe(true);
-        expect(pg1.hasPrevious).toBe(false);
-        expect(_.pluck(pg1.results, 'name')).toEqual([undefined, undefined]);
-        expect(_.pluck(pg1.results, '_id')).toEqual([1, 2]);
+        // DOCUMENTS in oldest to latest order =>
+        // [undefined, null, 'Bravo', null, 'Alice' undefined, null, 'alpha']
 
-        const pg2 = await aggregate(collection, {
-          ...options,
-          next: pg1.next,
-        });
-        expect(pg2.hasNext).toBe(true);
-        expect(pg2.hasPrevious).toBe(true);
-        expect(_.pluck(pg2.results, 'name')).toEqual([undefined, null]);
-        expect(_.pluck(pg2.results, '_id')).toEqual([3, 4]);
+        ////////////////////// PAGE EXPECTATIONS /////////////////////////////////
+        // expect that the undefined + null values are considered the same for sorting, so the most recently
+        // created will be returned first. Expect string values to be returned in case-insensitive order, but
+        // cursors to retain the lowercase values
 
-        const pg3 = await aggregate(collection, {
-          ...options,
-          next: pg2.next,
-        });
-        expect(pg3.hasNext).toBe(true);
-        expect(pg3.hasPrevious).toBe(true);
-        expect(_.pluck(pg3.results, 'name')).toEqual([null, 'Alice']);
-        expect(_.pluck(pg3.results, '_id')).toEqual([5, 6]);
+        // expect PageOne => null, undefined, null
+        // expect PageTwo => null, undefined, 'Alice'
+        // expect PageThree -> 'alpha', 'Bravo'
 
-        const pg4 = await aggregate(collection, {
-          ...options,
-          next: pg3.next,
-        });
-        expect(pg4.hasNext).toBe(true);
-        expect(pg4.hasPrevious).toBe(true);
-        expect(_.pluck(pg4.results, 'name')).toEqual(['alpha', 'Bob']);
-        expect(_.pluck(pg4.results, '_id')).toEqual([8, 7]);
+        const expectPageOne = (response) => {
+          const { results, hasNext, hasPrevious } = response;
 
-        const pg3b = await aggregate(collection, {
-          ...options,
-          previous: pg4.previous,
-        });
-        expect(pg3b.hasNext).toBe(true);
-        expect(pg3b.next).toEqual(pg3.next);
-        expect(pg3b.hasPrevious).toBe(true);
-        expect(pg3b.previous).toEqual(pg3.previous);
-        expect(pg3b.results).toEqual(pg3.results);
+          expect(hasNext).toBe(true);
+          expect(hasPrevious).toBe(false);
+          expect(results).toHaveLength(3);
 
-        const pg2b = await aggregate(collection, {
-          ...options,
-          previous: pg3.previous,
-        });
-        expect(pg2b.hasNext).toBe(true);
-        expect(pg2b.next).toEqual(pg2.next);
-        expect(pg2b.hasPrevious).toBe(true);
-        expect(pg2b.previous).toEqual(pg2.previous);
-        expect(pg2b.results).toEqual(pg2.results);
+          expect(results[0].name).toEqual(null);
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual(null);
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
 
-        const pg1b = await aggregate(collection, {
-          ...options,
-          previous: pg2.previous,
-        });
-        expect(pg1b.hasNext).toBe(true);
-        expect(pg1b.next).toEqual(pg1.next);
-        expect(pg1b.hasPrevious).toBe(false);
-        expect(pg1b.previous).toEqual(pg1.previous);
-        expect(pg1b.results).toEqual(pg1.results);
+          expect(results[1].name).toBeUndefined();
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual(undefined);
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+
+          expect(results[2].name).toEqual(null);
+          const thirdResultDecodedCursor = decode(results[2]._cursor);
+          expect(thirdResultDecodedCursor).toHaveLength(2);
+          expect(thirdResultDecodedCursor?.[0]).toEqual(null);
+          expect(thirdResultDecodedCursor?.[1].toString()).toEqual(results[2]._id.toString());
+        };
+
+        const expectPageTwo = (response) => {
+          const { results, hasNext, hasPrevious } = response;
+
+          expect(hasNext).toBe(true);
+          expect(hasPrevious).toBe(true);
+          expect(results).toHaveLength(3);
+
+          expect(results[0].name).toEqual(null);
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual(null);
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
+
+          expect(results[1].name).toBeUndefined();
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual(undefined);
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+
+          expect(results[2].name).toEqual('Alice');
+          const thirdResultDecodedCursor = decode(results[2]._cursor);
+          expect(thirdResultDecodedCursor).toHaveLength(2);
+          expect(thirdResultDecodedCursor?.[0]).toEqual('alice');
+          expect(thirdResultDecodedCursor?.[1].toString()).toEqual(results[2]._id.toString());
+        };
+
+        const expectPageThree = (response) => {
+          const { results, hasNext, hasPrevious } = response;
+
+          expect(hasNext).toBe(false);
+          expect(hasPrevious).toBe(true);
+          expect(results).toHaveLength(2);
+
+          expect(results[0].name).toEqual('alpha'); // 'alpha' now prior 'Bravo'
+          const firstResultDecodedCursor = decode(results[0]._cursor);
+          expect(firstResultDecodedCursor).toHaveLength(2);
+          expect(firstResultDecodedCursor?.[0]).toEqual('alpha');
+          expect(firstResultDecodedCursor?.[1].toString()).toEqual(results[0]._id.toString());
+
+          expect(results[1].name).toEqual('Bravo'); // as case senitivity sorted, expect 'alpha' after 'Bravo'
+          const secondResultDecodedCursor = decode(results[1]._cursor);
+          expect(secondResultDecodedCursor).toHaveLength(2);
+          expect(secondResultDecodedCursor?.[0]).toEqual('bravo');
+          expect(secondResultDecodedCursor?.[1].toString()).toEqual(results[1]._id.toString());
+        };
+
+        ///////////// TEST PAGE EXPECTATIONS /////////////////////
+
+        const options = {
+          paginatedField: 'name',
+          sortCaseInsensitive: true,
+          sortAscending: true,
+          limit: 3,
+        };
+
+        // Initial page
+        let response = await aggregate(collection, { ...options });
+        expectPageOne(response);
+        const page1NextCursor = response.results[response.results.length - 1]._cursor;
+
+        // Get second Page via forward pagination
+        response = await aggregate(collection, { ...options, next: page1NextCursor });
+        expectPageTwo(response);
+        const page2NextCursor = response.results[response.results.length - 1]._cursor;
+
+        // Get third Page via forward pagination
+        response = await aggregate(collection, { ...options, next: page2NextCursor });
+        expectPageThree(response);
+        const page3StartCursor = response.results[0]._cursor;
+
+        // Get second page via backward pagination
+        response = await aggregate(collection, { ...options, previous: page3StartCursor });
+        expectPageTwo(response);
+        const page2StartCursor = response.results[0]._cursor;
+
+        // Get first page via backward pagination
+        response = await aggregate(collection, { ...options, previous: page2StartCursor });
+        expectPageOne(response);
       });
     });
   });
