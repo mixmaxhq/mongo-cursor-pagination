@@ -29,7 +29,7 @@ export default async (
   searchString: string,
   params: SearchParams
 ): Promise<PaginationResponse> => {
-  if (_.isString(params.limit)) params.limit = parseInt(params.limit, 10);
+  if (typeof params.limit === 'string') params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = decode(params.next as string);
 
   params = _.defaults(params, {
