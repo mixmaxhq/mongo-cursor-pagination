@@ -1,3 +1,11 @@
+### [8.1.3](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.2...v8.1.3) (2023-02-14)
+
+
+### Bug Fixes
+
+* bump mongodb-memory-server dependency ([0bb0e3d](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/0bb0e3d5624cdc2a4420f885a00538a88ca86635))
+* regenerate package-lock.json ([659ec34](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/659ec34f4c9f2f58b8024f8507d7cf73f06a8854))
+
 ### [8.1.2](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.1...v8.1.2) (2022-08-26)
 
 
