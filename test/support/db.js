@@ -4,12 +4,12 @@ const MongoClient = require('mongodb');
 
 function start() {
   return new MongoMemoryServer({
-    binary: { version: '4.0.12' },
+    binary: { version: '4.4.18' },
   });
 }
 
 async function db(mongod, driver = null) {
-  const uri = await mongod.getConnectionString();
+  const uri = await mongod.getUri();
   if (driver === 'mongoist') {
     return mongoist(uri);
   }
