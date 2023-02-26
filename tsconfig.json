@@ -6,7 +6,7 @@
     "moduleResolution": "node",
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "skipDefaultLibCheck": true,
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "resolveJsonModule": true,
     "importHelpers": false,
     "declaration": true,
