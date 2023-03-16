@@ -392,3 +392,9 @@ To run tests, you first must [start a Mongo server on port 27017](https://mongod
 ## Future ideas
 
 - Add support to `search()` to query previous pages.
+
+## Publishing a new version
+
+```
+GH_TOKEN=xxx npx semantic-release --no-ci
+```

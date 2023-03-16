@@ -16,7 +16,7 @@
     "lint": "eslint .",
     "prepublishOnly": "npm run babelBuild && if [ \"$CI\" = '' ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
-    "test": "npm run babelBuild; DRIVER=mongoist jest && DRIVER=native jest"
+    "test": "npm run babelBuild; DRIVER=mongoist jest --forceExit && DRIVER=native jest --forceExit"
   },
   "repository": {
     "type": "git",
