@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "prepare": "tsc",
     "pretest": "npm run prepare",
-    "postinstall": "npm run prepare",
+    "prepublish": "npm run prepare",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
     "test": "DRIVER=mongoist jest --forceExit && DRIVER=native jest --forceExit"
   },
