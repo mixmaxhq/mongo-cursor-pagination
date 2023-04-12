@@ -30,6 +30,10 @@ Here are some examples of cursor-based APIs:
 
 `npm install mongo-cursor-pagination --save`
 
+or
+
+`yarn add mongo-cursor-pagination`
+
 ## Usage
 
 ### find()
@@ -42,8 +46,7 @@ Call `find()` with the following parameters:
    Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
    are ordered by the paginatedField.
 
-   @param {MongoCollection} collection A collection object returned from the MongoDB library's
-      or the mongoist package's `db.collection(<collectionName>)` method.
+   @param {MongoCollection} collection A collection object returned from the MongoDB library's.
    @param {Object} params
       -query {Object} The find query.
       -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.

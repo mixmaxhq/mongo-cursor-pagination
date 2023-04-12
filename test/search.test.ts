@@ -4,14 +4,12 @@ import { search } from '../src';
 import dbUtils from './support/db';
 import { decode } from '../src/utils/bsonUrlEncoding';
 
-const driver = process.env.DRIVER;
-
 describe('search', () => {
   let mongod: MongoMemoryServer;
   let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod);
 
     // create two collections with indexes for searching
     await Promise.all([

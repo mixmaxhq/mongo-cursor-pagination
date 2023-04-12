@@ -9,9 +9,9 @@ const BSON_UNDEFINED = '__mixmax__undefined__';
  * as a string which can be passed in a URL.
  */
 
-export const encode = (obj: object): string => {
+export const encode = (obj: string | object | Document): string => {
   if (Array.isArray(obj) && obj[0] === undefined) obj[0] = BSON_UNDEFINED;
-  return base64url.encode(EJSON.stringify(obj));
+  return base64url.encode(typeof obj === 'string' ? obj : EJSON.stringify(obj, { relaxed: true }));
 };
 
 export const decode = (str: string): Document | string | undefined => {

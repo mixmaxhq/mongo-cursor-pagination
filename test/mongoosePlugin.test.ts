@@ -1,10 +1,10 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import mongoose, { Model } from 'mongoose';
+import mongoose, { Model, Types, Schema } from 'mongoose';
 
 import mongooseCursorPaginate from '../src/mongoose.plugin';
 import dbUtils from './support/db';
 
-const AuthorSchema = new mongoose.Schema({ name: String });
+const AuthorSchema = new Schema({ name: String });
 AuthorSchema.index({ name: 'text' });
 
 AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN', searchFnName: 'searchFN' });
@@ -17,12 +17,12 @@ interface AuthorSchemaWithPlugin extends ModelSchemaType {
 
 const Author = mongoose.model('Author', AuthorSchema);
 
-const PostSchema = new mongoose.Schema({
+const PostSchema = new Schema({
   title: String,
   date: Date,
   body: String,
   author: {
-    type: mongoose.Types.ObjectId, // mongoose.Schema.ObjectId,
+    type: Types.ObjectId,
     ref: 'Author',
   },
 });

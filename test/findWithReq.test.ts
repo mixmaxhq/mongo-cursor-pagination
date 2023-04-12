@@ -4,14 +4,12 @@ import { findWithReq } from '../src';
 import dbUtils from './support/db';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
-const driver = process.env.DRIVER;
-
 describe('findWithReq', () => {
   let mongod: MongoMemoryServer;
   let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod);
 
     await Promise.all([
       db.collection('test_paging').insertMany([

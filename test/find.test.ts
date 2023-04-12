@@ -1,11 +1,9 @@
-import { ObjectId } from 'mongoist';
-import { Collection, Db, Document } from 'mongodb';
+import { Collection, Db, Document, ObjectId } from 'mongodb';
 import _ from 'underscore';
 
 import { find, config } from '../src';
 import dbUtils from './support/db';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-const driver = process.env.DRIVER;
 
 import { decode } from '../src/utils/bsonUrlEncoding';
 
@@ -15,7 +13,7 @@ describe('find', () => {
   let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod);
 
     // Set up collections once for testing later.
     await Promise.all([
@@ -703,49 +701,47 @@ describe('find', () => {
       beforeAll(async () => {
         await db.collection('test_paging_string_ids').insertMany([
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 1,
           },
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 2,
           },
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 3,
           },
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 4,
             color: 'blue',
           },
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 5,
             color: 'blue',
           },
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 6,
             color: 'blue',
           },
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 7,
             color: 'blue',
           },
           {
-            _id: new ObjectId().toString(),
+            _id: new ObjectId(),
             counter: 8,
             color: 'blue',
           },
         ]);
       });
 
-      afterEach(async () => {
-        // need to remove the mongodb@^3.3.2:version "3.7.3" package (installed as part of a
-        // dependency of mongoist) so that can replace the deprecated .remove() with deleteAll
-        // await db.collection('test_paging_string_ids').remove()
+      afterAll(async () => {
+        await db.collection('test_paging_string_ids').deleteMany()
         // beforeEach changed to beforeAll to handle
       });
 

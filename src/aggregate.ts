@@ -25,8 +25,7 @@ import { AggregateParams, PaginationResponse } from './types';
  * Additionally, an additional query will be appended to the first `$match` found in order to apply the offset
  * required for the cursor.
  *
- * @param {MongoCollection} collection A collection object returned from the MongoDB library's
- *    or the mongoist package's `db.collection(<collectionName>)` method.
+ * @param {MongoCollection} collection A collection object returned from the MongoDB library's.
  * @param {AggregateParams} params
  *    -aggregation {Object[]} The aggregation query.
  *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.

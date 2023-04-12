@@ -7,10 +7,16 @@ import search from './search';
 
 declare module 'mongoose' {
   interface Model<
-    T /* eslint-disable-line */,
-    TQueryHelpers = {} /* eslint-disable-line */,
-    TMethodsAndOverrides = {} /* eslint-disable-line */,
-    TVirtuals = {} /* eslint-disable-line */
+    TRawDocType,
+    TQueryHelpers = {},
+    TInstanceMethods = {},
+    TVirtuals = {},
+    THydratedDocumentType = HydratedDocument<
+      TRawDocType,
+      TVirtuals & TInstanceMethods,
+      TQueryHelpers
+    >,
+    TSchema = any
   > {
     paginate(params: QueryParams): Promise<PaginationResponse>;
     search(searchString: string, params: SearchParams): Promise<PaginationResponse>;

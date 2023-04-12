@@ -1,11 +1,10 @@
 import _ from 'underscore';
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Collection, Db, Document, ObjectId } from 'mongodb';
 import { aggregate, config } from '../src';
 import { decode } from '../src/utils/bsonUrlEncoding';
 import dbUtils from './support/db';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 
-const driver = process.env.DRIVER;
 const aggregateDirectory = require('../src');
 
 let mongod: MongoMemoryServer;
@@ -14,7 +13,7 @@ describe('aggregate', () => {
   let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod);
 
     // Set up collections once for testing later.
     await Promise.all([

@@ -11,8 +11,7 @@ import { Collection } from 'mongodb';
  * a paginatedField parameter. Note that this is less performant than find() because it must
  * perform the full search on each call to this function.
  *
- * @param {MongoCollection} collection A collection object returned from the MongoDB library's
- *    or the mongoist package's `db.collection(<collectionName>)` method. This MUST have a Mongo
+ * @param {MongoCollection} collection A collection object returned from the MongoDB library's. This MUST have a Mongo
  *    $text index on it.
  *    See https://docs.mongodb.com/manual/core/index-text/.
  * @param {String} searchString String to search on.

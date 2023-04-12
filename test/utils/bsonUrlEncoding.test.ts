@@ -1,25 +1,22 @@
-import mongo from 'mongoist';
-import { Db } from 'mongodb';
+import { Db, ObjectId } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { encode, decode } from '../../src/utils/bsonUrlEncoding';
 
 import dbUtils from '../support/db';
-
-const driver = process.env.DRIVER;
 
 describe('bson url encoding', () => {
   let mongod: MongoMemoryServer;
   let db: Db;
   beforeAll(async () => {
     mongod = await dbUtils.start();
-    db = await dbUtils.db(mongod, driver);
+    db = await dbUtils.db(mongod);
   });
 
   afterAll(() => mongod.stop());
 
   it('encodes and decodes complex objects', async () => {
     const obj = {
-      _id: mongo.ObjectID('58164d86f69ab45942c6ff38'),
+      _id: new ObjectId('58164d86f69ab45942c6ff38'),
       date: new Date('Sun Oct 30 2016 12:32:35 GMT-0700 (PDT)'),
       number: 1,
       string: 'complex String &$##$-/?',
@@ -34,6 +31,7 @@ describe('bson url encoding', () => {
 
     const decoded = decode(str);
     // Check types
+    expect(decoded).toBeDefined();
     expect(typeof decoded.date).toEqual('object');
     expect(typeof decoded.number).toEqual('number');
     expect(typeof decoded.string).toEqual('string');
