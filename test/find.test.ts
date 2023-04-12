@@ -1,9 +1,9 @@
+import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Collection, Db, Document, ObjectId } from 'mongodb';
 import _ from 'underscore';
 
 import { find, config } from '../src';
 import dbUtils from './support/db';
-import { MongoMemoryServer } from 'mongodb-memory-server';
 
 import { decode } from '../src/utils/bsonUrlEncoding';
 

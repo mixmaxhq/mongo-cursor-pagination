@@ -7,7 +7,7 @@ async function start(): Promise<MongoMemoryServer> {
   });
 }
 
-async function db(mongod: { getUri: () => any }, driver: string = ''): Promise<Db> {
+async function db(mongod: { getUri: () => any }): Promise<Db> {
   const uri = mongod.getUri();
 
   const client = new MongoClient(uri);

@@ -1,6 +1,6 @@
+import { Collection } from 'mongodb';
 import find from './find';
 import sanitizeQuery from './utils/sanitizeQuery';
-import { Collection } from 'mongodb';
 import { QueryParams, PaginationResponse } from './types';
 
 /**
