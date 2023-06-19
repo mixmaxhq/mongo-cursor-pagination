@@ -2,9 +2,7 @@ import { MongoClient, Db } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 async function start(): Promise<MongoMemoryServer> {
-  return MongoMemoryServer.create({
-    binary: { version: '5.0.11' },
-  });
+  return await MongoMemoryServer.create({});
 }
 
 async function db(mongod: { getUri: () => any }): Promise<Db> {
