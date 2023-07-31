@@ -72,11 +72,13 @@ export async function sanitizeMultiParamsMutate(
   if (params.fields) {
     const { fields: requestedFields, paginatedFields } = params;
 
-    params.fields = {
-      _id: 0,
-      ...requestedFields,
-      ...paginatedFields.map((pf) => ({ [pf.paginatedField]: 1 })),
-    };
+    params.fields = Object.assign(
+      {
+        _id: 0,
+      },
+      requestedFields,
+      ...paginatedFields.map((pf) => ({ [pf.paginatedField]: 1 }))
+    );
   }
 
   return params;

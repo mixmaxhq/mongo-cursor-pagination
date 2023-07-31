@@ -61,6 +61,9 @@ export type QueryInputParamsMulti = BaseParamsMulti & QueryInput;
 export type AggregateInputParams = BaseParams & AggregateInput;
 export type AggregateParams = BaseParams & Aggregate;
 
+export type AggregateInputParamsMulti = BaseParamsMulti & AggregateInput;
+export type AggregateParamsMulti = BaseParamsMulti & Aggregate;
+
 export type SearchParams = {
   query?: object;
   limit?: number;

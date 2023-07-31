@@ -1,6 +1,5 @@
 import _ from 'underscore';
 
-import aggregate from './aggregate';
 import config from './config';
 import {
   prepareResponse,
@@ -13,6 +12,8 @@ import {
 import sanitizeParams, { sanitizeMultiParamsMutate } from './utils/sanitizeParams';
 import { QueryParams, PaginationResponse, QueryParamsMulti } from './types';
 import { Collection } from 'mongodb';
+import aggregateMulti from './aggregateMulti';
+import util from 'util';
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -50,13 +51,11 @@ export default async (
   const projectedFields = params.fields;
 
   // TODO: refactor this to handle a multiple sort
-
-  const isCaseInsensitive = params.paginatedFields.some((pf) => pf.sortCaseInsensitive);
-
   let response = {} as PaginationResponse;
+  const isCaseInsensitive = params.paginatedFields.some((pf) => pf.sortCaseInsensitive);
   if (isCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
-    response = await aggregate(
+    response = await aggregateMulti(
       collection,
       Object.assign({}, params, {
         aggregation: params.query ? [{ $match: params.query }] : [],
@@ -67,6 +66,7 @@ export default async (
     params = _.defaults(await sanitizeMultiParamsMutate(collection, params), { query: {} });
 
     const cursorQuerys = generateCursorQueryMulti(params);
+
     const $sort = generateSorts(params);
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
@@ -74,8 +74,11 @@ export default async (
     const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
     const query = collection[findMethod]()?.project
-      ? collection.find({ $and: [cursorQuerys, params.query] }).project(params.fields)
-      : collection[findMethod]({ $and: [cursorQuerys, params.query] }, params.fields);
+      ? collection
+          .find({ $and: [cursorQuerys, params.query] })
+          .project(params.fields)
+          .sort($sort)
+      : collection[findMethod]({ $and: [cursorQuerys, params.query] }, params.fields, $sort);
 
     /**
      * IMPORTANT
