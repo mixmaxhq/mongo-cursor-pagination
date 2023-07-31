@@ -1,7 +1,13 @@
 import objectPath from 'object-path';
 import { omit, pick, uniq } from 'lodash';
 
-import { AggregateParams, QueryParams, PaginationResponse } from '../types';
+import {
+  AggregateParams,
+  QueryParams,
+  PaginationResponse,
+  PaginatedField,
+  QueryParamsMulti,
+} from '../types';
 
 import { encode } from './bsonUrlEncoding';
 
@@ -88,6 +94,8 @@ export function prepareResponse(
   return response;
 }
 
+export type SearchArgs = PaginatedField & Pick<QueryParams, 'previous'>;
+
 /**
  * Generates a `$sort` object given the parameters
  *
@@ -95,7 +103,7 @@ export function prepareResponse(
  *
  * @return {Object} a sort object
  */
-export function generateSort(params: QueryParams | AggregateParams): object {
+export function generateSort(params: SearchArgs): Record<string, number> {
   const sortAsc =
     (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
   const sortDir = sortAsc ? 1 : -1;
@@ -103,7 +111,15 @@ export function generateSort(params: QueryParams | AggregateParams): object {
   if (params.paginatedField == '_id') return { _id: sortDir };
 
   const field = params.sortCaseInsensitive ? '__lower_case_value' : params.paginatedField;
-  return { [field]: sortDir, _id: sortDir };
+  return { [field]: sortDir };
+}
+
+export function generateSorts(params: QueryParamsMulti) {
+  const sortArgs = params.paginatedFields.map((pf) => ({
+    ...pf,
+    previous: params.previous,
+  }));
+  return Object.assign({}, ...sortArgs.map((f) => generateSort(f)));
 }
 
 /**
@@ -163,6 +179,85 @@ export function generateCursorQuery(params: QueryParams | AggregateParams): obje
       };
 }
 
+type FalsyOrAsc =
+  | {
+      [x: string]: {
+        $ne: any;
+      };
+    }
+  | {
+      _id: {
+        $gt: any;
+      };
+    };
+
+type FalsyOrDesc = {
+  _id: {
+    $lt: any;
+  };
+};
+
+type TruthyOr = {
+  [x: string]: any;
+};
+
+type MongoOr = { $or: Array<FalsyOrAsc | FalsyOrDesc | TruthyOr> };
+
+export function generateCursorQueryMulti(params: QueryParamsMulti) {
+  if (!params.next && !params.previous) return {};
+  const cursor = (params.next || params.previous) as any;
+
+  const cursors: Array<FalsyOrAsc | FalsyOrDesc | TruthyOr> = []; // TODO: may want these as one big OR?
+
+  for (const paginatedField of params.paginatedFields) {
+    const sortAsc =
+      (!paginatedField.sortAscending && params.previous) ||
+      ((paginatedField.sortAscending && !params.previous) as boolean);
+    const onlyId =
+      params.paginatedFields.length === 1 && params.paginatedFields[0].paginatedField == '_id';
+    if (onlyId) return { _id: sortAsc ? { $gt: cursor } : { $lt: cursor } }; // early exit only the id is included
+
+    const field = paginatedField.sortCaseInsensitive
+      ? '__lower_case_value' // lc value of the paginatedField (via $addFields + $toLower)
+      : paginatedField.paginatedField;
+
+    const notNullNorUndefined = { [field]: { $ne: null } };
+    const nullOrUndefined = { [field]: null };
+    const [paginatedFieldValue, idValue] = cursor;
+
+    if (paginatedFieldValue === null || paginatedFieldValue === undefined) {
+      const falsySorts = sortAsc
+        ? [
+            notNullNorUndefined, // still have all the non-null, non-undefined values
+            { ...nullOrUndefined, _id: { $gt: idValue } },
+          ] // & sort remaining using the _id as secondary field
+        : // if sorting descending value, then all other values must be null || undefined
+          [{ ...nullOrUndefined, _id: { $lt: idValue } }];
+      cursors.push(...falsySorts);
+      continue;
+    }
+
+    const sorts = sortAsc
+      ? [
+          { [field]: { $gt: paginatedFieldValue } },
+          { [field]: { $eq: paginatedFieldValue }, _id: { $gt: idValue } },
+        ]
+      : [
+          nullOrUndefined, // in descending order, will still have null && undefined values remaining
+          { [field]: { $lt: paginatedFieldValue } },
+          { [field]: { $eq: paginatedFieldValue }, _id: { $lt: idValue } },
+        ];
+
+    cursors.push(...sorts);
+  }
+
+  const defaultOr: MongoOr = { $or: [] };
+
+  return cursors.reduce((acc: MongoOr, curr) => {
+    acc.$or.push(curr);
+    return acc;
+  }, defaultOr);
+}
 /**
  * response results can have additional fields that were not requested by user (for example, the
  * fields required to sort and paginate). If projected fields are nominated, return only these.

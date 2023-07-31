@@ -7,7 +7,11 @@ import dbUtils from './support/db';
 const AuthorSchema = new Schema({ name: String });
 AuthorSchema.index({ name: 'text' });
 
-AuthorSchema.plugin(mongooseCursorPaginate, { name: 'paginateFN', searchFnName: 'searchFN' });
+AuthorSchema.plugin(mongooseCursorPaginate, {
+  name: 'paginateFN',
+  searchFnName: 'searchFN',
+  findMultiFnName: 'findMultiFn',
+});
 
 type ModelSchemaType = typeof Model;
 interface AuthorSchemaWithPlugin extends ModelSchemaType {

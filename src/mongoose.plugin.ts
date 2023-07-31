@@ -1,9 +1,10 @@
 import { Query, Schema } from 'mongoose';
 import _ from 'underscore';
 
-import { QueryParams, SearchParams, Options, PaginationResponse } from './types';
+import { QueryParams, SearchParams, Options, PaginationResponse, QueryParamsMulti } from './types';
 import find from './find';
 import search from './search';
+import findMulti from './findMulti';
 
 declare module 'mongoose' {
   interface Model<
@@ -52,6 +53,22 @@ export default (schema: Schema, options: Options) => {
     return find(this.collection, params);
   };
 
+  const findMultiFn = async function (params: QueryParamsMulti): Promise<PaginationResponse> {
+    if (!this.collection) {
+      throw new Error('collection property not found');
+    }
+
+    params = _.extend({}, params);
+
+    if (params.query) {
+      const model = this.collection.conn.models[this.collection.modelName];
+
+      params.query = new Query().cast(model, params.query);
+    }
+
+    return findMulti(this.collection, params);
+  };
+
   /**
    * search function
    * @param {String} searchString String to search on. Required parameter
@@ -80,5 +97,11 @@ export default (schema: Schema, options: Options) => {
     schema.statics[options.searchFnName] = searchFn;
   } else {
     schema.statics.search = searchFn;
+  }
+
+  if (options && options.findMultiFnName) {
+    schema.statics[options.findMultiFnName] = findMultiFn;
+  } else {
+    schema.statics.findMulti = findMultiFn;
   }
 };

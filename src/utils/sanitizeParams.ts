@@ -1,5 +1,11 @@
 import { Collection, ObjectId } from 'mongodb';
-import { AggregateInputParams, AggregateParams, QueryInputParams, QueryParams } from '../types';
+import {
+  AggregateInputParams,
+  AggregateParams,
+  QueryInputParams,
+  QueryInputParamsMulti,
+  QueryParams,
+} from '../types';
 import config from '../config';
 import { decode } from './bsonUrlEncoding';
 import getPropertyViaDotNotation from './getPropertyViaDotNotation';
@@ -39,6 +45,42 @@ export default async (
 
   return params;
 };
+
+export async function sanitizeMultiParamsMutate(
+  collection: Collection | any,
+  params: QueryInputParamsMulti
+) {
+  if (!params.paginatedFields?.length) {
+    params.paginatedFields = [];
+    params.paginatedFields.push({ paginatedField: '_id' });
+  }
+
+  // set the params.limit
+  params.limit = (() => {
+    const requestedLimit = params.limit;
+    if (requestedLimit < 1) return 1;
+    if (requestedLimit > config.MAX_LIMIT) return config.MAX_LIMIT;
+    return requestedLimit || config.DEFAULT_LIMIT;
+  })();
+
+  // set params.previous || params.next
+  if (params.previous) params.previous = decode(params.previous as string);
+  if (params.next) params.next = decode(params.next as string);
+  // if after || before in params, overwrite an existing previous || next value
+  if (params.after || params.before) await applyAfterOrBeforeToParams({ collection, params });
+
+  if (params.fields) {
+    const { fields: requestedFields, paginatedFields } = params;
+
+    params.fields = {
+      _id: 0,
+      ...requestedFields,
+      ...paginatedFields.map((pf) => ({ [pf.paginatedField]: 1 })),
+    };
+  }
+
+  return params;
+}
 
 /**
  * @description
