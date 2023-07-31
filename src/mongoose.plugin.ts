@@ -102,6 +102,6 @@ export default (schema: Schema, options: Options) => {
   if (options && options.findMultiFnName) {
     schema.statics[options.findMultiFnName] = findMultiFn;
   } else {
-    schema.statics.findMulti = findMultiFn;
+    schema.statics.paginateMulti = findMultiFn;
   }
 };
