@@ -64,9 +64,7 @@ export default async (
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
     params = _.defaults(await sanitizeMultiParamsMutate(collection, params), { query: {} });
-
     const cursorQuerys = generateCursorQueryMulti(params);
-
     const $sort = generateSorts(params);
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
