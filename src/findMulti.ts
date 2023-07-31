@@ -74,11 +74,8 @@ export default async (
     const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
     const query = collection[findMethod]()?.project
-      ? collection
-          .find({ $and: [cursorQuerys, params.query] })
-          .project(params.fields)
-          .sort($sort)
-      : collection[findMethod]({ $and: [cursorQuerys, params.query] }, params.fields, $sort);
+      ? collection.find({ $and: [cursorQuerys, params.query] }).project(params.fields)
+      : collection[findMethod]({ $and: [cursorQuerys, params.query] }, params.fields);
 
     /**
      * IMPORTANT

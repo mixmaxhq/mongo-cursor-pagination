@@ -59,7 +59,6 @@ export default async (
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
     params = _.defaults(await sanitizeParams(collection, params), { query: {} });
-
     const cursorQuery = generateCursorQuery(params);
     const $sort = generateSort(params);
 
