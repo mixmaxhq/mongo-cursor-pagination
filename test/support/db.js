@@ -4,7 +4,7 @@ const MongoClient = require('mongodb');
 
 function start() {
   return new MongoMemoryServer({
-    binary: { version: '4.4.18' },
+    binary: { version: '5.0.18' },
   });
 }
 
