@@ -219,7 +219,7 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
   const bigOr: Record<string, any>[] = [];
 
   const onlyId =
-    params.paginatedFields.length === 1 && params.paginatedFields[0].paginatedField == '_id';
+    params.paginatedFields.length === 1 && params.paginatedFields[0].paginatedField === '_id';
   if (onlyId) return { _id: { $gt: cursor } }; // TODO: check that cursor in this case will be _id and not object
 
   for (let i = 0; i < params.paginatedFields.length; i++) {
