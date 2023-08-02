@@ -49,10 +49,9 @@ export default async (
   params: QueryParamsMulti
 ): Promise<PaginationResponse> => {
   const projectedFields = params.fields;
-
-  // TODO: refactor this to handle a multiple sort
   let response = {} as PaginationResponse;
-  const isCaseInsensitive = params.paginatedFields.some((pf) => pf.sortCaseInsensitive);
+  const isCaseInsensitive = params.paginatedFields?.some((pf) => pf.sortCaseInsensitive);
+
   if (isCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
     response = await aggregateMulti(
@@ -86,10 +85,11 @@ export default async (
     const collatedQuery = collation && !isCollationNull ? query.collation(collation) : query;
     // Query one more element to see if there's another page.
     const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
+
     if (params.hint) cursor.hint(params.hint);
     const results = await cursor.toArray();
 
-    response = prepareResponse(results, params);
+    response = prepareResponse(results, params, true);
     if (params.getTotal) response.totalCount = await collection.countDocuments(params.query);
   }
 

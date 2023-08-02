@@ -55,12 +55,10 @@ export default async (
   params: AggregateParamsMulti
 ): Promise<PaginationResponse> => {
   const projectedFields = params.fields;
-
   params = _.defaults(await sanitizeMultiParamsMutate(collection, params), { aggregation: [] });
   const $match = generateCursorQueryMulti(params);
   const $sort = generateSorts(params);
   const $limit = params.limit + 1;
-
   const isCaseInsensitive = params.paginatedFields.some((pf) => pf.sortCaseInsensitive);
 
   const aggregationQuery = (() => {
@@ -72,25 +70,24 @@ export default async (
     // pipeline that stores the lowercase value of the paginated field. Use this to sort
     // and add to cursors, but return the original paginated field value to client.
     const addLowerCaseFieldSearch = {
-      $addFields: {
-        __lower_case_value: {
-          $switch: {
-            branches: Object.assign(
-              [],
-              ...params.paginatedFields.map((pf) => [
+      $addFields: Object.assign(
+        {},
+        ...params.paginatedFields.map((pf) => ({
+          [`__lower_case_value_${pf.paginatedField}`]: {
+            $switch: {
+              branches: [
                 { case: { $eq: [{ $type: `$${pf.paginatedField}` }, 'null'] }, then: null },
                 { case: { $eq: [{ $type: `$${pf.paginatedField}` }, 'missing'] }, then: null },
                 {
                   case: { $eq: [{ $type: `$${pf.paginatedField}` }, 'string'] },
                   then: { $toLower: `$${pf.paginatedField}` },
                 },
-              ])
-            ),
-
-            default: `$${params.paginatedFields[0].paginatedField}`,
+              ],
+              default: `$${pf.paginatedField}`,
+            },
           },
-        },
-      },
+        }))
+      ),
     };
 
     return [...aggregation, addLowerCaseFieldSearch, { $match }, { $sort }, { $limit }];
@@ -119,7 +116,7 @@ export default async (
 
   const results = await collection[aggregateMethod](aggregationQuery, options).toArray();
 
-  const response = prepareResponse(results, params);
+  const response = prepareResponse(results, params, true);
 
   const projectedResults = filterProjectedFields({
     projectedFields,
