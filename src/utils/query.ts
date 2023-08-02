@@ -267,10 +267,22 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
   return { $or: bigOr };
 }
 
-function $gtOr$lt(asc: boolean) {
+function $gt$lt(asc: boolean) {
   return asc ? '$gt' : '$lt';
 }
 
+/**
+ * Takes the previous entires and adds a new one where
+ * all of the operators are $eq excpet the latest
+ *
+ * i.e.
+ * ```
+ *  //before
+ *  { firstName: { $gt: "george" } }
+ *  // after
+ *  { firstName: { $eq: "george" }, { lastName: {$gt: "Costanza" } }
+ * ```
+ */
 function getOrNextLine(
   prev: Record<string, any>,
   field: string,
@@ -278,15 +290,25 @@ function getOrNextLine(
   value: string
 ): Record<string, any> {
   if (!prev) {
-    return { [field]: { [$gtOr$lt(sortAsc)]: value } };
+    return { [field]: { [$gt$lt(sortAsc)]: value } };
   }
   const previousFields = Object.assign(
     {},
     ...Object.entries(prev).map(([k, v]) => convert$lt$gtFieldTo$eq({ [k]: v }))
   );
-  return { ...previousFields, [field]: { [$gtOr$lt(sortAsc)]: value } };
+  return { ...previousFields, [field]: { [$gt$lt(sortAsc)]: value } };
 }
 
+/**
+ * tranforms
+ * ```
+ * { firstName: { $gt: "george" }
+ * ```
+ *  to
+ * ```
+ * { firstName: { $eq: "george" }
+ * ```
+ */
 function convert$lt$gtFieldTo$eq(field: { [key: string]: { $gt: any } | { $lt: any } }): {
   [key: string]: { $eq: any };
 } {
