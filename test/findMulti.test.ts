@@ -15,74 +15,84 @@ describe('findMulti', () => {
 
     await db.collection('test_deep_sorts').insertMany([
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b1'),
         title: 'Mr',
         firstName: 'Aguste',
         lastName: 'Teasey',
         birthYear: 1921,
-        favouriteFood: 'potatoes',
+        favoriteFood: 'potatoes',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b2'),
         title: 'Mr',
         firstName: 'Aguste',
         lastName: 'Pedden',
         birthYear: 1922,
-        favouriteFood: 'pizza',
+        favoriteFood: 'pizza',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b0'),
         title: 'Mr',
         firstName: 'Aguste',
         lastName: 'Saunt',
         birthYear: 1923,
-        favouriteFood: 'potatoes',
+        favoriteFood: 'potatoes',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b8'),
         title: 'Mr',
         firstName: 'Graig',
         lastName: 'Maciunas',
         birthYear: 1921,
-        favouriteFood: 'potatoes',
+        favoriteFood: 'potatoes',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b4'),
         title: 'Mr',
         firstName: "D'arcy",
         lastName: 'Sachno',
         birthYear: 1922,
-        favouriteFood: 'pizza',
+        favoriteFood: 'pizza',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b6'),
         title: 'Mrs',
-        firstName: 'Jae',
+        firstName: 'Wilmar',
         lastName: 'Petrazzi',
         birthYear: 1923,
-        favouriteFood: 'potatoes',
+        favoriteFood: 'potatoes',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b3'),
         title: 'Mrs',
         firstName: 'Flore',
         lastName: 'Ternouth',
         birthYear: 1921,
-        favouriteFood: 'potatoes',
+        favoriteFood: 'potatoes',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b7'),
         title: 'Mrs',
         firstName: 'Ines',
         lastName: 'Richarson',
         birthYear: 1922,
-        favouriteFood: 'pizza',
+        favoriteFood: 'pizza',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b5'),
         title: 'Mrs',
         firstName: 'Carmencita',
         lastName: 'Hallibone',
         birthYear: 1923,
-        favouriteFood: 'potatoes',
+        favoriteFood: 'potatoes',
       },
       {
+        _id: new ObjectId('64cb29a1b2a41fc8221041b9'),
         title: 'Mrs',
         firstName: 'Wilmar',
         lastName: 'Petrov',
         birthYear: 1921,
-        favouriteFood: 'pizza',
+        favoriteFood: 'pizza',
       },
     ]);
   });
@@ -153,7 +163,7 @@ describe('findMulti', () => {
         next,
         paginatedFields: [
           { paginatedField: 'title', sortCaseInsensitive: false, sortAscending: true },
-          { paginatedField: 'favouriteFood', sortCaseInsensitive: false, sortAscending: true },
+          { paginatedField: 'favoriteFood', sortCaseInsensitive: false, sortAscending: true },
           { paginatedField: 'birthYear', sortCaseInsensitive: false, sortAscending: true },
           { paginatedField: 'firstName', sortCaseInsensitive: false, sortAscending: true },
           { paginatedField: 'lastName', sortCaseInsensitive: false, sortAscending: true },
@@ -174,10 +184,10 @@ describe('findMulti', () => {
 
     // of the 5 Mr, the first 2 should be "pizza", next 3 should be potatoes
     for (const result of combinedResults.slice(0, 2)) {
-      expect(result.favouriteFood).toEqual('pizza');
+      expect(result.favoriteFood).toEqual('pizza');
     }
     for (const result of combinedResults.slice(2, 5)) {
-      expect(result.favouriteFood).toEqual('potatoes');
+      expect(result.favoriteFood).toEqual('potatoes');
     }
 
     // of the potatoes, the first two birthyear should be  sorted 1921 followed by 1923
@@ -231,5 +241,109 @@ describe('findMulti', () => {
     expect(findResult2.results.map((r) => r._id)).toEqual(
       findMultiResult2.results.map((r) => r._id)
     );
+  });
+
+  it('sorts by _id by default', async () => {
+    const collection = db.collection('test_deep_sorts');
+
+    const result1 = await findMulti(collection, {
+      limit: 3,
+    });
+    const result2 = await findMulti(collection, {
+      next: result1.next,
+      limit: 3,
+    });
+
+    const ids = [...result1.results, ...result2.results].map((r) => `${r._id}`);
+
+    expect(ids).toEqual([
+      '64cb29a1b2a41fc8221041b9',
+      '64cb29a1b2a41fc8221041b8',
+      '64cb29a1b2a41fc8221041b7',
+      '64cb29a1b2a41fc8221041b6',
+      '64cb29a1b2a41fc8221041b5',
+      '64cb29a1b2a41fc8221041b4',
+    ]);
+  });
+
+  it('sorts by _id the other way', async () => {
+    const collection = db.collection('test_deep_sorts');
+
+    const result1 = await findMulti(collection, {
+      limit: 3,
+      paginatedFields: [{ paginatedField: '_id', sortCaseInsensitive: false, sortAscending: true }],
+    });
+    const result2 = await findMulti(collection, {
+      next: result1.next,
+      limit: 3,
+      paginatedFields: [{ paginatedField: '_id', sortCaseInsensitive: false, sortAscending: true }],
+    });
+
+    const ids = [...result1.results, ...result2.results].map((r) => `${r._id}`);
+
+    expect(ids).toEqual([
+      '64cb29a1b2a41fc8221041b0',
+      '64cb29a1b2a41fc8221041b1',
+      '64cb29a1b2a41fc8221041b2',
+      '64cb29a1b2a41fc8221041b3',
+      '64cb29a1b2a41fc8221041b4',
+      '64cb29a1b2a41fc8221041b5',
+    ]);
+  });
+
+  it('sorts by _id after all other sorts in the same direction as last sort', async () => {
+    const collection = db.collection('test_deep_sorts');
+
+    const result1 = await findMulti(collection, {
+      limit: 3,
+      paginatedFields: [
+        { paginatedField: 'firstName', sortCaseInsensitive: false, sortAscending: true },
+      ],
+    });
+    const result2 = await findMulti(collection, {
+      next: result1.next,
+      limit: 3,
+      paginatedFields: [
+        { paginatedField: 'firstName', sortCaseInsensitive: false, sortAscending: true },
+      ],
+    });
+
+    const ids = [...result1.results, ...result2.results].map((r) => `${r._id}`);
+
+    // for people of the same first name their ids should be ascending
+    expect(ids).toEqual([
+      '64cb29a1b2a41fc8221041b0', // Aguste
+      '64cb29a1b2a41fc8221041b1', // Aguste
+      '64cb29a1b2a41fc8221041b2', // Aguste
+      '64cb29a1b2a41fc8221041b5', // Carmencita
+      '64cb29a1b2a41fc8221041b4', // D'arcy
+      '64cb29a1b2a41fc8221041b3', // Flore
+    ]);
+
+    const result3 = await findMulti(collection, {
+      limit: 3,
+      paginatedFields: [
+        { paginatedField: 'firstName', sortCaseInsensitive: false, sortAscending: false },
+      ],
+    });
+    const result4 = await findMulti(collection, {
+      next: result3.next,
+      limit: 3,
+      paginatedFields: [
+        { paginatedField: 'firstName', sortCaseInsensitive: false, sortAscending: false },
+      ],
+    });
+
+    const ids2 = [...result3.results, ...result4.results].map((r) => `${r._id}`);
+
+    // for people of the same first name their ids should be descending
+    expect(ids2).toEqual([
+      '64cb29a1b2a41fc8221041b9', // Wilmar
+      '64cb29a1b2a41fc8221041b6', // Wilmar
+      '64cb29a1b2a41fc8221041b7', // Ines
+      '64cb29a1b2a41fc8221041b8', // Graig
+      '64cb29a1b2a41fc8221041b3', // Flore
+      '64cb29a1b2a41fc8221041b4', // D'arcy
+    ]);
   });
 });

@@ -50,9 +50,22 @@ export async function sanitizeMultiParamsMutate(
   collection: Collection | any,
   params: QueryInputParamsMulti
 ) {
+  // add default _id paginate sort
   if (!params.paginatedFields?.length) {
     params.paginatedFields = [];
-    params.paginatedFields.push({ paginatedField: '_id' });
+    params.paginatedFields.push({
+      paginatedField: '_id',
+      sortAscending: false,
+      sortCaseInsensitive: false,
+    });
+    // add _id to the end of the fields
+  } else if (!params.paginatedFields.find((f) => f.paginatedField === '_id')) {
+    const lastField = params?.paginatedFields[params.paginatedFields?.length - 1];
+    params.paginatedFields.push({
+      paginatedField: '_id',
+      sortAscending: lastField?.sortAscending,
+      sortCaseInsensitive: lastField?.sortCaseInsensitive,
+    });
   }
 
   // set the params.limit

@@ -17,15 +17,13 @@ function buildCursor(
   params: QueryParams | AggregateParams,
   shouldSecondarySortOnId: boolean
 ): string {
-  const pagiginatedFieldValue = (() => {
+  const paginatedFieldValue = (() => {
     const { paginatedField, sortCaseInsensitive } = params;
     const value = objectPath.get(doc, paginatedField);
     return sortCaseInsensitive && value?.toLowerCase ? value.toLowerCase() : value;
   })();
 
-  const rawCursor = shouldSecondarySortOnId
-    ? [pagiginatedFieldValue, doc._id]
-    : pagiginatedFieldValue; // which may actually be the document_id anyways
+  const rawCursor = shouldSecondarySortOnId ? [paginatedFieldValue, doc._id] : paginatedFieldValue; // which may actually be the document_id anyways
 
   return encode(rawCursor);
 }
@@ -35,19 +33,22 @@ function buildCursorMulti(
   params: QueryParamsMulti | AggregateParamsMulti,
   shouldSecondarySortOnId: boolean
 ): string {
-  const fieldValues = (() => {
-    const { paginatedFields } = params;
-    const paginatedFieldValues = {};
-    for (const field of paginatedFields) {
-      const value = objectPath.get(doc, field.paginatedField);
-      const maybeToLowerValue =
-        field.sortCaseInsensitive && value?.toLowerCase ? value.toLowerCase() : value;
-      paginatedFieldValues[field.paginatedField] = maybeToLowerValue;
-    }
-    return paginatedFieldValues;
-  })();
+  const { paginatedFields } = params;
 
-  const rawCursor = shouldSecondarySortOnId ? { ...fieldValues, _id: doc._id } : fieldValues; // which may actually be the document_id anyways
+  const paginatedFieldValues = paginatedFields.reduce((acc, curr) => {
+    const value = objectPath.get(doc, curr.paginatedField);
+    if (curr.sortCaseInsensitive && value?.toLowerCase) {
+      acc[curr.paginatedField] = value.toLowerCase();
+      return acc;
+    }
+    acc[curr.paginatedField] = value;
+    return acc;
+  }, {});
+
+  const rawCursor = shouldSecondarySortOnId
+    ? { ...paginatedFieldValues, _id: doc._id }
+    : paginatedFieldValues; // which may actually be the document_id anyways
+
   return encode(rawCursor);
 }
 
@@ -211,16 +212,37 @@ export function generateCursorQuery(params: QueryParams | AggregateParams): obje
       };
 }
 
+type BigOrRow = Record<string, Record<'$gt' | '$lt' | '$eq', any>>;
+
 export function generateCursorQueryMulti(params: QueryParamsMulti) {
   if (!params.next && !params.previous) return {};
 
   const cursor = (params.next || params.previous) as any;
   const idValue = cursor._id;
-  const bigOr: Record<string, any>[] = [];
+
+  /**
+   * ends up looking like this:
+   * ```
+   * [
+   *   { firstName: { $gt: "george" } },
+   *   { firstName: { $eq: "george" }, { lastName: { $gt: "Costanza" } },
+   *   { firstName: { $eq: "george" }, { lastName: { $eq: "Costanza" }, title: { $gt: "Mr" } }
+   * ]
+   * ```
+   */
+  const bigOr: BigOrRow[] = [];
 
   const onlyId =
     params.paginatedFields.length === 1 && params.paginatedFields[0].paginatedField === '_id';
-  if (onlyId) return { _id: { $gt: cursor } }; // TODO: check that cursor in this case will be _id and not object
+
+  if (onlyId) {
+    return getOrNextLine(
+      undefined,
+      '_id',
+      params.paginatedFields[0].sortAscending,
+      idValue ?? cursor
+    );
+  }
 
   for (let i = 0; i < params.paginatedFields.length; i++) {
     const pf = params.paginatedFields[i];
@@ -260,20 +282,16 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
     }
   }
 
-  const prev = bigOr[bigOr.length - 1];
-  const lastField = getOrNextLine(prev, '_id', true, idValue); // TODO: need a sortAsc for default fields?
-  bigOr.push(lastField);
-
   return { $or: bigOr };
 }
 
 function $gt$lt(asc: boolean) {
-  return asc ? '$gt' : '$lt';
+  return asc ? ('$gt' as const) : ('$lt' as const);
 }
 
 /**
- * Takes the previous entires and adds a new one where
- * all of the operators are $eq excpet the latest
+ * Takes the previous entries and adds a new one where
+ * all of the operators are $eq except the latest
  *
  * i.e.
  * ```
@@ -283,14 +301,9 @@ function $gt$lt(asc: boolean) {
  *  { firstName: { $eq: "george" }, { lastName: {$gt: "Costanza" } }
  * ```
  */
-function getOrNextLine(
-  prev: Record<string, any>,
-  field: string,
-  sortAsc: boolean,
-  value: string
-): Record<string, any> {
+function getOrNextLine(prev: BigOrRow, field: string, sortAsc: boolean, value: string): BigOrRow {
   if (!prev) {
-    return { [field]: { [$gt$lt(sortAsc)]: value } };
+    return { [field]: { [$gt$lt(sortAsc)]: value } } as BigOrRow;
   }
   const previousFields = Object.assign(
     {},
@@ -300,7 +313,7 @@ function getOrNextLine(
 }
 
 /**
- * tranforms
+ * transforms
  * ```
  * { firstName: { $gt: "george" }
  * ```
@@ -309,11 +322,11 @@ function getOrNextLine(
  * { firstName: { $eq: "george" }
  * ```
  */
-function convert$lt$gtFieldTo$eq(field: { [key: string]: { $gt: any } | { $lt: any } }): {
-  [key: string]: { $eq: any };
-} {
+function convert$lt$gtFieldTo$eq(
+  field: Record<string, Record<'$lt' | '$gt', any>>
+): Record<string, Record<'$eq', any>> {
   const [key, value] = Object.entries(field)[0];
-  const [, fieldValue] = Object.entries(value)[0];
+  const fieldValue = Object.values(value)[0];
   return { [key]: { $eq: fieldValue } };
 }
 
