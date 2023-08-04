@@ -236,12 +236,12 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
     params.paginatedFields.length === 1 && params.paginatedFields[0].paginatedField === '_id';
 
   if (onlyId) {
-    return getOrNextLine(
-      undefined,
-      '_id',
-      params.paginatedFields[0].sortAscending,
-      idValue ?? cursor
-    );
+    return getOrNextLine({
+      prev: undefined,
+      field: '_id',
+      sortAsc: params.paginatedFields[0].sortAscending,
+      value: idValue ?? cursor,
+    });
   }
 
   for (let i = 0; i < params.paginatedFields.length; i++) {
@@ -258,7 +258,7 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
     const prev = bigOr[bigOr.length - 1];
 
     if (paginatedFieldValue) {
-      const newFields = getOrNextLine(prev, field, sortAsc, paginatedFieldValue);
+      const newFields = getOrNextLine({ prev, field, sortAsc, value: paginatedFieldValue });
       bigOr.push(newFields);
     } else {
       const notNullNorUndefined = { [field]: { $ne: null } };
@@ -301,7 +301,17 @@ function $gt$lt(asc: boolean) {
  *  { firstName: { $eq: "george" }, { lastName: {$gt: "Costanza" } }
  * ```
  */
-function getOrNextLine(prev: BigOrRow, field: string, sortAsc: boolean, value: string): BigOrRow {
+function getOrNextLine({
+  prev,
+  field,
+  sortAsc,
+  value,
+}: {
+  prev?: BigOrRow;
+  field: string;
+  sortAsc: boolean;
+  value: string;
+}): BigOrRow {
   if (!prev) {
     return { [field]: { [$gt$lt(sortAsc)]: value } } as BigOrRow;
   }
