@@ -14,6 +14,17 @@ interface BaseParams {
   hint?: string;
 }
 
+type BaseParamsMulti = Omit<
+  BaseParams,
+  'paginatedField' | 'sortAscending' | 'sortCaseInsensitive'
+> & { paginatedFields?: PaginatedField[] };
+
+export interface PaginatedField {
+  paginatedField?: string;
+  sortAscending?: boolean;
+  sortCaseInsensitive?: boolean;
+}
+
 interface Query {
   query?: object;
   next?: string | Document;
@@ -44,9 +55,14 @@ interface AggregateInput {
 
 export type QueryInputParams = BaseParams & QueryInput;
 export type QueryParams = BaseParams & Query;
+export type QueryParamsMulti = BaseParamsMulti & Query;
+export type QueryInputParamsMulti = BaseParamsMulti & QueryInput;
 
 export type AggregateInputParams = BaseParams & AggregateInput;
 export type AggregateParams = BaseParams & Aggregate;
+
+export type AggregateInputParamsMulti = BaseParamsMulti & AggregateInput;
+export type AggregateParamsMulti = BaseParamsMulti & Aggregate;
 
 export type SearchParams = {
   query?: object;

@@ -1,16 +1,19 @@
 import _ from 'underscore';
 
-import aggregate from './aggregate';
 import config from './config';
 import {
   prepareResponse,
   generateSort,
   generateCursorQuery,
   filterProjectedFields,
+  generateCursorQueryMulti,
+  generateSorts,
 } from './utils/query';
-import sanitizeParams from './utils/sanitizeParams';
-import { QueryParams, PaginationResponse } from './types';
+import sanitizeParams, { sanitizeMultiParamsMutate } from './utils/sanitizeParams';
+import { QueryParams, PaginationResponse, QueryParamsMulti } from './types';
 import { Collection } from 'mongodb';
+import aggregateMulti from './aggregateMulti';
+import util from 'util';
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -43,14 +46,15 @@ import { Collection } from 'mongodb';
  */
 export default async (
   collection: Collection | any,
-  params: QueryParams
+  params: QueryParamsMulti
 ): Promise<PaginationResponse> => {
   const projectedFields = params.fields;
-
   let response = {} as PaginationResponse;
-  if (params.sortCaseInsensitive) {
+  const isCaseInsensitive = params.paginatedFields?.some((pf) => pf.sortCaseInsensitive);
+
+  if (isCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
-    response = await aggregate(
+    response = await aggregateMulti(
       collection,
       Object.assign({}, params, {
         aggregation: params.query ? [{ $match: params.query }] : [],
@@ -58,17 +62,17 @@ export default async (
     );
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
-    params = _.defaults(await sanitizeParams(collection, params), { query: {} });
-    const cursorQuery = generateCursorQuery(params);
-    const $sort = generateSort(params);
+    params = _.defaults(await sanitizeMultiParamsMutate(collection, params), { query: {} });
+    const cursorQuerys = generateCursorQueryMulti(params);
+    const $sort = generateSorts(params);
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
     // https://www.npmjs.com/package/mongoist#cursor-operations
     const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
 
     const query = collection[findMethod]()?.project
-      ? collection.find({ $and: [cursorQuery, params.query] }).project(params.fields)
-      : collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+      ? collection.find({ $and: [cursorQuerys, params.query] }).project(params.fields)
+      : collection[findMethod]({ $and: [cursorQuerys, params.query] }, params.fields);
 
     /**
      * IMPORTANT
@@ -81,10 +85,11 @@ export default async (
     const collatedQuery = collation && !isCollationNull ? query.collation(collation) : query;
     // Query one more element to see if there's another page.
     const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
+
     if (params.hint) cursor.hint(params.hint);
     const results = await cursor.toArray();
 
-    response = prepareResponse(results, params);
+    response = prepareResponse(results, params, true);
     if (params.getTotal) response.totalCount = await collection.countDocuments(params.query);
   }
 
@@ -92,7 +97,7 @@ export default async (
   const projectedResults = filterProjectedFields({
     projectedFields,
     results: response.results,
-    sortCaseInsensitive: params.sortCaseInsensitive,
+    sortCaseInsensitive: isCaseInsensitive,
   });
 
   return { ...response, results: projectedResults };
