@@ -65,11 +65,12 @@ module.exports = async function(collection, params) {
       ? COLLECTION_METHODS.FIND_AS_CURSOR
       : COLLECTION_METHODS.FIND;
 
-    const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
-
     // Required to support native mongodb 3+ and keep the backward compatibility with version 2
-    if (findMethod === COLLECTION_METHODS.FIND) {
-      query.project(params.fields);
+    let query;
+    if (findMethod === COLLECTION_METHODS.FIND_AS_CURSOR) {
+      query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+    } else {
+      query = collection[findMethod]({ $and: [cursorQuery, params.query] }).project(params.fields);
     }
 
     /**

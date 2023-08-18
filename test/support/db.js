@@ -16,12 +16,7 @@ async function db(mongod, driver = null) {
       db: await mongoist(uri),
     };
   }
-  const [client, dbName] = await Promise.all([
-    MongoClient.connect(uri, {
-      useUnifiedTopology: true,
-    }),
-    mongod.getDbName(),
-  ]);
+  const [client, dbName] = await Promise.all([MongoClient.connect(uri), mongod.getDbName()]);
   return {
     db: client.db(dbName),
     client,
