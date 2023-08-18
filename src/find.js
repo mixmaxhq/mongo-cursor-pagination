@@ -1,8 +1,14 @@
 const _ = require('underscore');
-const sanitizeParams = require('./utils/sanitizeParams');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+
 const aggregate = require('./aggregate');
 const config = require('./config');
+const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
+const sanitizeParams = require('./utils/sanitizeParams');
+
+const COLLECTION_METHODS = {
+  FIND: 'find',
+  FIND_AS_CURSOR: 'findAsCursor',
+};
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -55,9 +61,16 @@ module.exports = async function(collection, params) {
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
     // https://www.npmjs.com/package/mongoist#cursor-operations
-    const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
+    const findMethod = collection.findAsCursor
+      ? COLLECTION_METHODS.FIND_AS_CURSOR
+      : COLLECTION_METHODS.FIND;
 
     const query = collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+
+    // Required to support native mongodb 3+ and keep the backward compatibility with version 2
+    if (findMethod === COLLECTION_METHODS.FIND) {
+      query.project(params.fields);
+    }
 
     /**
      * IMPORTANT

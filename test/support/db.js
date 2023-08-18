@@ -11,9 +11,20 @@ function start() {
 async function db(mongod, driver = null) {
   const uri = await mongod.getUri();
   if (driver === 'mongoist') {
-    return mongoist(uri);
+    return {
+      db: await mongoist(uri),
+    };
   }
-  return MongoClient.connect(uri);
+  const [client, dbName] = await Promise.all([
+    MongoClient.connect(uri, {
+      useUnifiedTopology: true,
+    }),
+    mongod.getDbName(),
+  ]);
+  return {
+    db: client.db(dbName),
+    client,
+  };
 }
 
 module.exports = {

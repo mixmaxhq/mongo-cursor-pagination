@@ -5,13 +5,14 @@ const driver = process.env.DRIVER;
 
 describe('search', () => {
   let mongod;
+  let client;
   const t = {};
   beforeAll(async () => {
     mongod = dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    ({ db: t.db, client } = await dbUtils.db(mongod, driver));
 
     await Promise.all([
-      t.db.collection('test_paging_search').ensureIndex(
+      t.db.collection('test_paging_search').createIndex(
         {
           mytext: 'text',
         },
@@ -19,7 +20,7 @@ describe('search', () => {
           name: 'test_index',
         }
       ),
-      t.db.collection('test_duplicate_search').ensureIndex(
+      t.db.collection('test_duplicate_search').createIndex(
         {
           mytext: 'text',
         },
@@ -30,7 +31,7 @@ describe('search', () => {
     ]);
 
     await Promise.all([
-      t.db.collection('test_paging_search').insert([
+      t.db.collection('test_paging_search').insertMany([
         {
           mytext: 'one',
         },
@@ -60,7 +61,7 @@ describe('search', () => {
           group: 'one',
         },
       ]),
-      t.db.collection('test_duplicate_search').insert([
+      t.db.collection('test_duplicate_search').insertMany([
         {
           _id: 6,
           mytext: 'one',
@@ -95,7 +96,10 @@ describe('search', () => {
     ]);
   });
 
-  afterAll(() => mongod.stop());
+  afterAll(async () => {
+    await (client ? client.close() : t.db.close());
+    await mongod.stop();
+  });
 
   describe('basic usage', () => {
     it('queries the first few pages', async () => {

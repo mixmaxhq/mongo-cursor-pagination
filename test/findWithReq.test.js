@@ -7,13 +7,14 @@ const driver = process.env.DRIVER;
 
 describe('findWithReq', () => {
   let mongod;
+  let client;
   const t = {};
   beforeAll(async () => {
     mongod = dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    ({ db: t.db, client } = await dbUtils.db(mongod, driver));
 
     await Promise.all([
-      t.db.collection('test_paging').insert([
+      t.db.collection('test_paging').insertMany([
         {
           counter: 1,
           myfield1: 'a',
@@ -35,7 +36,7 @@ describe('findWithReq', () => {
           myfield2: 'b',
         },
       ]),
-      t.db.collection('test_paging_fields').insert({
+      t.db.collection('test_paging_fields').insertOne({
         obj: {
           one: 1,
           two: {
@@ -52,7 +53,11 @@ describe('findWithReq', () => {
       }),
     ]);
   });
-  afterAll(() => mongod.stop());
+
+  afterAll(async () => {
+    await (client ? client.close() : t.db.close());
+    await mongod.stop();
+  });
 
   describe('basic usage', () => {
     it('queries first few pages', async () => {

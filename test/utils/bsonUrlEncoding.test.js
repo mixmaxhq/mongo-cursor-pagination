@@ -3,15 +3,21 @@ const mongo = require('mongoist');
 const bsonUrlEncoding = require('../../src/utils/bsonUrlEncoding');
 const dbUtils = require('../support/db');
 
+const driver = process.env.DRIVER;
+
 describe('bson url encoding', () => {
   let mongod;
+  let client;
   const t = {};
   beforeAll(async () => {
     mongod = dbUtils.start();
-    t.db = await dbUtils.db(mongod);
+    ({ db: t.db, client } = await dbUtils.db(mongod, driver));
   });
 
-  afterAll(() => mongod.stop());
+  afterAll(async () => {
+    await (client ? client.close() : t.db.close());
+    await mongod.stop();
+  });
 
   it('encodes and decodes complex objects', async () => {
     const obj = {
@@ -20,7 +26,7 @@ describe('bson url encoding', () => {
       number: 1,
       string: 'complex String &$##$-/?',
     };
-    await t.db.collection('test_objects').insert(obj);
+    await t.db.collection('test_objects').insertOne(obj);
     const bsonObject = await t.db.collection('test_objects').findOne({});
     const str = bsonUrlEncoding.encode(bsonObject);
 
