@@ -1,6 +1,6 @@
+const MongoClient = require('mongodb').MongoClient;
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoist = require('mongoist');
-const MongoClient = require('mongodb');
 
 function start() {
   return new MongoMemoryServer({

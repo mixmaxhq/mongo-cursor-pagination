@@ -1,6 +1,7 @@
+const mongo = require('mongoist');
+
 const bsonUrlEncoding = require('../../src/utils/bsonUrlEncoding');
 const dbUtils = require('../support/db');
-const mongo = require('mongoist');
 
 describe('bson url encoding', () => {
   let mongod;

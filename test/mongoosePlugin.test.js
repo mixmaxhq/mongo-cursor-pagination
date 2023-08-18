@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+
 const dbUtils = require('./support/db');
 const mongooseCursorPaginate = require('../src/mongoose.plugin');
 

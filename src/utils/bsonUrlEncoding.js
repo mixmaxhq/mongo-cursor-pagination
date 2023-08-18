@@ -1,5 +1,5 @@
-const { EJSON } = require('bson');
 const base64url = require('base64-url');
+const { EJSON } = require('bson');
 
 // BSON can't encode undefined values, so we will use this value instead:
 const BSON_UNDEFINED = '__mixmax__undefined__';

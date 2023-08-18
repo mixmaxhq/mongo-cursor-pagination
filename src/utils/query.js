@@ -1,5 +1,6 @@
-const bsonUrlEncoding = require('./bsonUrlEncoding');
 const objectPath = require('object-path');
+
+const bsonUrlEncoding = require('./bsonUrlEncoding');
 
 /**
  * Helper function to encode pagination tokens.

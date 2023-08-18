@@ -1,5 +1,5 @@
-const paging = require('../');
 const dbUtils = require('./support/db');
+const paging = require('../');
 
 const driver = process.env.DRIVER;
 
