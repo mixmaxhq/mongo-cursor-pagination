@@ -1,5 +1,6 @@
-const MongoClient = require('mongodb').MongoClient;
 const { MongoMemoryServer } = require('mongodb-memory-server');
+/** See {@link exports.moduleNameMapper.^mongodbMapped$} */
+const MongoClient = require('mongodbMapped').MongoClient;
 const mongoist = require('mongoist');
 
 function start() {
