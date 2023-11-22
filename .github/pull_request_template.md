@@ -2,6 +2,9 @@
 
 > **Note** - Since this is a public repository, make sure that we're not publishing private data in the code, commit comments, or this PR.
 
+> **Note for reviewers** - Please add a 2nd reviewer if the PR affects more than 15 files or 100 lines (not counting
+  `package-lock.json`), if it incurs significant risk, or if it is going through a 2nd review+fix cycle.
+
 ## 📚 Context/Description Behind The Change
 <!--
   What changes have you made to the code, and why?
@@ -19,6 +22,8 @@
   Does it touch any critical services?
   How will these changes affect adjacent code/features?
   How will we handle any adverse issues?
+
+  If significant risks are identified, please request a 2nd reviewer as a first mitigation step.
 -->
 
 ## 🧑‍🔬 How Has This Been Tested?
