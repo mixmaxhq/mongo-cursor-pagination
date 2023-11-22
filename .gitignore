@@ -37,6 +37,7 @@ jspm_packages
 .node_repl_history
 
 *.sublime-workspace
+.idea
 
 # Node 6 transpiled code.
 dist/node
