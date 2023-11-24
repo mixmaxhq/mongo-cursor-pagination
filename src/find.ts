@@ -1,4 +1,4 @@
-import _ from 'underscore';
+import { defaults } from 'underscore';
 
 import aggregate from './aggregate';
 import config from './config';
@@ -16,13 +16,13 @@ import { Collection } from 'mongodb';
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
  * are ordered by the paginatedField.
  *
- * @param {MongoCollection} collection A collection object returned from the MongoDB library's.
+ * @param {Collection} collection A collection object returned from the MongoDB library's.
  * @param {QueryParams} params
- *    -query {Object} The find query.
- *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
- *    -fields {Object} Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
+ * @param {object} params.query The find query.
+ * @param {Number} params.limit The page size. Must be between 1 and `config.MAX_LIMIT`.
+ * @param {object} params.fields Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
  *      The default is to query all fields.
- *    -paginatedField {String} The field name to query the range for. The field must be:
+ * @param {String} params.paginatedField The field name to query the range for. The field must be:
  *        1. Orderable. We must sort by this value. If duplicate values for paginatedField field
  *          exist, the results will be secondarily ordered by the _id.
  *        2. Indexed. For large collections, this should be indexed for query performance.
@@ -30,16 +30,16 @@ import { Collection } from 'mongodb';
           4. Consistent. All values (except undefined and null values) must be of the same type.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
- *    -sortAscending {boolean} Whether to sort in ascending order by the `paginatedField`.
- *    -sortCaseInsensitive {boolean} Whether to ignore case when sorting, in which case `paginatedField`
- *    -getTotal {boolean} Whether to fetch the total count for the query results
+ * @param {boolean} params.sortAscending Whether to sort in ascending order by the `paginatedField`.
+ * @param {boolean} params.sortCaseInsensitive Whether to ignore case when sorting, in which case `paginatedField`
+ * @param {boolean} params.getTotal Whether to fetch the total count for the query results
  *      must be a string property.
- *    -next {String} The value to start querying the page.
- *    -previous {String} The value to start querying previous page.
- *    -after {String} The _id to start querying the page.
- *    -before {String} The _id to start querying previous page.
- *    -hint {String} An optional index hint to provide to the mongo query
- *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
+ * @param {String} params.next The value to start querying the page.
+ * @param {String} params.previous The value to start querying previous page.
+ * @param {String} params.after The _id to start querying the page.
+ * @param {String} params.before The _id to start querying previous page.
+ * @param {String} params.hint An optional index hint to provide to the mongo query
+ * @param {object} params.collation An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
 export default async (
   collection: Collection | any,
@@ -58,7 +58,7 @@ export default async (
     );
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
-    params = _.defaults(await sanitizeParams(collection, params), { query: {} });
+    params = defaults(await sanitizeParams(collection, params), { query: {} });
     const cursorQuery = generateCursorQuery(params);
     const $sort = generateSort(params);
 

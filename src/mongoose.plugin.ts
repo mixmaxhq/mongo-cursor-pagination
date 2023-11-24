@@ -28,8 +28,6 @@ declare module 'mongoose' {
  * Mongoose plugin
  * @param {Object} schema mongoose schema.
  * @param {Object} options
- * @param {string} options.name name of the function.
- * @param {string} options.searchFnName name of the function.
  */
 
 export default (schema: Schema, options: Options) => {
@@ -72,7 +70,7 @@ export default (schema: Schema, options: Options) => {
   /**
    * search function
    * @param {String} searchString String to search on. Required parameter
-   * @param {Object} params
+   * @param {SearchParams} params
    */
   const searchFn = async function (
     searchString: string,

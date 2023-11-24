@@ -26,22 +26,46 @@ export interface PaginatedField {
 }
 
 interface Query {
+  /**
+ *  The find query.
+  */
   query?: object;
+    /**
+ *   The value to start querying the page.
+  */
   next?: string | Document;
+    /**
+ *    The value to start querying previous page.
+  */
   previous?: string | Document;
   overrideFields?: any;
 }
 
 interface QueryInput {
+  /**
+ *  The find query.
+  */
   query?: object;
+    /**
+ *   The value to start querying the page.
+  */
   next?: string | Document;
+    /**
+ *    The value to start querying previous page.
+  */
   previous?: string | Document;
   overrideFields?: any;
 }
 
 interface Aggregate {
   aggregation?: object[];
+    /**
+ *   The value to start querying the page.
+  */
   next?: string | Document;
+    /**
+ *    The value to start querying previous page.
+  */
   previous?: string | Document;
   options?: AggregateOptions;
 }
