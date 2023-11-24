@@ -26,8 +26,8 @@ declare module 'mongoose' {
 
 /**
  * Mongoose plugin
- * @param {Object} schema mongoose schema.
- * @param {Object} options
+ * @param {Schema} schema mongoose schema.
+ * @param {Options} options
  */
 
 export default (schema: Schema, options: Options) => {

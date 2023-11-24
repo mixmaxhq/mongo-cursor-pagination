@@ -1,15 +1,15 @@
-import _ from 'underscore';
-import { Collection } from 'mongodb';
+import _ from "underscore";
+import { Collection } from "mongodb";
 
-import config from './config';
+import config from "./config";
 import {
   prepareResponse,
   generateSort,
   generateCursorQuery,
   filterProjectedFields,
-} from './utils/query';
-import sanitizeParams from './utils/sanitizeParams';
-import { AggregateParams, PaginationResponse } from './types';
+} from "./utils/query";
+import sanitizeParams from "./utils/sanitizeParams";
+import { AggregateParams, PaginationResponse } from "./types";
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
@@ -27,9 +27,9 @@ import { AggregateParams, PaginationResponse } from './types';
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's.
  * @param {AggregateParams} params
- *    -aggregation {Object[]} The aggregation query.
- *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
- *    -paginatedField {String} The field name to query the range for. The field must be:
+ * @param {object[]} params.aggregation  The aggregation query.
+ * @param {Number} params.limit The page size. Must be between 1 and `config.MAX_LIMIT`.
+ * @param {String} params.paginatedField The field name to query the range for. The field must be:
  *        1. Orderable. We must sort by this value. If duplicate values for paginatedField field
  *          exist, the results will be secondarily ordered by the _id.
  *        2. Immutable. If the value changes between paged queries, it could appear twice.
@@ -38,15 +38,14 @@ import { AggregateParams, PaginationResponse } from './types';
           4. Consistent. All values (except undefined and null values) must be of the same type.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
- *    -sortAscending {boolean} Whether to sort in ascending order by the `paginatedField`.
- *    -sortCaseInsensitive {boolean} Whether to ignore case when sorting, in which case `paginatedField`
+ * @param {boolean} params.sortAscending Whether to sort in ascending order by the `paginatedField`.
+ * @param {boolean} params.sortCaseInsensitive Whether to ignore case when sorting, in which case `paginatedField`
  *      must be a string property.
- *    -next {String} The value to start querying the page.
- *    -previous {String} The value to start querying previous page.
- *    -after {String} The _id to start querying the page.
- *    -before {String} The _id to start querying previous page.
- *    -options {Object} Aggregation options
- *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
+ * @param {String} params.previous The value to start querying previous page.
+ * @param {String} params.next The value to start querying the page.value to start querying previous page.
+ * @param {String} params.after The _id to start querying the page. 
+ * @param {object} params.options Aggregation options
+ * @param {object} params.collation An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
 export default async (
   collection: Collection | any,
@@ -54,7 +53,9 @@ export default async (
 ): Promise<PaginationResponse> => {
   const projectedFields = params.fields;
 
-  params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
+  params = _.defaults(await sanitizeParams(collection, params), {
+    aggregation: [],
+  });
 
   const $match = generateCursorQuery(params);
   const $sort = generateSort(params);
@@ -63,7 +64,8 @@ export default async (
   const aggregationQuery = (() => {
     const { paginatedField, sortCaseInsensitive, aggregation } = params;
 
-    if (!sortCaseInsensitive) return [...aggregation, { $match }, { $sort }, { $limit }];
+    if (!sortCaseInsensitive)
+      return [...aggregation, { $match }, { $sort }, { $limit }];
 
     // else if required to be sorted by lower case, then add a field via the aggregation
     // pipeline that stores the lowercase value of the paginated field. Use this to sort
@@ -73,10 +75,16 @@ export default async (
         __lower_case_value: {
           $switch: {
             branches: [
-              { case: { $eq: [{ $type: `$${paginatedField}` }, 'null'] }, then: null },
-              { case: { $eq: [{ $type: `$${paginatedField}` }, 'missing'] }, then: null },
               {
-                case: { $eq: [{ $type: `$${paginatedField}` }, 'string'] },
+                case: { $eq: [{ $type: `$${paginatedField}` }, "null"] },
+                then: null,
+              },
+              {
+                case: { $eq: [{ $type: `$${paginatedField}` }, "missing"] },
+                then: null,
+              },
+              {
+                case: { $eq: [{ $type: `$${paginatedField}` }, "string"] },
                 then: { $toLower: `$${paginatedField}` },
               },
             ],
@@ -86,7 +94,13 @@ export default async (
       },
     };
 
-    return [...aggregation, addLowerCaseFieldSearch, { $match }, { $sort }, { $limit }];
+    return [
+      ...aggregation,
+      addLowerCaseFieldSearch,
+      { $match },
+      { $sort },
+      { $limit },
+    ];
   })();
 
   // Aggregation options:
@@ -108,9 +122,14 @@ export default async (
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
+  const aggregateMethod = collection.aggregateAsCursor
+    ? "aggregateAsCursor"
+    : "aggregate";
 
-  const results = await collection[aggregateMethod](aggregationQuery, options).toArray();
+  const results = await collection[aggregateMethod](
+    aggregationQuery,
+    options
+  ).toArray();
 
   const response = prepareResponse(results, params);
 

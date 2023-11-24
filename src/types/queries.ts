@@ -1,5 +1,5 @@
-import { AggregateOptions, CollationOptions } from 'mongodb';
-import { Document } from 'bson';
+import { AggregateOptions, CollationOptions } from "mongodb";
+import { Document } from "bson";
 
 interface BaseParams {
   limit?: number;
@@ -16,7 +16,7 @@ interface BaseParams {
 
 type BaseParamsMulti = Omit<
   BaseParams,
-  'paginatedField' | 'sortAscending' | 'sortCaseInsensitive'
+  "paginatedField" | "sortAscending" | "sortCaseInsensitive"
 > & { paginatedFields?: PaginatedField[] };
 
 export interface PaginatedField {
@@ -27,45 +27,45 @@ export interface PaginatedField {
 
 interface Query {
   /**
- *  The find query.
-  */
+   *  The find query.
+   */
   query?: object;
-    /**
- *   The value to start querying the page.
-  */
+  /**
+   *   The value to start querying the page.
+   */
   next?: string | Document;
-    /**
- *    The value to start querying previous page.
-  */
+  /**
+   *    The value to start querying previous page.
+   */
   previous?: string | Document;
   overrideFields?: any;
 }
 
 interface QueryInput {
   /**
- *  The find query.
-  */
+   *  The find query.
+   */
   query?: object;
-    /**
- *   The value to start querying the page.
-  */
+  /**
+   *   The value to start querying the page.
+   */
   next?: string | Document;
-    /**
- *    The value to start querying previous page.
-  */
+  /**
+   *    The value to start querying previous page.
+   */
   previous?: string | Document;
   overrideFields?: any;
 }
 
 interface Aggregate {
   aggregation?: object[];
-    /**
- *   The value to start querying the page.
-  */
+  /**
+   *   The value to start querying the page.
+   */
   next?: string | Document;
-    /**
- *    The value to start querying previous page.
-  */
+  /**
+   *    The value to start querying previous page.
+   */
   previous?: string | Document;
   options?: AggregateOptions;
 }
@@ -89,8 +89,14 @@ export type AggregateInputParamsMulti = BaseParamsMulti & AggregateInput;
 export type AggregateParamsMulti = BaseParamsMulti & Aggregate;
 
 export type SearchParams = {
+  /**
+   *  The find query.
+   */
   query?: object;
   limit?: number;
   fields?: object;
+  /**
+   *   The value to start querying the page.
+   */
   next?: string | Document;
 };

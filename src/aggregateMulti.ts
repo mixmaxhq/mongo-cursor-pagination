@@ -1,17 +1,20 @@
-import _ from 'underscore';
-import { Collection } from 'mongodb';
+import { Collection } from "mongodb";
+import _ from "underscore";
 
-import config from './config';
+import config from "./config";
 import {
-  prepareResponse,
-  generateSort,
-  generateCursorQuery,
+  AggregateParamsMulti,
+  PaginationResponse
+} from "./types";
+import {
   filterProjectedFields,
-  generateSorts,
   generateCursorQueryMulti,
-} from './utils/query';
-import sanitizeParams, { sanitizeMultiParamsMutate } from './utils/sanitizeParams';
-import { AggregateParams, AggregateParamsMulti, PaginationResponse } from './types';
+  generateSorts,
+  prepareResponse
+} from "./utils/query";
+import {
+  sanitizeMultiParamsMutate,
+} from "./utils/sanitizeParams";
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
@@ -28,10 +31,10 @@ import { AggregateParams, AggregateParamsMulti, PaginationResponse } from './typ
  * required for the cursor.
  *
  * @param {MongoCollection} collection A collection object returned from the MongoDB library's.
- * @param {AggregateParams} params
- *    -aggregation {Object[]} The aggregation query.
- *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
- *    -paginatedField {String} The field name to query the range for. The field must be:
+ * @param {AggregateParamsMulti} params
+ * @param {object[]} params.aggregation  The aggregation query.
+ * @param {Number} params.limit The page size. Must be between 1 and `config.MAX_LIMIT`.
+ * @param {String} params.paginatedField The field name to query the range for. The field must be:
  *        1. Orderable. We must sort by this value. If duplicate values for paginatedField field
  *          exist, the results will be secondarily ordered by the _id.
  *        2. Immutable. If the value changes between paged queries, it could appear twice.
@@ -40,31 +43,35 @@ import { AggregateParams, AggregateParamsMulti, PaginationResponse } from './typ
           4. Consistent. All values (except undefined and null values) must be of the same type.
  *      The default is to use the Mongo built-in '_id' field, which satisfies the above criteria.
  *      The only reason to NOT use the Mongo _id field is if you chose to implement your own ids.
- *    -sortAscending {boolean} Whether to sort in ascending order by the `paginatedField`.
- *    -sortCaseInsensitive {boolean} Whether to ignore case when sorting, in which case `paginatedField`
+ * @param {boolean} params.sortAscending Whether to sort in ascending order by the `paginatedField`.
+ * @param {boolean} params.sortCaseInsensitive Whether to ignore case when sorting, in which case `paginatedField`
  *      must be a string property.
- *    -next {String} The value to start querying the page.
- *    -previous {String} The value to start querying previous page.
- *    -after {String} The _id to start querying the page.
- *    -before {String} The _id to start querying previous page.
- *    -options {Object} Aggregation options
- *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
+ * @param {String} params.next The value to start querying the page.value to start querying previous page.
+ * @param {String} params.after The _id to start querying the page.
+ * @param {String} params.previous The _id to start querying previous page.
+ * @param {object} params.options Aggregation options
+ * @param {object} params.collation An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
 export default async (
   collection: Collection | any,
   params: AggregateParamsMulti
 ): Promise<PaginationResponse> => {
   const projectedFields = params.fields;
-  params = _.defaults(await sanitizeMultiParamsMutate(collection, params), { aggregation: [] });
+  params = _.defaults(await sanitizeMultiParamsMutate(collection, params), {
+    aggregation: [],
+  });
   const $match = generateCursorQueryMulti(params);
   const $sort = generateSorts(params);
   const $limit = params.limit + 1;
-  const isCaseInsensitive = params.paginatedFields.some((pf) => pf.sortCaseInsensitive);
+  const isCaseInsensitive = params.paginatedFields.some(
+    pf => pf.sortCaseInsensitive
+  );
 
   const aggregationQuery = (() => {
     const { aggregation } = params;
 
-    if (!isCaseInsensitive) return [...aggregation, { $match }, { $sort }, { $limit }];
+    if (!isCaseInsensitive)
+      return [...aggregation, { $match }, { $sort }, { $limit }];
 
     // else if required to be sorted by lower case, then add a field via the aggregation
     // pipeline that stores the lowercase value of the paginated field. Use this to sort
@@ -72,14 +79,22 @@ export default async (
     const addLowerCaseFieldSearch = {
       $addFields: Object.assign(
         {},
-        ...params.paginatedFields.map((pf) => ({
+        ...params.paginatedFields.map(pf => ({
           [`__lower_case_value_${pf.paginatedField}`]: {
             $switch: {
               branches: [
-                { case: { $eq: [{ $type: `$${pf.paginatedField}` }, 'null'] }, then: null },
-                { case: { $eq: [{ $type: `$${pf.paginatedField}` }, 'missing'] }, then: null },
                 {
-                  case: { $eq: [{ $type: `$${pf.paginatedField}` }, 'string'] },
+                  case: { $eq: [{ $type: `$${pf.paginatedField}` }, "null"] },
+                  then: null,
+                },
+                {
+                  case: {
+                    $eq: [{ $type: `$${pf.paginatedField}` }, "missing"],
+                  },
+                  then: null,
+                },
+                {
+                  case: { $eq: [{ $type: `$${pf.paginatedField}` }, "string"] },
                   then: { $toLower: `$${pf.paginatedField}` },
                 },
               ],
@@ -90,7 +105,13 @@ export default async (
       ),
     };
 
-    return [...aggregation, addLowerCaseFieldSearch, { $match }, { $sort }, { $limit }];
+    return [
+      ...aggregation,
+      addLowerCaseFieldSearch,
+      { $match },
+      { $sort },
+      { $limit },
+    ];
   })();
 
   // Aggregation options:
@@ -112,9 +133,14 @@ export default async (
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
+  const aggregateMethod = collection.aggregateAsCursor
+    ? "aggregateAsCursor"
+    : "aggregate";
 
-  const results = await collection[aggregateMethod](aggregationQuery, options).toArray();
+  const results = await collection[aggregateMethod](
+    aggregationQuery,
+    options
+  ).toArray();
 
   const response = prepareResponse(results, params, true);
 
