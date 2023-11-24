@@ -1,5 +1,5 @@
 export type PaginationResponse = {
-  results?: any,
+  results?: any[],
   previous?: any,
   hasPrevious?: boolean,
   next?: any,
