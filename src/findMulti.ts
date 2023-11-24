@@ -1,23 +1,23 @@
-import { defaults } from 'underscore';
+import { defaults } from "underscore";
 
-import { Collection } from 'mongodb';
-import aggregateMulti from './aggregateMulti';
-import config from './config';
-import { PaginationResponse, QueryParams, QueryParamsMulti } from './types';
+import { Collection } from "mongodb";
+import aggregateMulti from "./aggregateMulti";
+import config from "./config";
+import { PaginationResponse, QueryParamsMulti } from "./types";
 import {
   filterProjectedFields,
   generateCursorQueryMulti,
   generateSorts,
-  prepareResponse
-} from './utils/query';
-import { sanitizeMultiParamsMutate } from './utils/sanitizeParams';
+  prepareResponse,
+} from "./utils/query";
+import { sanitizeMultiParamsMutate } from "./utils/sanitizeParams";
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
  * are ordered by the paginatedField.
  *
  * @param {Collection} collection A collection object returned from the MongoDB library's.
- * @param {QueryParams} params
+ * @param {QueryParamsMulti} params
  * @param {object} params.query The find query.
  * @param {Number} params.limit The page size. Must be between 1 and `config.MAX_LIMIT`.
  * @param {object} params.fields Fields to query in the Mongo object format, e.g. {_id: 1, timestamp :1}.
@@ -47,7 +47,9 @@ export default async (
 ): Promise<PaginationResponse> => {
   const projectedFields = params.fields;
   let response = {} as PaginationResponse;
-  const isCaseInsensitive = params.paginatedFields?.some((pf) => pf.sortCaseInsensitive);
+  const isCaseInsensitive = params.paginatedFields?.some(
+    pf => pf.sortCaseInsensitive
+  );
 
   if (isCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
@@ -59,17 +61,24 @@ export default async (
     );
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
-    params = defaults(await sanitizeMultiParamsMutate(collection, params), { query: {} });
+    params = defaults(await sanitizeMultiParamsMutate(collection, params), {
+      query: {},
+    });
     const cursorQuerys = generateCursorQueryMulti(params);
     const $sort = generateSorts(params);
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
     // https://www.npmjs.com/package/mongoist#cursor-operations
-    const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
+    const findMethod = collection.findAsCursor ? "findAsCursor" : "find";
 
     const query = collection[findMethod]()?.project
-      ? collection.find({ $and: [cursorQuerys, params.query] }).project(params.fields)
-      : collection[findMethod]({ $and: [cursorQuerys, params.query] }, params.fields);
+      ? collection
+          .find({ $and: [cursorQuerys, params.query] })
+          .project(params.fields)
+      : collection[findMethod](
+          { $and: [cursorQuerys, params.query] },
+          params.fields
+        );
 
     /**
      * IMPORTANT
@@ -79,7 +88,8 @@ export default async (
      */
     const isCollationNull = params.collation === null;
     const collation = params.collation || config.COLLATION;
-    const collatedQuery = collation && !isCollationNull ? query.collation(collation) : query;
+    const collatedQuery =
+      collation && !isCollationNull ? query.collation(collation) : query;
     // Query one more element to see if there's another page.
     const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
 
@@ -87,7 +97,8 @@ export default async (
     const results = await cursor.toArray();
 
     response = prepareResponse(results, params, true);
-    if (params.getTotal) response.totalCount = await collection.countDocuments(params.query);
+    if (params.getTotal)
+      response.totalCount = await collection.countDocuments(params.query);
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.

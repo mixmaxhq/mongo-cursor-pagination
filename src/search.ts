@@ -1,9 +1,8 @@
-import _ from 'underscore';
-
-import config from './config';
-import { encode, decode } from './utils/bsonUrlEncoding';
-import { SearchParams, PaginationResponse } from './types';
 import { Collection } from 'mongodb';
+import { defaults, extend, last } from 'underscore';
+import config from './config';
+import { PaginationResponse, SearchParams } from './types';
+import { decode, encode } from './utils/bsonUrlEncoding';
 
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from
@@ -11,16 +10,16 @@ import { Collection } from 'mongodb';
  * a paginatedField parameter. Note that this is less performant than find() because it must
  * perform the full search on each call to this function.
  *
- * @param {MongoCollection} collection A collection object returned from the MongoDB library's. This MUST have a Mongo
+ * @param {Collection} collection A collection object returned from the MongoDB library's. This MUST have a Mongo
  *    $text index on it.
  *    See https://docs.mongodb.com/manual/core/index-text/.
  * @param {String} searchString String to search on.
  * @param {QueryParams} params
- *    -query {Object} The find query.
- *    -limit {Number} The page size. Must be between 1 and `config.MAX_LIMIT`.
- *    -fields {Object} Fields to query in the Mongo object format, e.g. {title :1}.
+ * @param {object} params.query The find query.
+ * @param {Number} params.limit The page size. Must be between 1 and `config.MAX_LIMIT`.
+ * @param {object} params.fields Fields to query in the Mongo object format, e.g. {title :1}.
  *      The default is to query ONLY _id (note this is a difference from `find()`).
- *    -next {String} The value to start querying the page. Defaults to start at the beginning of
+ * @param {String} params.next The value to start querying the page. Defaults to start at the beginning of
  *      the results.
  */
 export default async (
@@ -31,7 +30,7 @@ export default async (
   if (typeof params.limit === 'string') params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = decode(params.next as string);
 
-  params = _.defaults(params, {
+  params = defaults(params, {
     query: {},
     limit: config.MAX_LIMIT,
   });
@@ -43,14 +42,14 @@ export default async (
 
   const aggregate: Array<object> = [
     {
-      $match: _.extend({}, params.query, {
+      $match: extend({}, params.query, {
         $text: {
           $search: searchString,
         },
       }),
     },
     {
-      $project: _.extend({}, params.fields, {
+      $project: extend({}, params.fields, {
         _id: 1,
         score: {
           $meta: 'textScore',
@@ -105,7 +104,7 @@ export default async (
   if (fullPageOfResults) {
     response = {
       results,
-      next: encode([_.last(results).score, _.last(results)._id]),
+      next: encode([last(results).score, last(results)._id]),
     };
   } else {
     response = {

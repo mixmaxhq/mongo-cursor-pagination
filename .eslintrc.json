@@ -1,5 +1,16 @@
 {
-  "extends": ["mixmax/node", "mixmax/prettier"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "env": {
+    "browser": false,
+    "node": true
+  },
   "rules": {
     "no-var": "error"
   }
