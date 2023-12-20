@@ -59,6 +59,8 @@ export default async (
         aggregation: params.query ? [{ $match: params.query }] : [],
       })
     );
+    if (params.getTotal)
+      response.totalCount = await collection.countDocuments(params.query);
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
     params = defaults(await sanitizeMultiParamsMutate(collection, params), {
