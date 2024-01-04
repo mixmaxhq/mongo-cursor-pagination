@@ -92,11 +92,13 @@ export default async (
     $limit: params.limit,
   });
 
-  let response: { results: any; next?: any };
+  let response: { results: any; next?: any; totalCount?: number };
 
   // Support both the native 'mongodb' driver and 'mongoist'. See:
   // https://www.npmjs.com/package/mongoist#cursor-operations
-  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
+  const aggregateMethod = collection.aggregateAsCursor
+    ? "aggregateAsCursor"
+    : "aggregate";
 
   const results = await collection[aggregateMethod](aggregate).toArray();
 

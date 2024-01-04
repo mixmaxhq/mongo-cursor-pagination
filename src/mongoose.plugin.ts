@@ -1,12 +1,18 @@
-import { Query, Schema } from 'mongoose';
-import _ from 'underscore';
+import { Aggregate, Query, Schema } from "mongoose";
+import _ from "underscore";
 
-import { QueryParams, SearchParams, Options, PaginationResponse, QueryParamsMulti } from './types';
-import find from './find';
-import search from './search';
-import findMulti from './findMulti';
+import {
+  QueryParams,
+  SearchParams,
+  Options,
+  PaginationResponse,
+  QueryParamsMulti,
+} from "./types";
+import find from "./find";
+import search from "./search";
+import findMulti from "./findMulti";
 
-declare module 'mongoose' {
+declare module "mongoose" {
   interface Model<
     TRawDocType,
     TQueryHelpers = {},
@@ -20,7 +26,10 @@ declare module 'mongoose' {
     TSchema = any
   > {
     paginate(params: QueryParams): Promise<PaginationResponse>;
-    search(searchString: string, params: SearchParams): Promise<PaginationResponse>;
+    search(
+      searchString: string,
+      params: SearchParams
+    ): Promise<PaginationResponse>;
   }
 }
 
@@ -35,25 +44,28 @@ export default (schema: Schema, options: Options) => {
    * paginate function
    * @param {QueryParams} params required parameter
    */
-  const findFn = async function (params: QueryParams): Promise<PaginationResponse> {
+  const findFn = async function (
+    params: QueryParams
+  ): Promise<PaginationResponse> {
     if (!this.collection) {
-      throw new Error('collection property not found');
+      throw new Error("collection property not found");
     }
 
     params = _.extend({}, params);
 
     if (params.query) {
       const model = this.collection.conn.models[this.collection.modelName];
-
       params.query = new Query().cast(model, params.query);
     }
 
     return find(this.collection, params);
   };
 
-  const findMultiFn = async function (params: QueryParamsMulti): Promise<PaginationResponse> {
+  const findMultiFn = async function (
+    params: QueryParamsMulti
+  ): Promise<PaginationResponse> {
     if (!this.collection) {
-      throw new Error('collection property not found');
+      throw new Error("collection property not found");
     }
 
     params = _.extend({}, params);
@@ -61,7 +73,12 @@ export default (schema: Schema, options: Options) => {
     if (params.query) {
       const model = this.collection.conn.models[this.collection.modelName];
 
-      params.query = new Query().cast(model, params.query);
+      if (params.aggregationSearch) {
+        //@ts-ignore
+        params.query = new Aggregate().append(params.query)._pipeline;
+      } else {
+        params.query = new Query().cast(model, params.query);
+      }
     }
 
     return findMulti(this.collection, params);
@@ -77,7 +94,7 @@ export default (schema: Schema, options: Options) => {
     params: SearchParams
   ): Promise<PaginationResponse> {
     if (!this.collection) {
-      throw new Error('collection property not found');
+      throw new Error("collection property not found");
     }
 
     params = _.extend({}, params);
