@@ -51,16 +51,35 @@ export default async (
     pf => pf.sortCaseInsensitive
   );
 
-  if (isCaseInsensitive) {
-    // For case-insensitive sorting, we need to work with an aggregation:
+  // For case-insensitive sorting, we need to work with an aggregation:
+  if (isCaseInsensitive || params.aggregationSearch) {
+    const query = (() => {
+      if (params.aggregationSearch) {
+        return Array.isArray(params.query) ? params.query : [];
+      }
+      return params.query ? [{ $match: params.query }] : [];
+    })();
+
     response = await aggregateMulti(
       collection,
       Object.assign({}, params, {
-        aggregation: params.query ? [{ $match: params.query }] : [],
+        aggregation: query,
       })
     );
-    if (params.getTotal)
-      response.totalCount = await collection.countDocuments(params.query);
+
+    if (params.getTotal) {
+      if (params.aggregationSearch) {
+        // NOTE: this mimics the behavior of countDocuments, but we can pass our aggregation first
+        // https://www.mongodb.com/docs/manual/reference/method/db.collection.countDocuments/
+        const result = await (collection as Collection)
+          .aggregate([...query, { $group: { _id: null, n: { $sum: 1 } } }])
+          .toArray();
+
+        response.totalCount = result[0].n;
+      } else {
+        response.totalCount = await collection.countDocuments(params.query);
+      }
+    }
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
     params = defaults(await sanitizeMultiParamsMutate(collection, params), {
