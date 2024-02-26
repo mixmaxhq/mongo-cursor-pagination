@@ -1,6 +1,6 @@
 {
   "name": "@conpago/mongo-cursor-pagination",
-  "version": "8.8.5",
+  "version": "8.8.7",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "index.js",
   "types": "./dist/types/index.d.ts",
