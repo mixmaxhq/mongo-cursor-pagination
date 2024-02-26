@@ -74,8 +74,9 @@ export default async (
         const result = await (collection as Collection)
           .aggregate([...query, { $group: { _id: null, n: { $sum: 1 } } }])
           .toArray();
+          
 
-        response.totalCount = result[0].n;
+        response.totalCount = result?.[0]?.n ?? 0;
       } else {
         response.totalCount = await collection.countDocuments(params.query);
       }
