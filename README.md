@@ -34,6 +34,10 @@ or
 
 `yarn add mongo-cursor-pagination`
 
+or
+
+`pnpm add mongo-cursor-pagination`
+
 ## Usage
 
 ### find()
@@ -71,13 +75,13 @@ Call `find()` with the following parameters:
 Example:
 
 ```js
-const mongoist = require('mongoist');
-const MongoPaging = require('mongo-cursor-pagination');
+const mongoist = require("mongoist");
+const MongoPaging = require("mongo-cursor-pagination");
 
-const db = mongoist('mongodb://localhost:27017/mydb');
+const db = mongoist("mongodb://localhost:27017/mydb");
 
 async function findExample() {
-  await db.collection('myobjects').insertMany([
+  await db.collection("myobjects").insertMany([
     {
       counter: 1,
     },
@@ -93,13 +97,13 @@ async function findExample() {
   ]);
 
   // Query the first page.
-  let result = await MongoPaging.find(db.collection('myobjects'), {
+  let result = await MongoPaging.find(db.collection("myobjects"), {
     limit: 2,
   });
   console.log(result);
 
   // Query next page.
-  result = await MongoPaging.find(db.collection('myobjects'), {
+  result = await MongoPaging.find(db.collection("myobjects"), {
     limit: 2,
     next: result.next, // This queries the next page
   });
@@ -130,8 +134,8 @@ page 2 { results:
 Initialize Your Schema
 
 ```js
-const MongoPaging = require('mongo-cursor-pagination');
-const mongoose = require('mongoose');
+const MongoPaging = require("mongo-cursor-pagination");
+const mongoose = require("mongoose");
 const counterSchema = new mongoose.Schema({ counter: Number });
 ```
 
@@ -141,10 +145,10 @@ Plug the `mongoosePlugin`.
 // this will add paginate function.
 counterSchema.plugin(MongoPaging.mongoosePlugin);
 
-const counter = mongoose.model('counter', counterSchema);
+const counter = mongoose.model("counter", counterSchema);
 
 // default function is "paginate"
-counter.paginate({ limit: 10 }).then((result) => {
+counter.paginate({ limit: 10 }).then(result => {
   console.log(result);
 });
 ```
@@ -181,10 +185,10 @@ counterSchema.plugin(MongoPaging.mongoosePlugin);
 // give custom function name
 // counterSchema.plugin(MongoPaging.mongoosePlugin, { searchFnName: 'searchFN' });
 
-const counter = mongoose.model('counter', counterSchema);
+const counter = mongoose.model("counter", counterSchema);
 
 // default function is "paginate"
-counter.search('dog', { limit: 10 }).then((result) => {
+counter.search("dog", { limit: 10 }).then(result => {
   console.log(result);
 });
 ```
@@ -216,30 +220,30 @@ Search uses Mongo's [text search](https://docs.mongodb.com/v3.2/text-search/) fe
 Example:
 
 ```js
-const mongoist = require('mongoist');
-const MongoPaging = require('mongo-cursor-pagination');
+const mongoist = require("mongoist");
+const MongoPaging = require("mongo-cursor-pagination");
 
-const db = mongoist('mongodb://localhost:27017/mydb');
+const db = mongoist("mongodb://localhost:27017/mydb");
 
 async function searchExample() {
-  await db.collection('myobjects').ensureIndex({
-    mytext: 'text',
+  await db.collection("myobjects").ensureIndex({
+    mytext: "text",
   });
 
-  await db.collection('myobjects').insertMany([
+  await db.collection("myobjects").insertMany([
     {
-      mytext: 'dogs',
+      mytext: "dogs",
     },
     {
-      mytext: 'dogs cats',
+      mytext: "dogs cats",
     },
     {
-      mytext: 'dogs cats pigs',
+      mytext: "dogs cats pigs",
     },
   ]);
 
   // Query the first page.
-  let result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
+  let result = await MongoPaging.search(db.collection("myobjects"), "dogs", {
     fields: {
       mytext: 1,
     },
@@ -248,7 +252,7 @@ async function searchExample() {
   console.log(result);
 
   // Query next page.
-  result = await MongoPaging.search(db.collection('myobjects'), 'dogs', {
+  result = await MongoPaging.search(db.collection("myobjects"), "dogs", {
     limit: 2,
     next: result.next, // This queries the next page
   });
@@ -359,7 +363,7 @@ MongoPaging.find(db.people, {
 The index won't be used for the query because it doesn't include the collation used. The index should added as such:
 
 ```js
-db.people.createIndex({ city: 1, _id: 1 }, { collation: { locale: 'en' } });
+db.people.createIndex({ city: 1, _id: 1 }, { collation: { locale: "en" } });
 ```
 
 ### Indexes for sorting
