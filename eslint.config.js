@@ -5,5 +5,8 @@ const eslintPluginPrettierRecommended = require("eslint-plugin-prettier/recommen
 module.exports = tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
-  eslintPluginPrettierRecommended
+  eslintPluginPrettierRecommended,
+  {
+    ignores: ["dist/*"],
+  }
 );
