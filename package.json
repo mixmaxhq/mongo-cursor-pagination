@@ -12,7 +12,7 @@
   "scripts": {
     "ci": "npm run lint && npm run test",
     "ci:commitlint": "commitlint-jenkins --pr-only",
-    "lint": "eslint .",
+    "lint": "eslint --fix .",
     "prepare": "tsc",
     "prepublish": "npm run prepare",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",

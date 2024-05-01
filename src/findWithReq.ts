@@ -1,7 +1,7 @@
-import { Collection } from 'mongodb';
-import find from './find';
-import sanitizeQuery from './utils/sanitizeQuery';
-import { QueryParams, PaginationResponse } from './types';
+import { Collection } from "mongodb";
+import find from "./find";
+import sanitizeQuery from "./utils/sanitizeQuery";
+import { QueryParams, PaginationResponse } from "./types";
 
 /**
  * A wrapper around `find()` that make it easy to implement a basic HTTP API using Express. So your

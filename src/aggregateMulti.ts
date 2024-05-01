@@ -2,19 +2,14 @@ import { Collection } from "mongodb";
 import _ from "underscore";
 
 import config from "./config";
-import {
-  AggregateParamsMulti,
-  PaginationResponse
-} from "./types";
+import { AggregateParamsMulti, PaginationResponse } from "./types";
 import {
   filterProjectedFields,
   generateCursorQueryMulti,
   generateSorts,
-  prepareResponse
+  prepareResponse,
 } from "./utils/query";
-import {
-  sanitizeMultiParamsMutate,
-} from "./utils/sanitizeParams";
+import { sanitizeMultiParamsMutate } from "./utils/sanitizeParams";
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.

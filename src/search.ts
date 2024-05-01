@@ -1,8 +1,8 @@
-import { Collection } from 'mongodb';
-import { defaults, extend, last } from 'underscore';
-import config from './config';
-import { PaginationResponse, SearchParams } from './types';
-import { decode, encode } from './utils/bsonUrlEncoding';
+import { Collection } from "mongodb";
+import { defaults, extend, last } from "underscore";
+import config from "./config";
+import { PaginationResponse, SearchParams } from "./types";
+import { decode, encode } from "./utils/bsonUrlEncoding";
 
 /**
  * Performs a search query on a Mongo collection and pages the results. This is different from
@@ -27,7 +27,8 @@ export default async (
   searchString: string,
   params: SearchParams
 ): Promise<PaginationResponse> => {
-  if (typeof params.limit === 'string') params.limit = parseInt(params.limit, 10);
+  if (typeof params.limit === "string")
+    params.limit = parseInt(params.limit, 10);
   if (params.next) params.next = decode(params.next as string);
 
   params = defaults(params, {
@@ -52,14 +53,14 @@ export default async (
       $project: extend({}, params.fields, {
         _id: 1,
         score: {
-          $meta: 'textScore',
+          $meta: "textScore",
         },
       }),
     },
     {
       $sort: {
         score: {
-          $meta: 'textScore',
+          $meta: "textScore",
         },
         _id: -1,
       },

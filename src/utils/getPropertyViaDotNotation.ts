@@ -1,8 +1,16 @@
-type Args = { propertyName: string; object: object; sortCaseInsensitive?: boolean };
-type FinalValue = String | number | Date | null | undefined;
+type Args = {
+  propertyName: string;
+  object: object;
+  sortCaseInsensitive?: boolean;
+};
+type FinalValue = string | number | Date | null | undefined;
 
-export default ({ propertyName, object, sortCaseInsensitive }: Args): FinalValue => {
-  const nestedFields = propertyName.split('.');
+export default ({
+  propertyName,
+  object,
+  sortCaseInsensitive,
+}: Args): FinalValue => {
+  const nestedFields = propertyName.split(".");
   const nestedFieldsCount = nestedFields.length;
 
   const finalValue = (() => {
@@ -14,12 +22,14 @@ export default ({ propertyName, object, sortCaseInsensitive }: Args): FinalValue
       if (i === nestedFieldsCount - 1) return tempValue[nestedField];
 
       tempValue = tempValue[nestedField];
-      if (typeof tempValue !== 'object' || tempValue === null) {
+      if (typeof tempValue !== "object" || tempValue === null) {
         // then cannot continue the nested searching for the desired value
         return undefined;
       }
     }
   })();
 
-  return sortCaseInsensitive && finalValue?.toLowerCase ? finalValue.toLowerCase() : finalValue;
+  return sortCaseInsensitive && finalValue?.toLowerCase
+    ? finalValue.toLowerCase()
+    : finalValue;
 };

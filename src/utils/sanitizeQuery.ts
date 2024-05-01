@@ -1,6 +1,6 @@
-import _ from 'underscore';
-import { QueryParams } from '../types';
-import resolveFields from './resolveFields';
+import _ from "underscore";
+import { QueryParams } from "../types";
+import resolveFields from "./resolveFields";
 
 /**
  * Normalize the given query parameter to an array, so we support both param=a,b and
@@ -17,7 +17,9 @@ function normalizeQueryArray(query: object, param: string): string[] {
   if (Array.isArray(value)) {
     for (let i = 0; i < value.length; ++i) {
       if (!_.isString(value[i])) {
-        throw new TypeError('expected string array or comma-separated string for ' + param);
+        throw new TypeError(
+          "expected string array or comma-separated string for " + param
+        );
       }
     }
     return value;
@@ -28,9 +30,11 @@ function normalizeQueryArray(query: object, param: string): string[] {
     return [];
   }
   if (_.isString(value)) {
-    return value.split(',');
+    return value.split(",");
   }
-  throw new TypeError('expected string array or comma-separated string for ' + param);
+  throw new TypeError(
+    "expected string array or comma-separated string for " + param
+  );
 }
 
 /**
@@ -74,12 +78,12 @@ export default (
   // Don't trust fields passed in the querystring, so whitelist them against the fields defined in
   // parameters.
   const fields = resolveFields(
-    normalizeQueryArray(query, 'fields'),
+    normalizeQueryArray(query, "fields"),
     params.fields,
     params.overrideFields
   );
   if (fields === null) {
-    throw new TypeError('no valid fields provided');
+    throw new TypeError("no valid fields provided");
   }
 
   // Set fields to undefined if it's empty to avoid adding _id: 0 in find.

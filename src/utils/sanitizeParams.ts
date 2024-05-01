@@ -1,14 +1,14 @@
-import { Collection, ObjectId } from 'mongodb';
+import { Collection, ObjectId } from "mongodb";
 import {
   AggregateInputParams,
   AggregateParams,
   QueryInputParams,
   QueryInputParamsMulti,
   QueryParams,
-} from '../types';
-import config from '../config';
-import { decode } from './bsonUrlEncoding';
-import getPropertyViaDotNotation from './getPropertyViaDotNotation';
+} from "../types";
+import config from "../config";
+import { decode } from "./bsonUrlEncoding";
+import getPropertyViaDotNotation from "./getPropertyViaDotNotation";
 
 export default async (
   collection: Collection | any,
@@ -16,7 +16,7 @@ export default async (
 ): Promise<QueryParams | AggregateParams> => {
   //
   // set the params.paginatedField
-  params.paginatedField ??= '_id';
+  params.paginatedField ??= "_id";
 
   // set the params.limit
   params.limit = (() => {
@@ -30,7 +30,8 @@ export default async (
   if (params.previous) params.previous = decode(params.previous as string);
   if (params.next) params.next = decode(params.next as string);
   // if after || before in params, overwrite an existing previous || next value
-  if (params.after || params.before) await applyAfterOrBeforeToParams({ collection, params });
+  if (params.after || params.before)
+    await applyAfterOrBeforeToParams({ collection, params });
 
   // set the params.fields, which are the requested projected fields PLUS the paginated field
   // (the latter required for sorting and constucting the cursor)
@@ -54,15 +55,16 @@ export async function sanitizeMultiParamsMutate(
   if (!params.paginatedFields?.length) {
     params.paginatedFields = [];
     params.paginatedFields.push({
-      paginatedField: '_id',
+      paginatedField: "_id",
       sortAscending: false,
       sortCaseInsensitive: false,
     });
     // add _id to the end of the fields
-  } else if (!params.paginatedFields.find((f) => f.paginatedField === '_id')) {
-    const lastField = params?.paginatedFields[params.paginatedFields?.length - 1];
+  } else if (!params.paginatedFields.find(f => f.paginatedField === "_id")) {
+    const lastField =
+      params?.paginatedFields[params.paginatedFields?.length - 1];
     params.paginatedFields.push({
-      paginatedField: '_id',
+      paginatedField: "_id",
       sortAscending: lastField?.sortAscending,
       sortCaseInsensitive: lastField?.sortCaseInsensitive,
     });
@@ -80,7 +82,8 @@ export async function sanitizeMultiParamsMutate(
   if (params.previous) params.previous = decode(params.previous as string);
   if (params.next) params.next = decode(params.next as string);
   // if after || before in params, overwrite an existing previous || next value
-  if (params.after || params.before) await applyAfterOrBeforeToParams({ collection, params });
+  if (params.after || params.before)
+    await applyAfterOrBeforeToParams({ collection, params });
 
   if (params.fields) {
     const { fields: requestedFields, paginatedFields } = params;
@@ -90,7 +93,7 @@ export async function sanitizeMultiParamsMutate(
         _id: 0,
       },
       requestedFields,
-      ...paginatedFields.map((pf) => ({ [pf.paginatedField]: 1 }))
+      ...paginatedFields.map(pf => ({ [pf.paginatedField]: 1 }))
     );
   }
 
@@ -123,7 +126,7 @@ async function applyAfterOrBeforeToParams({
 
   // if the primary sort field is the _id, then the results are assured to have a unique
   // value, and after || before can immediately overwrite the next || previous param
-  if (paginatedField === '_id') {
+  if (paginatedField === "_id") {
     after ? (params.next = after) : (params.previous = before);
     return;
   }

@@ -1,4 +1,4 @@
-import { CollationOptions } from 'mongodb';
+import { CollationOptions } from "mongodb";
 
 export default {
   /**

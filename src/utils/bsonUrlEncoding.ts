@@ -1,8 +1,8 @@
-import base64url from 'base64-url';
-import { EJSON, Document } from 'bson';
+import base64url from "base64-url";
+import { EJSON, Document } from "bson";
 
 // BSON can't encode undefined values, so we will use this value instead:
-const BSON_UNDEFINED = '__mixmax__undefined__';
+const BSON_UNDEFINED = "__mixmax__undefined__";
 
 /**
  * These will take a paging handle (`next` or `previous`) and encode/decode it
@@ -11,7 +11,9 @@ const BSON_UNDEFINED = '__mixmax__undefined__';
 
 export const encode = (obj: string | object | Document): string => {
   if (Array.isArray(obj) && obj[0] === undefined) obj[0] = BSON_UNDEFINED;
-  return base64url.encode(typeof obj === 'string' ? obj : EJSON.stringify(obj, { relaxed: true }));
+  return base64url.encode(
+    typeof obj === "string" ? obj : EJSON.stringify(obj, { relaxed: true })
+  );
 };
 
 export const decode = (str: string): Document | string | undefined => {

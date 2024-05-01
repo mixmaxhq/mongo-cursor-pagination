@@ -7,26 +7,3 @@ module.exports = tseslint.config(
   ...tseslint.configs.recommended,
   eslintPluginPrettierRecommended
 );
-
-// export default [
-//   {
-//     languageOptions: {
-//       parser: tsParser,
-//     },
-//     plugins: ["@typescript-eslint", "prettier"],
-//     extends: [
-//       "eslint:recommended",
-//       "plugin:@typescript-eslint/eslint-recommended",
-//       "plugin:@typescript-eslint/recommended",
-//       "prettier",
-//     ],
-//     env: {
-//       browser: false,
-//       node: true,
-//     },
-//     rules: {
-//       "no-var": "error",
-//     },
-//     ignorePatterns: ["dist/node/*"],
-//   },
-// ];

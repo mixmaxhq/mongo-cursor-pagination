@@ -168,13 +168,11 @@ describe("find", () => {
         },
       ]),
 
-      db
-        .collection("test_sorting")
-        .insertMany(
-          ["Alpha", "gimel", "Beta", "bet", "Gamma", "aleph"].map(name => ({
-            name,
-          }))
-        ),
+      db.collection("test_sorting").insertMany(
+        ["Alpha", "gimel", "Beta", "bet", "Gamma", "aleph"].map(name => ({
+          name,
+        }))
+      ),
 
       db.collection("test_null_values").insertMany(
         [undefined, null, "Bravo", null, "Alice", undefined, null, "alpha"]

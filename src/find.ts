@@ -1,16 +1,16 @@
-import { defaults } from 'underscore';
+import { defaults } from "underscore";
 
-import aggregate from './aggregate';
-import config from './config';
+import aggregate from "./aggregate";
+import config from "./config";
 import {
   prepareResponse,
   generateSort,
   generateCursorQuery,
   filterProjectedFields,
-} from './utils/query';
-import sanitizeParams from './utils/sanitizeParams';
-import { QueryParams, PaginationResponse } from './types';
-import { Collection } from 'mongodb';
+} from "./utils/query";
+import sanitizeParams from "./utils/sanitizeParams";
+import { QueryParams, PaginationResponse } from "./types";
+import { Collection } from "mongodb";
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -64,11 +64,16 @@ export default async (
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
     // https://www.npmjs.com/package/mongoist#cursor-operations
-    const findMethod = collection.findAsCursor ? 'findAsCursor' : 'find';
+    const findMethod = collection.findAsCursor ? "findAsCursor" : "find";
 
     const query = collection[findMethod]()?.project
-      ? collection.find({ $and: [cursorQuery, params.query] }).project(params.fields)
-      : collection[findMethod]({ $and: [cursorQuery, params.query] }, params.fields);
+      ? collection
+          .find({ $and: [cursorQuery, params.query] })
+          .project(params.fields)
+      : collection[findMethod](
+          { $and: [cursorQuery, params.query] },
+          params.fields
+        );
 
     /**
      * IMPORTANT
@@ -78,14 +83,16 @@ export default async (
      */
     const isCollationNull = params.collation === null;
     const collation = params.collation || config.COLLATION;
-    const collatedQuery = collation && !isCollationNull ? query.collation(collation) : query;
+    const collatedQuery =
+      collation && !isCollationNull ? query.collation(collation) : query;
     // Query one more element to see if there's another page.
     const cursor = collatedQuery.sort($sort).limit(params.limit + 1);
     if (params.hint) cursor.hint(params.hint);
     const results = await cursor.toArray();
 
     response = prepareResponse(results, params);
-    if (params.getTotal) response.totalCount = await collection.countDocuments(params.query);
+    if (params.getTotal)
+      response.totalCount = await collection.countDocuments(params.query);
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.

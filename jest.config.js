@@ -1,8 +1,8 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: 'ts-jest',
+  preset: "ts-jest",
   clearMocks: true,
-  testMatch: ['<rootDir>/test/*.ts'],
-  collectCoverageFrom: ['src/**/*.js'],
-  testEnvironment: 'node',
+  testMatch: ["<rootDir>/test/*.ts"],
+  collectCoverageFrom: ["src/**/*.js"],
+  testEnvironment: "node",
 };

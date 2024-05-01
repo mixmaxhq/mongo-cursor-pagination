@@ -1,5 +1,5 @@
-import { ProjectionFieldSet } from 'projection-utils';
-import _ from 'underscore';
+import { ProjectionFieldSet } from "projection-utils";
+import _ from "underscore";
 
 /**
  * Produce a ProjectionFieldSet from the given mongo projection, after validating it to ensure it
@@ -16,10 +16,12 @@ function fieldsFromMongo(
   const fields = _.reduce(
     projection,
     (memo, value, key) => {
-      if (key !== '_id' && value !== undefined && !value) {
-        throw new TypeError('projection includes exclusion, but we do not support that');
+      if (key !== "_id" && value !== undefined && !value) {
+        throw new TypeError(
+          "projection includes exclusion, but we do not support that"
+        );
       }
-      if (value || (key === '_id' && value === undefined && includeIdDefault)) {
+      if (value || (key === "_id" && value === undefined && includeIdDefault)) {
         memo.push(key);
       }
 
@@ -48,15 +50,15 @@ function resolveFields(
   overrideFields?: { [key: string]: string | number }
 ): (object | null) | undefined {
   if (desiredFields != null && !Array.isArray(desiredFields)) {
-    throw new TypeError('expected nullable array for desiredFields');
+    throw new TypeError("expected nullable array for desiredFields");
   }
 
   if (allowedFields != null && !_.isObject(allowedFields)) {
-    throw new TypeError('expected nullable plain object for allowedFields');
+    throw new TypeError("expected nullable plain object for allowedFields");
   }
 
   if (overrideFields !== undefined && !_.isObject(overrideFields)) {
-    throw new TypeError('expected optional plain object for overrideFields');
+    throw new TypeError("expected optional plain object for overrideFields");
   }
 
   // If no desired fields are specified, we treat that as wanting the default set of fields.
@@ -72,7 +74,9 @@ function resolveFields(
 
   // Don't trust fields passed in the querystring, so whitelist them against the
   // fields defined in parameters. Add override fields from parameters.
-  const fields = desiredFieldset.intersect(allowedFieldset).union(fieldsFromMongo(overrideFields));
+  const fields = desiredFieldset
+    .intersect(allowedFieldset)
+    .union(fieldsFromMongo(overrideFields));
 
   if (fields.isEmpty()) {
     // This projection isn't representable as a mongo projection - nor should it be. We don't want
@@ -89,7 +93,7 @@ function resolveFields(
 
   // Explicitly exclude the _id field (which mongo includes by default) if we don't allow it, or
   // if we've disabled it in the override.
-  if (!fields.contains(['_id']) || disableIdOverride) {
+  if (!fields.contains(["_id"]) || disableIdOverride) {
     // If the override excludes _id, then enforce that here. All other fields will be included by
     // default, so we don't need to specify them individually, as we only support whitelisting
     // fields, and do not support field blacklists.

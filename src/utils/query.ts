@@ -1,5 +1,5 @@
-import objectPath from 'object-path';
-import { omit, pick, uniq } from 'lodash';
+import objectPath from "object-path";
+import { omit, pick, uniq } from "lodash";
 
 import {
   AggregateParams,
@@ -8,9 +8,9 @@ import {
   PaginatedField,
   QueryParamsMulti,
   AggregateParamsMulti,
-} from '../types';
+} from "../types";
 
-import { encode } from './bsonUrlEncoding';
+import { encode } from "./bsonUrlEncoding";
 
 function buildCursor(
   doc: { _id: any },
@@ -20,10 +20,14 @@ function buildCursor(
   const paginatedFieldValue = (() => {
     const { paginatedField, sortCaseInsensitive } = params;
     const value = objectPath.get(doc, paginatedField);
-    return sortCaseInsensitive && value?.toLowerCase ? value.toLowerCase() : value;
+    return sortCaseInsensitive && value?.toLowerCase
+      ? value.toLowerCase()
+      : value;
   })();
 
-  const rawCursor = shouldSecondarySortOnId ? [paginatedFieldValue, doc._id] : paginatedFieldValue; // which may actually be the document_id anyways
+  const rawCursor = shouldSecondarySortOnId
+    ? [paginatedFieldValue, doc._id]
+    : paginatedFieldValue; // which may actually be the document_id anyways
 
   return encode(rawCursor);
 }
@@ -65,7 +69,7 @@ export function encodePaginationTokens(
   response: PaginationResponse,
   multi = false
 ): void {
-  const shouldSecondarySortOnId = params.paginatedField !== '_id';
+  const shouldSecondarySortOnId = params.paginatedField !== "_id";
 
   if (response.previous) {
     response.previous = multi
@@ -94,7 +98,7 @@ export function prepareResponse(
   multi = false
 ): PaginationResponse {
   const hasMore = results.length > params.limit;
-  const shouldSecondarySortOnId = params.paginatedField !== '_id';
+  const shouldSecondarySortOnId = params.paginatedField !== "_id";
 
   // Remove the extra element that we added to 'peek' to see if there were more entries.
   if (hasMore) results.pop();
@@ -125,7 +129,7 @@ export function prepareResponse(
   return response;
 }
 
-export type SearchArgs = PaginatedField & Pick<QueryParams, 'previous'>;
+export type SearchArgs = PaginatedField & Pick<QueryParams, "previous">;
 
 /**
  * Generates a `$sort` object given the parameters
@@ -136,10 +140,11 @@ export type SearchArgs = PaginatedField & Pick<QueryParams, 'previous'>;
  */
 export function generateSort(params: SearchArgs): Record<string, number> {
   const sortAsc =
-    (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
+    (!params.sortAscending && params.previous) ||
+    (params.sortAscending && !params.previous);
   const sortDir = sortAsc ? 1 : -1;
 
-  if (params.paginatedField == '_id') return { _id: sortDir };
+  if (params.paginatedField == "_id") return { _id: sortDir };
 
   const field = params.sortCaseInsensitive
     ? `__lower_case_value_${params.paginatedField}`
@@ -148,12 +153,12 @@ export function generateSort(params: SearchArgs): Record<string, number> {
 }
 
 export function generateSorts(params: QueryParamsMulti) {
-  const sortArgs = params.paginatedFields.map((pf) => ({
+  const sortArgs = params.paginatedFields.map(pf => ({
     ...pf,
     previous: params.previous,
   }));
 
-  return Object.assign({}, ...sortArgs.map((f) => generateSort(f)));
+  return Object.assign({}, ...sortArgs.map(f => generateSort(f)));
 }
 
 /**
@@ -163,19 +168,23 @@ export function generateSorts(params: QueryParamsMulti) {
  *
  * @return {Object} a cursor offset query
  */
-export function generateCursorQuery(params: QueryParams | AggregateParams): object {
+export function generateCursorQuery(
+  params: QueryParams | AggregateParams
+): object {
   if (!params.next && !params.previous) return {};
 
   const sortAsc =
-    (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
+    (!params.sortAscending && params.previous) ||
+    (params.sortAscending && !params.previous);
 
   // a `next` cursor will have precedence over a `previous` cursor.
   const cursor = (params.next || params.previous) as any;
 
-  if (params.paginatedField == '_id') return { _id: sortAsc ? { $gt: cursor } : { $lt: cursor } };
+  if (params.paginatedField == "_id")
+    return { _id: sortAsc ? { $gt: cursor } : { $lt: cursor } };
 
   const field = params.sortCaseInsensitive
-    ? '__lower_case_value' // lc value of the paginatedField (via $addFields + $toLower)
+    ? "__lower_case_value" // lc value of the paginatedField (via $addFields + $toLower)
     : params.paginatedField;
 
   const notNullNorUndefined = { [field]: { $ne: null } };
@@ -212,7 +221,7 @@ export function generateCursorQuery(params: QueryParams | AggregateParams): obje
       };
 }
 
-type BigOrRow = Record<string, Record<'$gt' | '$lt' | '$eq', any>>;
+type BigOrRow = Record<string, Record<"$gt" | "$lt" | "$eq", any>>;
 
 export function generateCursorQueryMulti(params: QueryParamsMulti) {
   if (!params.next && !params.previous) return {};
@@ -233,12 +242,13 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
   const bigOr: BigOrRow[] = [];
 
   const onlyId =
-    params.paginatedFields.length === 1 && params.paginatedFields[0].paginatedField === '_id';
+    params.paginatedFields.length === 1 &&
+    params.paginatedFields[0].paginatedField === "_id";
 
   if (onlyId) {
     return getOrNextLine({
       prev: undefined,
-      field: '_id',
+      field: "_id",
       sortAsc: params.paginatedFields[0].sortAscending,
       value: idValue ?? cursor,
     });
@@ -258,7 +268,12 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
     const prev = bigOr[bigOr.length - 1];
 
     if (paginatedFieldValue) {
-      const newFields = getOrNextLine({ prev, field, sortAsc, value: paginatedFieldValue });
+      const newFields = getOrNextLine({
+        prev,
+        field,
+        sortAsc,
+        value: paginatedFieldValue,
+      });
       bigOr.push(newFields);
     } else {
       const notNullNorUndefined = { [field]: { $ne: null } };
@@ -270,7 +285,9 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
         }
         return Object.assign(
           {},
-          ...Object.entries(prev).map(([k, v]) => convert$lt$gtFieldTo$eq({ [k]: v }))
+          ...Object.entries(prev).map(([k, v]) =>
+            convert$lt$gtFieldTo$eq({ [k]: v })
+          )
         );
       })();
 
@@ -286,7 +303,7 @@ export function generateCursorQueryMulti(params: QueryParamsMulti) {
 }
 
 function $gt$lt(asc: boolean) {
-  return asc ? ('$gt' as const) : ('$lt' as const);
+  return asc ? ("$gt" as const) : ("$lt" as const);
 }
 
 /**
@@ -333,8 +350,8 @@ function getOrNextLine({
  * ```
  */
 function convert$lt$gtFieldTo$eq(
-  field: Record<string, Record<'$lt' | '$gt', any>>
-): Record<string, Record<'$eq', any>> {
+  field: Record<string, Record<"$lt" | "$gt", any>>
+): Record<string, Record<"$eq", any>> {
   const [key, value] = Object.entries(field)[0];
   const fieldValue = Object.values(value)[0];
   return { [key]: { $eq: fieldValue } };
@@ -344,17 +361,22 @@ function convert$lt$gtFieldTo$eq(
  * response results can have additional fields that were not requested by user (for example, the
  * fields required to sort and paginate). If projected fields are nominated, return only these.
  */
-export function filterProjectedFields({ projectedFields, results, sortCaseInsensitive }) {
+export function filterProjectedFields({
+  projectedFields,
+  results,
+  sortCaseInsensitive,
+}) {
   //
-  if (sortCaseInsensitive) results = results.map((result) => omit(result, '__lower_case_value'));
+  if (sortCaseInsensitive)
+    results = results.map(result => omit(result, "__lower_case_value"));
 
   const requestedFields = projectedFields
     ? Object.keys(projectedFields).filter(
-        (key) => projectedFields[key] === 1 || projectedFields[key] === true
+        key => projectedFields[key] === 1 || projectedFields[key] === true
       )
     : [];
 
   return requestedFields?.length
-    ? results.map((result) => pick(result, uniq([...requestedFields, '_cursor'])))
+    ? results.map(result => pick(result, uniq([...requestedFields, "_cursor"])))
     : results; // else if no projection, return full results
 }

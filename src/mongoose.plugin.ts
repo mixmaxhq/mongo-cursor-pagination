@@ -23,7 +23,7 @@ declare module "mongoose" {
       TVirtuals & TInstanceMethods,
       TQueryHelpers
     >,
-    TSchema = any
+    TSchema = any,
   > {
     paginate(params: QueryParams): Promise<PaginationResponse>;
     search(
