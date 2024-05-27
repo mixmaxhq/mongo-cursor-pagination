@@ -1,5 +1,6 @@
 import base64url from "base64-url";
-import { EJSON, Document } from "bson";
+import { EJSON } from "bson";
+import { Document } from "mongodb";
 
 // BSON can't encode undefined values, so we will use this value instead:
 const BSON_UNDEFINED = "__mixmax__undefined__";
