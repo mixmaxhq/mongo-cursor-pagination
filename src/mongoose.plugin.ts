@@ -1,5 +1,5 @@
 import { Aggregate, Query, Schema } from "mongoose";
-import _ from "underscore";
+import { extend } from "underscore";
 
 import {
   QueryParams,
@@ -26,6 +26,7 @@ declare module "mongoose" {
     TSchema = any,
   > {
     paginate(params: QueryParams): Promise<PaginationResponse>;
+    paginateMulti(params: QueryParamsMulti): Promise<PaginationResponse>;
     search(
       searchString: string,
       params: SearchParams
@@ -51,7 +52,7 @@ export default (schema: Schema, options: Options) => {
       throw new Error("collection property not found");
     }
 
-    params = _.extend({}, params);
+    params = extend({}, params);
 
     if (params.query) {
       const model = this.collection.conn.models[this.collection.modelName];
@@ -68,7 +69,7 @@ export default (schema: Schema, options: Options) => {
       throw new Error("collection property not found");
     }
 
-    params = _.extend({}, params);
+    params = extend({}, params);
 
     if (params.query) {
       const model = this.collection.conn.models[this.collection.modelName];
@@ -97,7 +98,7 @@ export default (schema: Schema, options: Options) => {
       throw new Error("collection property not found");
     }
 
-    params = _.extend({}, params);
+    params = extend({}, params);
 
     return search(this.collection, searchString, params);
   };
