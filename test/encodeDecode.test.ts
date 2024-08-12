@@ -1,6 +1,6 @@
 import { encode, decode } from "../src/utils/bsonUrlEncoding";
 import { ObjectId } from "mongodb";
-
+import { EJSON } from "bson";
 const testObject = {
   first_name: "Tim",
   last_name: "O’Leary",
@@ -41,5 +41,11 @@ describe("bsonUrlEncoding", () => {
 
     const decoded = decode(encoded);
     expect(decoded).toBe(emptyString);
+  });
+
+  test("should be able to JSON.stringify and JSON.parse the encoded string", () => {
+    const encoded = encode(testObject);
+    const decoded = EJSON.parse(EJSON.stringify(decode(encoded)));
+    expect(decoded).toEqual(testObject);
   });
 });
