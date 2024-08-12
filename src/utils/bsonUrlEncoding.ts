@@ -19,12 +19,14 @@ function _decode(str: string): string {
 
 export const encode = (obj: string | object | Document): string => {
   if (Array.isArray(obj) && obj[0] === undefined) obj[0] = BSON_UNDEFINED;
+  else if (typeof obj === "string" && obj === "") return obj;
   return _encode(
     typeof obj === "string" ? obj : EJSON.stringify(obj, { relaxed: true })
   );
 };
 
 export const decode = (str: string): Document | string | undefined => {
+  if (str === "") return str;
   const obj = EJSON.parse(_decode(str), { relaxed: true });
   if (Array.isArray(obj) && obj[0] === BSON_UNDEFINED) obj[0] = undefined;
   return obj as Document;
