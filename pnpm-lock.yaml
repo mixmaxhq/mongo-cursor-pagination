@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      base64-url:
-        specifier: ^2.3.3
-        version: 2.3.3
       bson:
         specifier: ^6.8.0
         version: 6.8.0
@@ -42,9 +39,6 @@ importers:
       '@mixmaxhq/semantic-release-config':
         specifier: github:mixmaxhq/semantic-release-config
         version: https://codeload.github.com/mixmaxhq/semantic-release-config/tar.gz/0ec3f897a8236d44add9567a8e5012a034826fd0
-      '@types/base64-url':
-        specifier: ^2.2.2
-        version: 2.2.2
       '@types/jest':
         specifier: ^29.5.12
         version: 29.5.12
@@ -816,9 +810,6 @@ packages:
   '@types/babel__traverse@7.20.5':
     resolution: {integrity: sha512-WXCyOcRtH37HAUkpXhUduaxdm82b4GSlyTqajXviN4EfiuPgNYR109xMCKvpl6zPIpua0DGlMEDCq+g8EdoheQ==}
 
-  '@types/base64-url@2.2.2':
-    resolution: {integrity: sha512-tUtfDSDqGZ3QaYdlg0c2pP9NUBh6lRfzjudgrgOByqpfv5mg724X2xYjaNRDa1UPQqewdrPtW6sqDzYXrg+9yA==}
-
   '@types/conventional-commits-parser@5.0.0':
     resolution: {integrity: sha512-loB369iXNmAZglwWATL+WRe+CRMmmBPtpolYzIebFaX4YA3x+BEfLqhUAV9WanycKI3TG1IMr5bMJDajDKLlUQ==}
 
@@ -1122,10 +1113,6 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
-
-  base64-url@2.3.3:
-    resolution: {integrity: sha512-dLMhIsK7OplcDauDH/tZLvK7JmUZK3A7KiQpjNzsBrM6Etw7hzNI1tLEywqJk9NnwkgWuFKSlx/IUO7vF6Mo8Q==}
-    engines: {node: '>=6'}
 
   bcrypt-pbkdf@1.0.2:
     resolution: {integrity: sha512-qeFIXtP4MSoi6NLqO12WfqARWWuCKi2Rn/9hJLEmtB5yTNr9DqFWkJRCf2qShWzPeAMRnOgCrq0sg/KLv5ES9w==}
@@ -5709,8 +5696,6 @@ snapshots:
     dependencies:
       '@babel/types': 7.24.0
 
-  '@types/base64-url@2.2.2': {}
-
   '@types/conventional-commits-parser@5.0.0':
     dependencies:
       '@types/node': 20.14.11
@@ -6062,8 +6047,6 @@ snapshots:
     optional: true
 
   base64-js@1.5.1: {}
-
-  base64-url@2.3.3: {}
 
   bcrypt-pbkdf@1.0.2:
     dependencies:

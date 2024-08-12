@@ -1,4 +1,3 @@
-import base64url from "base64-url";
 import { EJSON } from "bson";
 import { Document } from "mongodb";
 
@@ -10,15 +9,25 @@ const BSON_UNDEFINED = "__mixmax__undefined__";
  * as a string which can be passed in a URL.
  */
 
+function _encode(str: string): string {
+  return Buffer.from(encodeURIComponent(str)).toString("base64");
+}
+
+function _decode(str: string): string {
+  return decodeURIComponent(Buffer.from(str, "base64").toString());
+}
+
 export const encode = (obj: string | object | Document): string => {
   if (Array.isArray(obj) && obj[0] === undefined) obj[0] = BSON_UNDEFINED;
-  return base64url.encode(
+  else if (typeof obj === "string" && obj === "") return obj;
+  return _encode(
     typeof obj === "string" ? obj : EJSON.stringify(obj, { relaxed: true })
   );
 };
 
 export const decode = (str: string): Document | string | undefined => {
-  const obj = EJSON.parse(base64url.decode(str), { relaxed: true });
+  if (str === "") return str;
+  const obj = EJSON.parse(_decode(str), { relaxed: true });
   if (Array.isArray(obj) && obj[0] === BSON_UNDEFINED) obj[0] = undefined;
   return obj as Document;
 };
