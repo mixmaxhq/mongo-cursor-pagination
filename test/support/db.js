@@ -5,7 +5,7 @@ const mongoist = require('mongoist');
 
 function start() {
   return new MongoMemoryServer({
-    binary: { version: '5.0.18' },
+    binary: { version: '5.0.28' },
   });
 }
 
