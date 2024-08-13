@@ -1,4 +1,5 @@
 const _ = require('underscore');
+
 const resolveFields = require('./resolveFields');
 
 /**

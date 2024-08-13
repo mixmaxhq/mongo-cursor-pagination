@@ -1,20 +1,21 @@
-const paging = require('../');
-const dbUtils = require('./support/db');
 const _ = require('underscore');
+
+const dbUtils = require('./support/db');
+const paging = require('../');
 
 const driver = process.env.DRIVER;
 
-let mongod;
-
 describe('aggregate', () => {
+  let mongod;
+  let client;
   const t = {};
   beforeAll(async () => {
     mongod = dbUtils.start();
-    t.db = await dbUtils.db(mongod, driver);
+    ({ db: t.db, client } = await dbUtils.db(mongod, driver));
 
     // Set up collections once for testing later.
     await Promise.all([
-      t.db.collection('test_paging').insert([
+      t.db.collection('test_paging').insertMany([
         {
           counter: 1,
         },
@@ -45,7 +46,7 @@ describe('aggregate', () => {
           color: 'blue',
         },
       ]),
-      t.db.collection('test_aggregation').insert([
+      t.db.collection('test_aggregation').insertMany([
         {
           items: [1, 2, 3],
         },
@@ -59,7 +60,7 @@ describe('aggregate', () => {
           items: [2, 4, 5],
         },
       ]),
-      t.db.collection('test_aggregation_lookup').insert([
+      t.db.collection('test_aggregation_lookup').insertMany([
         {
           _id: 1,
           name: 'mercury',
@@ -85,7 +86,7 @@ describe('aggregate', () => {
           name: 'saturn',
         },
       ]),
-      t.db.collection('test_aggregation_lookup').ensureIndex(
+      t.db.collection('test_aggregation_lookup').createIndex(
         {
           name: 'text',
         },
@@ -93,7 +94,7 @@ describe('aggregate', () => {
           name: 'test_index',
         }
       ),
-      t.db.collection('test_aggregation_sort').insert([
+      t.db.collection('test_aggregation_sort').insertMany([
         {
           name: 'Alpha',
         },
@@ -115,7 +116,7 @@ describe('aggregate', () => {
       ]),
       t.db
         .collection('test_null_values')
-        .insert(
+        .insertMany(
           [
             undefined,
             undefined,
@@ -131,7 +132,10 @@ describe('aggregate', () => {
     ]);
   });
 
-  afterAll(() => mongod.stop());
+  afterAll(async () => {
+    await (client ? client.close() : t.db.close());
+    await mongod.stop();
+  });
 
   beforeEach(() => {
     paging.config.COLLATION = undefined;

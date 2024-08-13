@@ -1,5 +1,5 @@
-const _ = require('underscore');
 const { ProjectionFieldSet } = require('projection-utils');
+const _ = require('underscore');
 
 /**
  * Produce a ProjectionFieldSet from the given mongo projection, after validating it to ensure it

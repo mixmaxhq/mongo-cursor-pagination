@@ -1,6 +1,7 @@
+const _ = require('underscore');
+
 const find = require('./find');
 const search = require('./search');
-const _ = require('underscore');
 
 /**
  * Mongoose plugin
