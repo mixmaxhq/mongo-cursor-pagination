@@ -9,14 +9,13 @@
     "src"
   ],
   "scripts": {
-    "babelBuild": "babel src -d dist/node",
-    "babelWatch": "babel --watch src -d dist/node",
     "ci": "npm run lint && npm run test",
     "ci:commitlint": "commitlint-jenkins --pr-only",
-    "lint": "eslint .",
-    "prepublishOnly": "npm run babelBuild && if [ \"$CI\" = '' ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
+    "lint": "eslint . && tsc --noEmit",
+    "prepublishOnly": "npm run build && if [ \"$CI\" = '' ] && [ \"$npm_config_dry_run\" != true ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
-    "test": "npm run babelBuild; DRIVER=mongoist jest --forceExit && DRIVER=native jest && DRIVER=native DRIVER_VERSION=v3 jest"
+    "test": "DRIVER=mongoist jest --forceExit && DRIVER=native jest && DRIVER=native DRIVER_VERSION=v3 jest",
+    "build": "rm -rf dist/ && tsc"
   },
   "repository": {
     "type": "git",
@@ -38,6 +37,7 @@
   },
   "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
   "dependencies": {
+    "@types/express": "^5.0.0",
     "base64-url": "^2.2.0",
     "bson": "^4.7.2",
     "object-path": "^0.11.8",
@@ -46,14 +46,15 @@
     "underscore": "^1.12.1"
   },
   "devDependencies": {
-    "@babel/cli": "^7.18.10",
-    "@babel/core": "^7.18.13",
-    "@babel/preset-env": "^7.18.10",
     "@commitlint/config-conventional": "^8.3.4",
     "@mixmaxhq/commitlint-jenkins": "^1.4.4",
     "@mixmaxhq/prettier-config": "^1.0.0",
     "@mixmaxhq/semantic-release-config": "^2.0.0",
-    "babel-jest": "^29.0.0",
+    "@mixmaxhq/ts-config": "^1.2.1",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.7.4",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
     "cz-conventional-changelog": "^3.2.0",
     "eslint": "^7.32.0",
     "eslint-config-mixmax": "^4.11.2",
@@ -65,7 +66,9 @@
     "mongoist": "^3.0.0",
     "mongoose": "^5.13.20",
     "prettier": "^1.19.1",
-    "semantic-release": "^17.2.3"
+    "semantic-release": "^17.4.7",
+    "ts-jest": "^29.0.5",
+    "typescript": "^4.9.5"
   },
   "engines": {
     "node": ">= 6.9.1"

@@ -1,12 +1,14 @@
-const dbUtils = require('./support/db');
-const paging = require('../');
+import * as paging from '../src/index';
+import * as dbUtils from './support/db';
 
 const driver = process.env.DRIVER;
 
 describe('search', () => {
   let mongod;
   let client;
-  const t = {};
+  const t = {
+    db: null,
+  };
   beforeAll(async () => {
     mongod = dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));

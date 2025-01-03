@@ -1,14 +1,16 @@
-const mongo = require('mongoist');
+import * as mongo from 'mongoist';
 
-const bsonUrlEncoding = require('../../src/utils/bsonUrlEncoding');
-const dbUtils = require('../support/db');
+import bsonUrlEncoding from '../../src/utils/bsonUrlEncoding';
+import * as dbUtils from '../support/db';
 
 const driver = process.env.DRIVER;
 
 describe('bson url encoding', () => {
   let mongod;
   let client;
-  const t = {};
+  const t = {
+    db: null,
+  };
   beforeAll(async () => {
     mongod = dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));
@@ -34,7 +36,7 @@ describe('bson url encoding', () => {
       'eyJfaWQiOnsiJG9pZCI6IjU4MTY0ZDg2ZjY5YWI0NTk0MmM2ZmYzOCJ9LCJkYXRlIjp7IiRkYXRlIjoiMjAxNi0xMC0zMFQxOTozMjozNVoifSwibnVtYmVyIjoxLCJzdHJpbmciOiJjb21wbGV4IFN0cmluZyAmJCMjJC0vPyJ9'
     );
 
-    const decoded = bsonUrlEncoding.decode(str);
+    const decoded: any = bsonUrlEncoding.decode(str);
     // Check types
     expect(typeof decoded.date).toEqual('object');
     expect(typeof decoded.number).toEqual('number');

@@ -1,14 +1,15 @@
-const _ = require('underscore');
-
-const dbUtils = require('./support/db');
-const paging = require('../');
-
+import * as _ from 'underscore';
+import * as paging from '../src/index';
+import * as dbUtils from './support/db';
+import { Request } from 'express';
 const driver = process.env.DRIVER;
 
 describe('findWithReq', () => {
   let mongod;
   let client;
-  const t = {};
+  const t = {
+    db: null,
+  };
   beforeAll(async () => {
     mongod = dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));
@@ -69,18 +70,15 @@ describe('findWithReq', () => {
       };
 
       // First page of 2
-      let res = await paging.findWithReq(
-        {
-          query: {
-            limit: '2',
-            fields: 'counter,myfield1',
-          },
-        },
-        collection,
-        {
-          fields,
-        }
-      );
+      const request = {
+        query: {
+          limit: '2',
+          fields: 'counter,myfield1',
+        } as any,
+      } as Request;
+      let res = await paging.findWithReq(request, collection, {
+        fields,
+      });
 
       expect(res.results.length).toEqual(2);
       expect(res.results[0]).toEqual({
@@ -95,19 +93,15 @@ describe('findWithReq', () => {
       expect(res.hasNext).toEqual(true);
 
       // Go forward 1
-      res = await paging.findWithReq(
-        {
-          query: {
-            limit: '1',
-            next: res.next,
-            fields: 'counter,myfield1',
-          },
-        },
-        collection,
-        {
-          fields,
-        }
-      );
+      const req = {} as Request;
+      req.query = {
+        limit: '1',
+        next: res.next,
+        fields: 'counter,myfield1',
+      };
+      res = await paging.findWithReq(req, collection, {
+        fields,
+      });
       expect(res.results.length).toEqual(1);
       expect(res.results[0]).toEqual({
         counter: 2,
@@ -123,8 +117,8 @@ describe('findWithReq', () => {
             previous: res.previous,
             limit: '1',
             fields: 'counter,myfield1',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields,
@@ -148,8 +142,8 @@ describe('findWithReq', () => {
             limit: '1',
             // myfield1 will be ignored because it doesn't exist in fields below
             fields: 'counter,myfield1',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -171,8 +165,8 @@ describe('findWithReq', () => {
           query: {
             limit: '1',
             fields: 'counter,myfield1',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {}
       );
@@ -190,8 +184,8 @@ describe('findWithReq', () => {
         {
           query: {
             limit: '2',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           limit: 1,
@@ -210,8 +204,8 @@ describe('findWithReq', () => {
             next: '',
             previous: '',
             fields: '',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {}
       );
@@ -231,8 +225,8 @@ describe('findWithReq', () => {
         {
           query: {
             limit: 'aaa',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -255,8 +249,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj.one,obj.four.five',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -284,8 +278,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj.one,obj.four.five',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {}
       );
@@ -308,8 +302,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj.four.five',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -336,8 +330,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj.four.five,obj2',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -363,8 +357,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -395,8 +389,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj.one,obj.four.five',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -424,8 +418,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -447,8 +441,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj.two,obj.four,obj2',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
@@ -480,8 +474,8 @@ describe('findWithReq', () => {
         {
           query: {
             fields: 'obj.one',
-          },
-        },
+          } as any,
+        } as Request,
         collection,
         {
           fields: {
