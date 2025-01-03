@@ -21,20 +21,22 @@ export interface QueryObject {
 function normalizeQueryArray(query: QueryObject, param: string): string[] {
   const value = query[param];
   if (Array.isArray(value)) {
-    for (const v of value) {
-      if (!_.isString(v)) {
-        throw new TypeError(`expected string array or comma-separated string for ${param}`);
+    for (let i = 0; i < value.length; ++i) {
+      if (!_.isString(value[i])) {
+        throw new TypeError('expected string array or comma-separated string for ' + param);
       }
     }
     return value;
   }
+  // This goes before _.isString so we don't split an empty string into ['']. The array option just
+  // uses whatever the user provides.
   if (_.isEmpty(value)) {
     return [];
   }
   if (_.isString(value)) {
     return value.split(',');
   }
-  throw new TypeError(`expected string array or comma-separated string for ${param}`);
+  throw new TypeError('expected string array or comma-separated string for ' + param);
 }
 
 /**
@@ -45,9 +47,11 @@ function normalizeQueryArray(query: QueryObject, param: string): string[] {
  * @returns The sanitized and merged `params` object.
  */
 export default function sanitizeQuery(query: QueryObject, params: FindParams = {}): FindParams {
+  params = params || {};
+
   if (!_.isEmpty(query.limit)) {
     const limit = parseInt(query.limit, 10);
-    // Don't let the user specify a higher limit than `params.limit`, if defined.
+    // Don't let the user specify a higher limit than params.limit, if defined.
     if (!isNaN(limit) && (!params.limit || params.limit > limit)) {
       params.limit = limit;
     }
@@ -61,18 +65,18 @@ export default function sanitizeQuery(query: QueryObject, params: FindParams = {
     params.previous = query.previous;
   }
 
-  // Don't trust fields passed in the query string; whitelist them against the fields defined in parameters.
+  // Don't trust fields passed in the querystring, so whitelist them against the fields defined in
+  // parameters.
   const fields = resolveFields(
     normalizeQueryArray(query, 'fields'),
     params.fields,
     params.overrideFields
   );
-
   if (fields === null) {
     throw new TypeError('no valid fields provided');
   }
 
-  // Set `fields` to undefined if it's empty to avoid adding `_id: 0` in MongoDB find queries.
+  // Set fields to undefined if it's empty to avoid adding _id: 0 in find.
   params.fields = _.isEmpty(fields) ? undefined : fields;
 
   return params;
