@@ -14,7 +14,9 @@
     "lint": "eslint . && tsc --noEmit",
     "prepublishOnly": "npm run build && if [ \"$CI\" = '' ] && [ \"$npm_config_dry_run\" != true ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
-    "test": "DRIVER=mongoist jest --forceExit && DRIVER=native jest && DRIVER=native DRIVER_VERSION=v3 jest",
+    "test": "npm run test:mongoist && npm run test:native",
+    "test:mongoist": "DRIVER=mongoist jest --forceExit",
+    "test:native": "DRIVER=native jest && DRIVER=native DRIVER_VERSION=v3 jest",
     "build": "rm -rf dist/ && tsc"
   },
   "repository": {

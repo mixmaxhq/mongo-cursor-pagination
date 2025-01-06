@@ -10,7 +10,7 @@ const BSON_UNDEFINED = '__mixmax__undefined__' as const;
 /**
  * Type Definitions
  */
-type Encodable = Record<string, unknown> | unknown[] | null | string | number | boolean;
+export type Encodable = Record<string, unknown> | unknown[] | null | string | number | boolean;
 
 interface EncoderDecoder {
   encode(obj: Encodable): string;
