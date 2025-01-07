@@ -34,7 +34,7 @@ export default async function findWithPagination(
   let response;
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
-    response = aggregate(
+    response = await aggregate(
       collection,
       Object.assign({}, params, {
         aggregation: params.query ? [{ $match: params.query }] : [],

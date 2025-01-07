@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/mixmaxhq/mongo-cursor-pagination#readme",
   "dependencies": {
-    "@types/express": "^5.0.0",
+    "@types/express": "^4.17.21",
     "base64-url": "^2.2.0",
     "bson": "^4.7.2",
     "object-path": "^0.11.8",
@@ -54,7 +54,7 @@
     "@mixmaxhq/semantic-release-config": "^2.0.0",
     "@mixmaxhq/ts-config": "^1.2.1",
     "@types/jest": "^29.5.12",
-    "@types/node": "^22.7.4",
+    "@types/node": "^18.19.70",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "cz-conventional-changelog": "^3.2.0",

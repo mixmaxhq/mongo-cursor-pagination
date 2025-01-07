@@ -1,7 +1,12 @@
 {
   "extends": "@mixmaxhq/ts-config/tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist/node"
+    "outDir": "dist/node",
+    "declaration": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "importHelpers": true,
+    "skipLibCheck": true
   },
   "include": [
     "./src/**/*"

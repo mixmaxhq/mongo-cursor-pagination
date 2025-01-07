@@ -43,7 +43,7 @@ export default async function aggregate(
     aggregationPipeline = params.aggregation.concat([{ $match }, { $sort }, { $limit }]);
   }
 
-  const options: Record<string, any> = { ...params.options };
+  const options: Record<string, any> = { ...(params.options || {}) };
 
   // Handle collation
   const isCollationNull = params.collation === null;

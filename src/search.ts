@@ -1,13 +1,13 @@
 import { Collection, Document } from 'mongodb';
 import _ from 'underscore';
 import config from './config';
-import bsonUrlEncoding from './utils/bsonUrlEncoding';
+import bsonUrlEncoding, { Encodable } from './utils/bsonUrlEncoding';
 
 export interface SearchParams {
   query?: Record<string, any>;
   limit?: number;
   fields?: Record<string, number>;
-  next?: string;
+  next?: Encodable;
 }
 
 export interface SearchResponse<T = Document> {
@@ -35,7 +35,7 @@ export default async function search<T = Document>(
   params: SearchParams
 ): Promise<SearchResponse<T>> {
   if (params.next) {
-    params.next = bsonUrlEncoding.decode(params.next) as string;
+    params.next = bsonUrlEncoding.decode(params.next as string);
   }
 
   params = _.defaults(params, {
