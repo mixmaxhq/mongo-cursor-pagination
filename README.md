@@ -30,6 +30,10 @@ Here are some examples of cursor-based APIs:
 
 `npm install mongo-cursor-pagination --save`
 
+## Project language
+
+This project has been converted to TypeScript to enhance type safety and improve developer tooling. All source files are now `.ts` files.
+
 ## Usage
 
 ### find()
