@@ -49,7 +49,7 @@ export default async function findWithPagination(
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
     // https://www.npmjs.com/package/mongoist#cursor-operations
-    const findMethod = (collection as any).findAsCursor
+    const findMethod = hasFindAsCursor(collection)
       ? COLLECTION_METHODS.FIND_AS_CURSOR
       : COLLECTION_METHODS.FIND;
 
@@ -79,9 +79,15 @@ export default async function findWithPagination(
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
-  if (removePaginatedFieldInResponse) {
+  if (removePaginatedFieldInResponse && params.paginatedField) {
     response.results = _.map(response.results, (result) => _.omit(result, params.paginatedField));
   }
 
   return response;
+}
+
+function hasFindAsCursor(
+  collection: unknown
+): collection is Collection<Document> & { findAsCursor: Function } {
+  return typeof (collection as any).findAsCursor === 'function';
 }
