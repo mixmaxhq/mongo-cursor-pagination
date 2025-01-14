@@ -17,9 +17,10 @@ export interface SearchResponse<T = Document> {
 }
 
 /**
- * Performs a search query on a Mongo collection and pages the results. The results are ordered
- * by their relevancy using MongoDB's $text index.
- *
+ * Performs a search query on a Mongo collection and pages the results. This is different from
+ * find() in that the results are ordered by their relevancy, and as such, it does not take
+ * a paginatedField parameter. Note that this is less performant than find() because it must
+ * perform the full search on each call to this function.
  * @param collection - A MongoDB collection object. This MUST have a Mongo $text index.
  * @param searchString - The string to search for.
  * @param params - Search parameters:
