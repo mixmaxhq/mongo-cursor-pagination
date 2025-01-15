@@ -12,7 +12,7 @@ interface Config {
   /**
    * The collation to use for sorting and searching.
    */
-  COLLATION: Record<string, any>;
+  COLLATION: Record<string, any> | null;
 }
 
 const config: Config = {
