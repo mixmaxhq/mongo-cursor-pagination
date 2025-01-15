@@ -81,9 +81,16 @@ export default async function aggregate(
     aggregationPipeline = params.aggregation.concat([{ $match }, { $sort }, { $limit }]);
   }
 
+  // Aggregation options:
+  // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
+  // https://mongodb.github.io/node-mongodb-native/4.0/interfaces/aggregateoptions.html
   const options: Record<string, any> = { ...(params.options || {}) };
-
-  // Handle collation
+  /**
+   * IMPORTANT
+   *
+   * If using collation, check the README:
+   * https://github.com/mixmaxhq/mongo-cursor-pagination#important-note-regarding-collation
+   */
   const isCollationNull = params.collation === null;
   const collation = params.collation || config.COLLATION;
   if (collation && !isCollationNull) {
