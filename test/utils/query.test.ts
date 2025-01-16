@@ -1,48 +1,38 @@
 import bsonUrlEncoding from '../../src/utils/bsonUrlEncoding';
-import {
-  encodePaginationTokens,
-  PaginationResponse,
-  generateCursorQuery,
-} from '../../src/utils/query';
+import { encodePaginationTokens, generateCursorQuery } from '../../src/utils/query';
 
 describe('encodePaginationTokens', () => {
   it('encodes the pagination tokens on the passed-in response object', () => {
-    type PaginatedType = { _id: string };
     const params = {
       paginatedField: '_id',
     };
-    const response: PaginationResponse<PaginatedType> = {
+    const response = {
       results: [],
-      previous: null,
+      previous: { _id: '456' },
       hasPrevious: false,
-      next: null,
+      next: { _id: '789' },
       hasNext: false,
     };
-    const previous: PaginatedType = { _id: '456' };
-    const next: PaginatedType = { _id: '789' };
 
-    encodePaginationTokens<PaginatedType>(params, response, previous, next);
+    encodePaginationTokens(params, response);
 
     expect(response.next).toEqual(bsonUrlEncoding.encode('789'));
     expect(response.previous).toEqual(bsonUrlEncoding.encode('456'));
   });
 
   it("constructs pagination tokens using both the _id and the paginatedField if the latter isn't the former", () => {
-    type PaginatedType = { _id: string; name: string };
     const params = {
       paginatedField: 'name',
     };
-    const response: PaginationResponse<PaginatedType> = {
+    const response = {
       results: [],
-      previous: null,
+      previous: { _id: '456', name: 'Test' },
       hasPrevious: false,
-      next: null,
+      next: { _id: '789', name: 'Test 2' },
       hasNext: false,
     };
-    const previous: PaginatedType = { _id: '456', name: 'Test' };
-    const next: PaginatedType = { _id: '789', name: 'Test 2' };
 
-    encodePaginationTokens<PaginatedType>(params, response, previous, next);
+    encodePaginationTokens(params, response);
 
     expect(response.next).toEqual(bsonUrlEncoding.encode(['Test 2', '789']));
     expect(response.previous).toEqual(bsonUrlEncoding.encode(['Test', '456']));

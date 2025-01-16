@@ -35,6 +35,7 @@ export default async function search<T = Document>(
   searchString: string,
   params: SearchParams
 ): Promise<SearchResponse<T>> {
+  if (_.isString(params.limit)) params.limit = parseInt((params.limit as any) as string, 10);
   if (params.next) {
     params.next = bsonUrlEncoding.decode(params.next as string);
   }

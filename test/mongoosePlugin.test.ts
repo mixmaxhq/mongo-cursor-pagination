@@ -67,7 +67,7 @@ describe('mongoose plugin', () => {
 
   it('returns data in the expected format', async () => {
     const data = await (Post as any).paginate();
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
     expect(hasOwnProperty.call(data, 'results')).toBe(true);
     expect(hasOwnProperty.call(data, 'previous')).toBe(true);
     expect(hasOwnProperty.call(data, 'hasPrevious')).toBe(true);
@@ -88,7 +88,7 @@ describe('mongoose plugin', () => {
 
   it('returns data in the expected format for search function', async () => {
     const data = await (Post as any).search('Post #1', { limit: 3 });
-    var hasOwnProperty = Object.prototype.hasOwnProperty;
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
     expect(hasOwnProperty.call(data, 'results')).toBe(true);
     expect(hasOwnProperty.call(data, 'next')).toBe(true);
   });

@@ -1,127 +1,144 @@
 import objectPath from 'object-path';
 import bsonUrlEncoding from './bsonUrlEncoding';
 
+export type PaginationToken = { _id: string; [key: string]: any } | string | [any, unknown];
+
 export type PaginationParams = {
   paginatedField?: string;
   sortCaseInsensitive?: boolean;
   sortAscending?: boolean;
-  previous?: string | [unknown, unknown];
-  next?: string | [unknown, unknown];
+  previous?: PaginationToken;
+  next?: PaginationToken;
   limit?: number;
-  after?: string | [unknown, unknown];
+  after?: PaginationToken;
   hint?: string;
   before?: string;
 };
 
 export type PaginationResponse<T> = {
   results: T[];
-  previous: string | null;
+  previous: PaginationToken; // Updated to reflect a more specific type
   hasPrevious: boolean;
-  next: string | null;
+  next: PaginationToken; // Updated to reflect a more specific type
   hasNext: boolean;
 };
-
-type SortObject = Record<string, 1 | -1>;
-
-type CursorQuery = Record<string, any>;
 
 /**
  * Helper function to encode pagination tokens.
  *
  * NOTE: this function modifies the passed-in `response` argument directly.
  *
- * @param params - Pagination parameters
- * @param response - The response object to modify
+ * @param      {Object}  params
+ *   @param      {String}  paginatedField
+ *   @param      {boolean} sortCaseInsensitive
+ *
+ * @param      {Object}  response  The response
+ *   @param      {String?}  previous
+ *   @param      {String?}  next
+ *
+ * @returns void
  */
-export function encodePaginationTokens<T>(
-  params: PaginationParams,
-  response: PaginationResponse<T>,
-  previous: T | null,
-  next: T | null
-): void {
+function encodePaginationTokens(params: PaginationParams, response: PaginationResponse<any>): void {
   const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
-  if (previous) {
-    let previousPaginatedField = objectPath.get(previous, params.paginatedField);
+  if (response.previous) {
+    let previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
     if (params.sortCaseInsensitive) {
       previousPaginatedField = previousPaginatedField?.toLowerCase?.() ?? '';
     }
-    response.previous = shouldSecondarySortOnId
-      ? bsonUrlEncoding.encode([previousPaginatedField, (previous as any)._id])
-      : bsonUrlEncoding.encode(previousPaginatedField);
+    if (shouldSecondarySortOnId) {
+      if (
+        typeof response.previous === 'object' &&
+        response.previous !== null &&
+        '_id' in response.previous
+      ) {
+        response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
+      }
+    } else {
+      response.previous = bsonUrlEncoding.encode(previousPaginatedField);
+    }
   }
-
-  if (next) {
-    let nextPaginatedField = objectPath.get(next, params.paginatedField);
+  if (response.next) {
+    let nextPaginatedField = objectPath.get(response.next, params.paginatedField);
     if (params.sortCaseInsensitive) {
       nextPaginatedField = nextPaginatedField?.toLowerCase?.() ?? '';
     }
-    response.next = shouldSecondarySortOnId
-      ? bsonUrlEncoding.encode([nextPaginatedField, (next as any)._id])
-      : bsonUrlEncoding.encode(nextPaginatedField);
+    if (shouldSecondarySortOnId) {
+      if (typeof response.next === 'object' && response.next !== null && '_id' in response.next) {
+        response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
+      }
+    } else {
+      response.next = bsonUrlEncoding.encode(nextPaginatedField);
+    }
   }
 }
 
 /**
  * Parses the raw results from a find or aggregate query and generates a response object that
- * contains various pagination properties.
+ * contain the various pagination properties
  *
- * @param results - The results from a query
- * @param params - The parameters originally passed to `find` or `aggregate`
- * @returns The object containing pagination properties
+ * @param {Object[]} results the results from a query
+ * @param {Object} params The params originally passed to `find` or `aggregate`
+ *
+ * @return {Object} The object containing pagination properties
  */
-export function prepareResponse<T>(results: T[], params: PaginationParams): PaginationResponse<T> {
+function prepareResponse(results: any[], params: any): any {
   const hasMore = results.length > params.limit;
-
+  // Remove the extra element that we added to 'peek' to see if there were more entries.
   if (hasMore) results.pop();
 
   const hasPrevious = !!params.next || !!(params.previous && hasMore);
   const hasNext = !!params.previous || hasMore;
 
+  // If we sorted reverse to get the previous page, correct the sort order.
   if (params.previous) results = results.reverse();
 
-  const response: PaginationResponse<T> = {
+  const response = {
     results,
+    previous: results[0],
     hasPrevious,
+    next: results[results.length - 1],
     hasNext,
-    previous: null,
-    next: null,
   };
 
-  const previous = results[0] || null;
-  const next = results[results.length - 1] || null;
-
-  encodePaginationTokens(params, response, previous, next);
+  encodePaginationTokens(params, response);
 
   return response;
 }
 
 /**
- * Generates a `$sort` object given the parameters.
+ * Generates a `$sort` object given the parameters
  *
- * @param params - The parameters originally passed to `find` or `aggregate`
- * @returns A sort object
+ * @param {Object} params The params originally passed to `find` or `aggregate`
+ *
+ * @return {Object} a sort object
  */
-export function generateSort(params: PaginationParams): SortObject {
+function generateSort(params: any): any {
   const sortAsc =
     (!params.sortAscending && params.previous) || (params.sortAscending && !params.previous);
   const sortDir = sortAsc ? 1 : -1;
 
-  if (params.paginatedField === '_id') {
-    return { _id: sortDir };
+  if (params.paginatedField == '_id') {
+    return {
+      _id: sortDir,
+    };
   } else {
     const field = params.sortCaseInsensitive ? '__lc' : params.paginatedField;
-    return { [field]: sortDir, _id: sortDir };
+    return {
+      [field]: sortDir,
+      _id: sortDir,
+    };
   }
 }
 
-/**
- * Generates a cursor query that provides the offset capabilities.
+function /**
+ * Generates a cursor query that provides the offset capabilities
  *
- * @param params - The parameters originally passed to `find` or `aggregate`
- * @returns A cursor offset query
+ * @param {Object} params The params originally passed to `find` or `aggregate`
+ *
+ * @return {Object} a cursor offset query
  */
-export function generateCursorQuery(params: PaginationParams): CursorQuery {
+generateCursorQuery(params: any): any {
   if (!params.next && !params.previous) return {};
 
   const sortAsc =
@@ -213,9 +230,4 @@ export function generateCursorQuery(params: PaginationParams): CursorQuery {
   }
 }
 
-export default {
-  prepareResponse,
-  encodePaginationTokens,
-  generateSort,
-  generateCursorQuery,
-};
+export { encodePaginationTokens, prepareResponse, generateSort, generateCursorQuery };
