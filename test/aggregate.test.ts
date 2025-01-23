@@ -1,14 +1,15 @@
-const _ = require('underscore');
-
-const dbUtils = require('./support/db');
-const paging = require('../');
+import * as _ from 'underscore';
+import * as paging from '../src/index';
+import * as dbUtils from './support/db';
 
 const driver = process.env.DRIVER;
 
 describe('aggregate', () => {
   let mongod;
   let client;
-  const t = {};
+  const t = {
+    db: null,
+  };
   beforeAll(async () => {
     mongod = dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));

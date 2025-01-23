@@ -1,14 +1,15 @@
-const _ = require('underscore');
-
-const aggregate = require('./aggregate');
-const config = require('./config');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
-const sanitizeParams = require('./utils/sanitizeParams');
-
-const COLLECTION_METHODS = {
-  FIND: 'find',
-  FIND_AS_CURSOR: 'findAsCursor',
-};
+import { Collection, Document } from 'mongodb';
+import _ from 'underscore';
+import aggregate from './aggregate';
+import config from './config';
+import { PaginationResponse } from './utils/query';
+import {
+  prepareResponse,
+  generateSort,
+  generateCursorQuery,
+  PaginationParams,
+} from './utils/query';
+import sanitizeParams, { SanitizeParams } from './utils/sanitizeParams';
 
 /**
  * Performs a find() query on a passed-in Mongo collection, using criteria you specify. The results
@@ -39,14 +40,30 @@ const COLLECTION_METHODS = {
  *    -hint {String} An optional index hint to provide to the mongo query
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function(collection, params) {
+export interface FindParams extends PaginationParams {
+  query?: Document;
+  limit?: number;
+  fields?: Record<string, number>;
+  collation?: Record<string, any> | null;
+  overrideFields?: Record<string, number>;
+}
+
+const COLLECTION_METHODS = {
+  FIND: 'find',
+  FIND_AS_CURSOR: 'findAsCursor',
+};
+
+export default async function findWithPagination(
+  collection: Collection<Document>,
+  params: FindParams
+): Promise<PaginationResponse<Document>> {
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
   let response;
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
-    response = aggregate(
+    response = await aggregate(
       collection,
       Object.assign({}, params, {
         aggregation: params.query ? [{ $match: params.query }] : [],
@@ -54,14 +71,14 @@ module.exports = async function(collection, params) {
     );
   } else {
     // Need to repeat `params.paginatedField` default value ('_id') since it's set in 'sanitizeParams()'
-    params = _.defaults(await sanitizeParams(collection, params), { query: {} });
+    params = _.defaults(await sanitizeParams(collection, params as SanitizeParams), { query: {} });
 
     const cursorQuery = generateCursorQuery(params);
     const $sort = generateSort(params);
 
     // Support both the native 'mongodb' driver and 'mongoist'. See:
     // https://www.npmjs.com/package/mongoist#cursor-operations
-    const findMethod = collection.findAsCursor
+    const findMethod = hasFindAsCursor(collection)
       ? COLLECTION_METHODS.FIND_AS_CURSOR
       : COLLECTION_METHODS.FIND;
 
@@ -91,9 +108,15 @@ module.exports = async function(collection, params) {
   }
 
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
-  if (removePaginatedFieldInResponse) {
+  if (removePaginatedFieldInResponse && params.paginatedField) {
     response.results = _.map(response.results, (result) => _.omit(result, params.paginatedField));
   }
 
   return response;
-};
+}
+
+function hasFindAsCursor(
+  collection: unknown
+): collection is Collection<Document> & { findAsCursor: Function } {
+  return typeof (collection as any).findAsCursor === 'function';
+}

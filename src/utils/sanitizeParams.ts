@@ -1,12 +1,26 @@
-const _ = require('underscore');
+import _ from 'underscore';
+import bsonUrlEncoding from './bsonUrlEncoding';
+import getPropertyViaDotNotation from './getPropertyViaDotNotation';
+import config from '../config';
+import { Encodable } from './bsonUrlEncoding';
 
-const bsonUrlEncoding = require('./bsonUrlEncoding');
-const getPropertyViaDotNotation = require('./getPropertyViaDotNotation');
-const config = require('../config');
+export interface SanitizeParams {
+  previous?: string | [unknown, unknown] | Encodable;
+  next?: string | [unknown, unknown] | Encodable;
+  after?: string;
+  before?: string;
+  limit?: number;
+  paginatedField?: string;
+  sortCaseInsensitive?: boolean;
+  fields?: Record<string, number>;
+}
 
-module.exports = async function sanitizeParams(collection, params) {
-  if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous);
-  if (params.next) params.next = bsonUrlEncoding.decode(params.next);
+export default async function sanitizeParams(
+  collection: any,
+  params: SanitizeParams
+): Promise<SanitizeParams> {
+  if (params.previous) params.previous = bsonUrlEncoding.decode(params.previous as string);
+  if (params.next) params.next = bsonUrlEncoding.decode(params.next as string);
 
   params = _.defaults(params, {
     limit: config.DEFAULT_LIMIT,
@@ -38,7 +52,9 @@ module.exports = async function sanitizeParams(collection, params) {
       if (doc) {
         // Handle usage of dot notation in paginatedField
         let prop = getPropertyViaDotNotation(params.paginatedField, doc);
-        if (params.sortCaseInsensitive) prop = prop.toLowerCase();
+        if (params.sortCaseInsensitive && typeof prop === 'string') {
+          prop = prop.toLowerCase();
+        }
         params.next = [prop, params.after];
       }
     } else {
@@ -63,7 +79,10 @@ module.exports = async function sanitizeParams(collection, params) {
       if (doc) {
         // Handle usage of dot notation in paginatedField
         let prop = getPropertyViaDotNotation(params.paginatedField, doc);
-        if (params.sortCaseInsensitive) prop = prop.toLowerCase();
+        if (params.sortCaseInsensitive && typeof prop === 'string') {
+          prop = prop.toLowerCase();
+        }
+
         params.previous = [prop, params.before];
       }
     } else {
@@ -86,4 +105,4 @@ module.exports = async function sanitizeParams(collection, params) {
   }
 
   return params;
-};
+}

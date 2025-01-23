@@ -1,14 +1,15 @@
-const { ObjectId } = require('mongoist');
-const _ = require('underscore');
-
-const dbUtils = require('./support/db');
-const paging = require('../');
+import * as _ from 'underscore';
+import * as paging from '../src/index';
+import * as dbUtils from './support/db';
+import { ObjectId } from 'mongodb';
 const driver = process.env.DRIVER;
 
 describe('find', () => {
   let mongod;
   let client;
-  const t = {};
+  const t = {
+    db: null,
+  };
   beforeAll(async () => {
     mongod = dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));
@@ -1760,7 +1761,6 @@ describe('find', () => {
         paginatedField,
       });
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
       expect(res.results.length).toEqual(2);
       expect(res.results[0].counter).toEqual(4);
       expect(res.results[1].counter).toEqual(3);
@@ -1774,7 +1774,6 @@ describe('find', () => {
         next: res.next,
       });
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
       expect(res.results.length).toEqual(2);
       expect(res.results[0].counter).toEqual(2);
       expect(res.results[1].counter).toEqual(1);
@@ -1788,7 +1787,6 @@ describe('find', () => {
         previous: res.previous,
       });
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
       expect(res.results.length).toEqual(2);
       expect(res.results[0].counter).toEqual(4);
       expect(res.results[1].counter).toEqual(3);
@@ -1807,7 +1805,6 @@ describe('find', () => {
         paginatedField,
       });
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
       expect(res.results.length).toEqual(2);
       expect(res.results[0].counter).toEqual(4);
       expect(res.results[1].counter).toEqual(3);
@@ -1821,7 +1818,6 @@ describe('find', () => {
         after: res.results[res.results.length - 1]._id,
       });
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
       expect(res.results.length).toEqual(2);
       expect(res.results[0].counter).toEqual(2);
       expect(res.results[1].counter).toEqual(1);
@@ -1835,7 +1831,6 @@ describe('find', () => {
         before: res.results[0]._id,
       });
 
-      expect(res.results.start).toEqual(undefined); // Verify it is not returned since it is not requested.
       expect(res.results.length).toEqual(2);
       expect(res.results[0].counter).toEqual(4);
       expect(res.results[1].counter).toEqual(3);

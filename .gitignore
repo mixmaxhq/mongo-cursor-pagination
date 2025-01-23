@@ -40,4 +40,4 @@ jspm_packages
 .idea
 
 # Node 6 transpiled code.
-dist/node
+dist/

@@ -1,4 +1,4 @@
-const resolveFields = require('../../src/utils/resolveFields');
+import resolveFields from '../../src/utils/resolveFields';
 
 describe('resolveFields', () => {
   it('should support empty fields', () => {

@@ -1,8 +1,20 @@
-const _ = require('underscore');
-
-const config = require('./config');
-const { prepareResponse, generateSort, generateCursorQuery } = require('./utils/query');
-const sanitizeParams = require('./utils/sanitizeParams');
+import { Collection, Document, AggregationCursor } from 'mongodb';
+import _ from 'underscore';
+import config from './config';
+import {
+  prepareResponse,
+  generateSort,
+  generateCursorQuery,
+  PaginationParams,
+} from './utils/query';
+import sanitizeParams, { SanitizeParams } from './utils/sanitizeParams';
+import { PaginationResponse } from './utils/query';
+interface AggregateParams extends PaginationParams {
+  aggregation?: Document[];
+  options?: Record<string, any>;
+  before?: string;
+  collation?: Record<string, any> | null;
+}
 
 /**
  * Performs an aggregate() query on a passed-in Mongo collection, using criteria you specify.
@@ -42,30 +54,37 @@ const sanitizeParams = require('./utils/sanitizeParams');
  *    -options {Object} Aggregation options
  *    -collation {Object} An optional collation to provide to the mongo query. E.g. { locale: 'en', strength: 2 }. When null, disables the global collation.
  */
-module.exports = async function aggregate(collection, params) {
-  params = _.defaults(await sanitizeParams(collection, params), { aggregation: [] });
+export default async function aggregate(
+  collection: Collection<Document>,
+  params: AggregateParams
+): Promise<PaginationResponse<Document>> {
+  // Sanitize and set defaults for parameters
+  params = _.defaults(await sanitizeParams(collection, params as SanitizeParams), {
+    aggregation: [],
+  });
 
   const $match = generateCursorQuery(params);
   const $sort = generateSort(params);
-  const $limit = params.limit + 1;
+  const $limit = (params.limit || 0) + 1;
 
-  let aggregation;
+  let aggregationPipeline: Document[];
+
   if (params.sortCaseInsensitive) {
-    aggregation = params.aggregation.concat([
-      { $addFields: { __lc: { $toLower: '$' + params.paginatedField } } },
+    aggregationPipeline = params.aggregation.concat([
+      { $addFields: { __lc: { $toLower: `$${params.paginatedField}` } } },
       { $match },
       { $sort },
       { $limit },
       { $project: { __lc: 0 } },
     ]);
   } else {
-    aggregation = params.aggregation.concat([{ $match }, { $sort }, { $limit }]);
+    aggregationPipeline = params.aggregation.concat([{ $match }, { $sort }, { $limit }]);
   }
 
   // Aggregation options:
   // https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#aggregate
   // https://mongodb.github.io/node-mongodb-native/4.0/interfaces/aggregateoptions.html
-  const options = Object.assign({}, params.options);
+  const options: Record<string, any> = { ...(params.options || {}) };
   /**
    * IMPORTANT
    *
@@ -74,13 +93,19 @@ module.exports = async function aggregate(collection, params) {
    */
   const isCollationNull = params.collation === null;
   const collation = params.collation || config.COLLATION;
-  if (collation && !isCollationNull) options.collation = collation;
+  if (collation && !isCollationNull) {
+    options.collation = collation;
+  }
 
-  // Support both the native 'mongodb' driver and 'mongoist'. See:
-  // https://www.npmjs.com/package/mongoist#cursor-operations
-  const aggregateMethod = collection.aggregateAsCursor ? 'aggregateAsCursor' : 'aggregate';
+  // Determine the aggregation method based on the library (native MongoDB or mongoist)
+  const aggregateMethod = 'aggregateAsCursor' in collection ? 'aggregateAsCursor' : 'aggregate';
 
-  const results = await collection[aggregateMethod](aggregation, options).toArray();
+  const cursor: AggregationCursor<Document> = collection[aggregateMethod](
+    aggregationPipeline,
+    options
+  );
+
+  const results = await cursor.toArray();
 
   return prepareResponse(results, params);
-};
+}

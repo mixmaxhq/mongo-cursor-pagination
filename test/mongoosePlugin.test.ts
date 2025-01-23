@@ -1,7 +1,6 @@
-const mongoose = require('mongoose');
-
-const dbUtils = require('./support/db');
-const mongooseCursorPaginate = require('../src/mongoose.plugin');
+import mongoose from 'mongoose';
+import * as dbUtils from './support/db';
+import mongooseCursorPaginate from '../src/mongoose.plugin';
 
 const AuthorSchema = new mongoose.Schema({ name: String });
 AuthorSchema.index({ name: 'text' });
@@ -15,7 +14,7 @@ const PostSchema = new mongoose.Schema({
   date: Date,
   body: String,
   author: {
-    type: mongoose.Schema.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Author',
   },
 });
@@ -57,17 +56,18 @@ describe('mongoose plugin', () => {
   });
 
   it('initializes the pagination function by the provided name', () => {
-    const promise = Author.paginateFN();
+    const promise = (Author as any).paginateFN();
     expect(promise.then instanceof Function).toBe(true);
   });
 
   it('returns a promise', () => {
-    const promise = Post.paginate();
+    const promise = (Post as any).paginate();
     expect(promise.then instanceof Function).toBe(true);
   });
 
   it('returns data in the expected format', async () => {
-    const data = await Post.paginate();
+    const data = await (Post as any).paginate();
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
     expect(hasOwnProperty.call(data, 'results')).toBe(true);
     expect(hasOwnProperty.call(data, 'previous')).toBe(true);
     expect(hasOwnProperty.call(data, 'hasPrevious')).toBe(true);
@@ -77,17 +77,18 @@ describe('mongoose plugin', () => {
 
   //#region search
   it('initializes the search function by the provided name', () => {
-    const promise = Author.searchFN('');
+    const promise = (Author as any).searchFN('');
     expect(promise.then instanceof Function).toBe(true);
   });
 
   it('returns a promise for search function', () => {
-    const promise = Post.search('');
+    const promise = (Post as any).search('');
     expect(promise.then instanceof Function).toBe(true);
   });
 
   it('returns data in the expected format for search function', async () => {
-    const data = await Post.search('Post #1', { limit: 3 });
+    const data = await (Post as any).search('Post #1', { limit: 3 });
+    const hasOwnProperty = Object.prototype.hasOwnProperty;
     expect(hasOwnProperty.call(data, 'results')).toBe(true);
     expect(hasOwnProperty.call(data, 'next')).toBe(true);
   });

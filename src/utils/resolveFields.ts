@@ -1,15 +1,18 @@
-const { ProjectionFieldSet } = require('projection-utils');
-const _ = require('underscore');
+import { ProjectionFieldSet } from 'projection-utils';
+import _ from 'underscore';
 
 /**
- * Produce a ProjectionFieldSet from the given mongo projection, after validating it to ensure it
+ * Produce a ProjectionFieldSet from the given MongoDB projection, after validating it to ensure it
  * doesn't have exclusion rules.
  *
- * @param {Object<String, *>} projection The projected fields.
- * @param {Boolean=} includeIdDefault Whether to include _id by default (mongo's default behavior).
- * @returns {ProjectionFieldSet} The synthesized field set.
+ * @param projection - The projected fields.
+ * @param includeIdDefault - Whether to include _id by default (MongoDB's default behavior).
+ * @returns The synthesized field set.
  */
-function fieldsFromMongo(projection = {}, includeIdDefault = false) {
+function fieldsFromMongo(
+  projection: Record<string, any> = {},
+  includeIdDefault = false
+): ProjectionFieldSet {
   const fields = _.reduce(
     projection,
     (memo, value, key) => {
@@ -32,14 +35,18 @@ function fieldsFromMongo(projection = {}, includeIdDefault = false) {
  * Resolve the fields object, given potentially untrusted fields the user has provided, permitted
  * fields defined by the application, and override fields that should always be provided.
  *
- * @param {String[]} desiredFields The fields in the request.
- * @param {?Object<String, *>=} allowedFields A shallow fields object defining the fields permitted
- *   in desiredFields. If not provided, we just allow any field.
- * @param {Object<String, *>=} overrideFields A shallow fields object defining fields that should
- *   always be configured as specified.
- * @returns {?Object<String, *>=} The resolved fields declaration.
+ * @param desiredFields - The fields in the request.
+ * @param allowedFields - A shallow fields object defining the fields permitted in desiredFields.
+ *                         If not provided, any field is allowed.
+ * @param overrideFields - A shallow fields object defining fields that should always be included
+ *                         or excluded as specified.
+ * @returns The resolved fields declaration, or null if no fields are valid.
  */
-function resolveFields(desiredFields, allowedFields, overrideFields) {
+function resolveFields(
+  desiredFields?: string[] | null,
+  allowedFields?: Record<string, any> | null,
+  overrideFields?: Record<string, any> | null
+): Record<string, any> | null {
   if (desiredFields != null && !Array.isArray(desiredFields)) {
     throw new TypeError('expected nullable array for desiredFields');
   }
@@ -91,4 +98,4 @@ function resolveFields(desiredFields, allowedFields, overrideFields) {
   return projection;
 }
 
-module.exports = resolveFields;
+export default resolveFields;
