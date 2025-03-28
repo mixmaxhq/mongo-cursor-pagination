@@ -1,5 +1,4 @@
-import * as mongo from 'mongoist';
-
+import { ObjectId } from 'bson';
 import bsonUrlEncoding from '../../src/utils/bsonUrlEncoding';
 import * as dbUtils from '../support/db';
 
@@ -12,7 +11,7 @@ describe('bson url encoding', () => {
     db: null,
   };
   beforeAll(async () => {
-    mongod = dbUtils.start();
+    mongod = await dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));
   });
 
@@ -23,7 +22,7 @@ describe('bson url encoding', () => {
 
   it('encodes and decodes complex objects', async () => {
     const obj = {
-      _id: mongo.ObjectID('58164d86f69ab45942c6ff38'),
+      _id: new ObjectId('58164d86f69ab45942c6ff38'),
       date: new Date('Sun Oct 30 2016 12:32:35 GMT-0700 (PDT)'),
       number: 1,
       string: 'complex String &$##$-/?',

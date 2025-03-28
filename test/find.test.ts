@@ -11,7 +11,7 @@ describe('find', () => {
     db: null,
   };
   beforeAll(async () => {
-    mongod = dbUtils.start();
+    mongod = await dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));
 
     // Set up collections once for testing later.
@@ -757,7 +757,7 @@ describe('find', () => {
       });
 
       afterEach(async () => {
-        await t.db.collection('test_paging_string_ids').remove({});
+        await t.db.collection('test_paging_string_ids').deleteMany({});
       });
 
       it('queries first few pages with next/previous', async () => {
