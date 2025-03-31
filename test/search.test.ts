@@ -10,7 +10,7 @@ describe('search', () => {
     db: null,
   };
   beforeAll(async () => {
-    mongod = dbUtils.start();
+    mongod = await dbUtils.start();
     ({ db: t.db, client } = await dbUtils.db(mongod, driver));
 
     await Promise.all([
