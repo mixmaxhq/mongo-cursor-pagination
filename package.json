@@ -1,6 +1,6 @@
 {
   "name": "mongo-cursor-pagination",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "dist/node/index.js",
   "files": [
@@ -12,7 +12,7 @@
     "ci": "npm run lint && npm run test",
     "ci:commitlint": "commitlint-jenkins --pr-only",
     "lint": "eslint . && tsc --noEmit",
-    "prepublishOnly": "npm run build && if [ \"$CI\" = '' ] && [ \"$npm_config_dry_run\" != true ]; then node -p 'JSON.parse(process.env.npm_package_config_manualPublishMessage)'; exit 1; fi",
+    "prepublishOnly": "npm run build",
     "semantic-release": "SEMANTIC_COMMITLINT_SKIP=f4543f643bac890c627d538e6200c5f5a1d45ebc semantic-release",
     "test": "npm run test:mongoist && npm run test:native",
     "test:mongoist": "DRIVER=mongoist jest --forceExit",

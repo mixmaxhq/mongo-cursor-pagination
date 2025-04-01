@@ -1,3 +1,10 @@
+### [9.0.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v9.0.0...v9.0.1) (2025-04-01)
+
+
+### Bug Fixes
+
+* lib entry point ([274a7c9](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/274a7c98aca8c156f5aa968c733df3fb42bdb4e7))
+
 ## [9.0.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.3...v9.0.0) (2025-04-01)
 
 
