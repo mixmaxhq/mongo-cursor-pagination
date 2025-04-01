@@ -2,7 +2,7 @@
   "name": "mongo-cursor-pagination",
   "version": "9.0.0",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
-  "main": "index.js",
+  "main": "dist/node/index.js",
   "files": [
     "index.js",
     "dist",
@@ -43,7 +43,6 @@
     "bson": "^6.10.3",
     "object-path": "^0.11.8",
     "projection-utils": "^1.1.0",
-    "semver": "^5.4.1",
     "underscore": "^1.12.1"
   },
   "devDependencies": {
