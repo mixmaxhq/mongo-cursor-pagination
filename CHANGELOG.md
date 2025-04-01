@@ -1,3 +1,36 @@
+## [9.0.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.3...v9.0.0) (2025-04-01)
+
+
+### ⚠ BREAKING CHANGES
+
+* Updated to MongoDB driver v6 which requires:
+- BSON types must be from version 6.x
+- Node.js version compatible with MongoDB 6.x
+- Updated connection patterns and BSON handling
+- Removed support for deprecated methods
+
+Signed-off-by: Alejandro Dominguez <adborroto90@gmail.com>
+* 
+* support mongo v6 and update mongoist
+
+### Features
+
+* enhance  documentation ([e98640e](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/e98640e60fdb1db693ed3e0a3b483f48ec31ec57))
+* migrate to ts ([1f8f10f](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/1f8f10f37a0b9a43504abce33a12861f1a6dafd3))
+* support mongo v6 and update mongoist ([5017252](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/501725255b9d557c369b0d7bb1d8c831e6e09b0a))
+* typescript convertion ([54a54b7](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/54a54b7e8d6915b5d7dd5251c7bcf5326ce083c9))
+* update deps and support mongo v7 ([42aa306](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/42aa30689ac4add3edcf455f84de8da2de2e092c))
+* **deps:** bump mongoist & mongo memory server to use version 5.0.18 ([f2b2343](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/f2b23432893e995c8b6f816ad0543aee6f160bf8))
+* **mongodb:** add support to native mongodb 3+ ([9c64b88](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/9c64b8849d8b4d8eeb1755abfa06202f892c193f))
+
+
+### Bug Fixes
+
+* lint fixes ([2110240](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/21102408f5aac1ed91dce405b909f212f43f4515))
+* restore express dependency and improve findWithPagination function ([6e7401d](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/6e7401d288519fac61fc9625c163360e7fa17865))
+* update collation type and simplify utils function ([4ae455b](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/4ae455b13b26985ab15156f53b4eb038cd173859))
+* **deps:** update dependency node to v18 ([94c87f9](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/94c87f90191b30e024f151446f6e4cf840c19405))
+
 ### [8.1.3](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v8.1.2...v8.1.3) (2023-02-14)
 
 
