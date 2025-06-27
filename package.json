@@ -1,6 +1,6 @@
 {
   "name": "@conpago/mongo-cursor-pagination",
-  "version": "8.9.1",
+  "version": "8.9.3",
   "description": "Make it easy to return cursor-paginated results from a Mongo collection",
   "main": "index.js",
   "types": "./dist/types/index.d.ts",
@@ -39,11 +39,11 @@
   "homepage": "https://github.com/conpagoaus/mongo-cursor-pagination#readme",
   "dependencies": {
     "mongodb": "^6.8.0",
-    "bson": "^6.10.3",
+    "bson": "^6.10.4",
     "lodash": "^4.17.21",
     "object-path": "^0.11.8",
     "projection-utils": "^1.1.0",
-    "semver": "^7.7.1",
+    "semver": "^7.7.2",
     "underscore": "^1.13.7"
   },
   "devDependencies": {
@@ -52,7 +52,7 @@
     "@mixmaxhq/commitlint-jenkins": "^1.6.0",
     "@mixmaxhq/semantic-release-config": "github:mixmaxhq/semantic-release-config",
     "@types/jest": "^29.5.14",
-    "@types/lodash": "^4.17.16",
+    "@types/lodash": "^4.17.19",
     "@types/node": "^22.15.17",
     "@types/object-path": "^0.11.4",
     "@types/underscore": "^1.13.0",
@@ -63,18 +63,26 @@
     "eslint-plugin-prettier": "^5.2.1",
     "jest": "^29.7.0",
     "mockgoose": "^8.0.4",
-    "mongodb-memory-server": "^9.2.0",
+    "mongodb-memory-server": "^10.1.4",
     "mongoose": "8.5.1",
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.1",
     "semantic-release": "23.x",
-    "ts-jest": "^29.3.2",
+    "ts-jest": "^29.4.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^7.16.1"
   },
   "engines": {
     "node": ">= 20.0.0"
   },
+  "pnpm": {
+    "neverBuiltDependencies": []
+  },
   "publishConfig": {
     "access": "public"
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "_": 0
+    }
   }
 }
