@@ -353,7 +353,7 @@ function convert$lt$gtFieldTo$eq(
   field: Record<string, Record<"$lt" | "$gt", any>>
 ): Record<string, Record<"$eq", any>> {
   const [key, value] = Object.entries(field)[0];
-  const fieldValue = Object.values(value)[0];
+  const fieldValue = value ? Object.values(value)[0]: ''; 
   return { [key]: { $eq: fieldValue } };
 }
 
