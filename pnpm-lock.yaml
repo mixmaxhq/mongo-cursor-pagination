@@ -14,6 +14,9 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
+      mongodb:
+        specifier: ^6.8.0
+        version: 6.8.0(socks@2.8.3)
       object-path:
         specifier: ^0.11.8
         version: 0.11.8
@@ -75,9 +78,6 @@ importers:
       mockgoose:
         specifier: ^8.0.4
         version: 8.0.4
-      mongodb:
-        specifier: ^6.8.0
-        version: 6.8.0(socks@2.8.3)
       mongodb-memory-server:
         specifier: ^9.2.0
         version: 9.2.0
