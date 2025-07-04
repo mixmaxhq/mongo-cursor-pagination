@@ -24,6 +24,19 @@ export type PaginationResponse<T> = {
 };
 
 /**
+ * Return true only for "simple" POJOs: `{}` created by object literals or
+ * `Object.create(null)`.  Arrays, class instances, Dates, BSON objects, etc.
+ * will return false.
+ */
+function isPlainObject(value: unknown): value is Record<string, any> {
+  if (value === null || typeof value !== 'object') return false;
+  const proto = Object.getPrototypeOf(value);
+  return proto === Object.prototype || proto === null;
+}
+
+
+
+/**
  * Helper function to encode pagination tokens.
  *
  * NOTE: this function modifies the passed-in `response` argument directly.
@@ -38,38 +51,34 @@ export type PaginationResponse<T> = {
  *
  * @returns void
  */
-function encodePaginationTokens(params: PaginationParams, response: PaginationResponse<any>): void {
+function encodePaginationTokens(
+  params: PaginationParams,
+  response: PaginationResponse<any>
+): void {
   const shouldSecondarySortOnId = params.paginatedField !== '_id';
 
-  if (response.previous) {
+  // ----- previous ----------------------------------------------------------
+  if (response.previous && isPlainObject(response.previous)) {
     let previousPaginatedField = objectPath.get(response.previous, params.paginatedField);
     if (params.sortCaseInsensitive) {
       previousPaginatedField = previousPaginatedField?.toLowerCase?.() ?? '';
     }
-    if (shouldSecondarySortOnId) {
-      if (
-        typeof response.previous === 'object' &&
-        response.previous !== null &&
-        '_id' in response.previous
-      ) {
-        response.previous = bsonUrlEncoding.encode([previousPaginatedField, response.previous._id]);
-      }
-    } else {
-      response.previous = bsonUrlEncoding.encode(previousPaginatedField);
-    }
+
+    response.previous = shouldSecondarySortOnId && '_id' in response.previous
+      ? bsonUrlEncoding.encode([previousPaginatedField, response.previous._id])
+      : bsonUrlEncoding.encode(previousPaginatedField);
   }
-  if (response.next) {
+
+  // ----- next --------------------------------------------------------------
+  if (response.next && isPlainObject(response.next)) {
     let nextPaginatedField = objectPath.get(response.next, params.paginatedField);
     if (params.sortCaseInsensitive) {
       nextPaginatedField = nextPaginatedField?.toLowerCase?.() ?? '';
     }
-    if (shouldSecondarySortOnId) {
-      if (typeof response.next === 'object' && response.next !== null && '_id' in response.next) {
-        response.next = bsonUrlEncoding.encode([nextPaginatedField, response.next._id]);
-      }
-    } else {
-      response.next = bsonUrlEncoding.encode(nextPaginatedField);
-    }
+
+    response.next = shouldSecondarySortOnId && '_id' in response.next
+      ? bsonUrlEncoding.encode([nextPaginatedField, response.next._id])
+      : bsonUrlEncoding.encode(nextPaginatedField);
   }
 }
 
