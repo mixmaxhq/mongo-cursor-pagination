@@ -38,6 +38,26 @@ describe('encodePaginationTokens', () => {
     expect(response.previous).toEqual(bsonUrlEncoding.encode(['Test', '456']));
   });
 
+  it('encodes tokens when cursor is a plain object that lacks _id', () => {
+    const params = {
+      paginatedField: 'name',
+    };
+
+    const response = {
+      results: [],
+      previous: { name: 'Alpha' },   // ⬅️ no _id
+      hasPrevious: false,
+      next: { name: 'Beta' },        // ⬅️ no _id
+      hasNext: false,
+    } as any;
+
+    encodePaginationTokens(params, response);
+
+    expect(response.previous).toEqual(bsonUrlEncoding.encode('Alpha'));
+    expect(response.next).toEqual(bsonUrlEncoding.encode('Beta'));
+  });
+
+
   describe('generateCursorQuery', () => {
     it('generates an empty cursor query when no next or previous cursor is provided', () => {
       const params = {
