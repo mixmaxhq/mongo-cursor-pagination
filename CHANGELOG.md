@@ -1,3 +1,15 @@
+## [9.1.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v9.0.1...v9.1.0) (2025-07-04)
+
+
+### Features
+
+* unit tests ([b2cbc8f](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/b2cbc8fea958a5bcd9ecffba5b4d10cf808bd4c5))
+
+
+### Bug Fixes
+
+* encodePaginationTokens to encode plain objects ([b6005bb](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/b6005bbe929ce09b0e088839d93b9a4f43fe07a7))
+
 ### [9.0.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v9.0.0...v9.0.1) (2025-04-01)
 
 
