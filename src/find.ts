@@ -60,6 +60,11 @@ export default async function findWithPagination(
   const removePaginatedFieldInResponse =
     params.fields && !params.fields[params.paginatedField || '_id'];
 
+  // Check if _id was in the original projection before sanitizeParams modifies it.
+  // We'll need this later to determine if _id should be stripped from results.
+  const originalFieldsIncludedId = params.fields && params.fields._id === 1;
+  const paginatedField = params.paginatedField || '_id';
+
   let response;
   if (params.sortCaseInsensitive) {
     // For case-insensitive sorting, we need to work with an aggregation:
@@ -110,6 +115,14 @@ export default async function findWithPagination(
   // Remove fields that we added to the query (such as paginatedField and _id) that the user didn't ask for.
   if (removePaginatedFieldInResponse && params.paginatedField) {
     response.results = _.map(response.results, (result) => _.omit(result, params.paginatedField));
+  }
+
+  // When using secondary sort (paginatedField !== '_id'), sanitizeParams adds _id to the projection
+  // for cursor encoding. Remove it from results if the user didn't originally request it.
+  const shouldRemoveIdFromResponse =
+    params.fields && paginatedField !== '_id' && !originalFieldsIncludedId;
+  if (shouldRemoveIdFromResponse) {
+    response.results = _.map(response.results, (result) => _.omit(result, '_id'));
   }
 
   return response;
