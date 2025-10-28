@@ -1390,6 +1390,56 @@ describe('find', () => {
       expect(res.hasNext).toBe(true);
     });
 
+    it('pagination works with custom paginatedField and projection without _id', async () => {
+      const collection = t.db.collection('test_paging_custom_fields');
+
+      // First page with projection that doesn't include _id
+      const firstPage = await paging.find(collection, {
+        limit: 2,
+        fields: {
+          counter: 1,
+        },
+        paginatedField: 'timestamp',
+      });
+
+      expect(firstPage.results.length).toEqual(2);
+      expect(firstPage.results[0].counter).toEqual(6);
+      expect(firstPage.results[1].counter).toEqual(5);
+      expect(firstPage.results[0]._id).toBe(undefined); // _id should not be in results
+      expect(firstPage.results[0].timestamp).toBe(undefined); // timestamp should not be in results
+      expect(firstPage.hasNext).toBe(true);
+
+      // Second page - this is where the bug occurs
+      const secondPage = await paging.find(collection, {
+        limit: 2,
+        fields: {
+          counter: 1,
+        },
+        paginatedField: 'timestamp',
+        next: firstPage.next,
+      });
+
+      expect(secondPage.results.length).toEqual(2);
+      expect(secondPage.results[0].counter).toEqual(4);
+      expect(secondPage.results[1].counter).toEqual(3);
+      expect(secondPage.hasNext).toBe(true);
+
+      // Third page
+      const thirdPage = await paging.find(collection, {
+        limit: 2,
+        fields: {
+          counter: 1,
+        },
+        paginatedField: 'timestamp',
+        next: secondPage.next,
+      });
+
+      expect(thirdPage.results.length).toEqual(2);
+      expect(thirdPage.results[0].counter).toEqual(2);
+      expect(thirdPage.results[1].counter).toEqual(1);
+      expect(thirdPage.hasNext).toBe(false);
+    });
+
     it('does not overwrite $or used in a query with next/previous', async () => {
       const collection = t.db.collection('test_paging_custom_fields');
       // First page of 2
