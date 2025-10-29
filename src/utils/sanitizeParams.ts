@@ -106,7 +106,7 @@ export default async function sanitizeParams(
     // When using secondary sort (paginatedField !== '_id'), we need _id for cursor encoding.
     // Cursors are encoded as [paginatedFieldValue, _id] tuples (see encodePaginationTokens in query.ts).
     // Without _id, the cursor would be encoded as a string, breaking pagination on subsequent pages.
-    if (shouldSecondarySortOnId && params.fields._id === 0) {
+    if (shouldSecondarySortOnId && !params.fields._id) {
       params.fields._id = 1;
     }
   }
