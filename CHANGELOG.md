@@ -1,3 +1,11 @@
+### [9.1.1-beta.1](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v9.1.0...v9.1.1-beta.1) (2025-10-29)
+
+
+### Bug Fixes
+
+* pagination error when paginatedField is not _id ([b9c6dca](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/b9c6dcac9683f4433ef808d02c01d110737f0349))
+* pagination error when paginatedField is not _id ([28ba215](https://github.com/mixmaxhq/mongo-cursor-pagination/commit/28ba215bf4651e572751edaf857745aeb9ee4c18))
+
 ## [9.1.0](https://github.com/mixmaxhq/mongo-cursor-pagination/compare/v9.0.1...v9.1.0) (2025-07-04)
 
 
